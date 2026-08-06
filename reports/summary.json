@@ -1,0 +1,45 @@
+{
+  "recovered_ledger": {
+    "rows": 2227,
+    "columns": 132,
+    "baseline_full_expectancy_r": 0.6560062122631906,
+    "baseline_full_win_rate": 0.48720251459362374
+  },
+  "leakage_audit": {
+    "m15_v2_setup_score_equals_net_r": true,
+    "excluded_from_training": true
+  },
+  "chosen_candidate": {
+    "features": "base entry-time features only",
+    "model": "LightGBM classifier",
+    "oos_years": [2023, 2024, 2025, 2026],
+    "oos_rows": 1128,
+    "pooled_auc": 0.6476763788244767,
+    "pooled_brier": 0.23340292393572498,
+    "baseline_oos": {
+      "n": 1128,
+      "win_rate": 0.48936170212765956,
+      "expectancy_r": 0.6483761348934141,
+      "profit_factor": 2.213745216514271,
+      "total_r": 731.3682801597711,
+      "max_drawdown_r": -7.621618473751141
+    },
+    "q50_oos": {
+      "n": 613,
+      "win_rate": 0.5905383360522023,
+      "expectancy_r": 0.986552382594645,
+      "profit_factor": 3.257224636652386,
+      "total_r": 604.7566105305174,
+      "max_drawdown_r": -6.3873688525090415
+    },
+    "q70_oos": {
+      "n": 395,
+      "win_rate": 0.6582278481012658,
+      "expectancy_r": 1.2106495035549958,
+      "profit_factor": 4.269678103715482,
+      "total_r": 478.20655390422337,
+      "max_drawdown_r": -6.858911585711269
+    }
+  },
+  "interpretation": "Research ranking signal only. Not approved for live execution."
+}
