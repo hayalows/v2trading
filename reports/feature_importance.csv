@@ -1,0 +1,11 @@
+feature,mean_auc_drop,min_auc_drop,max_auc_drop
+risk_distance_points,0.064542,0.021077,0.119091
+entry_hour,0.048625,0.029698,0.061054
+symbol,0.026494,0.005427,0.051697
+spread_as_r,0.021564,-0.007458,0.071614
+poi_to_entry_min,0.007942,-0.002215,0.025541
+bos_to_poi_min,0.003598,0.000238,0.009677
+bars_to_entry,0.0018,-0.001771,0.005859
+sweep_to_bos_min,-0.000337,-0.01348,0.00973
+direction,-0.000363,-0.004771,0.004241
+entry_dow,-0.002886,-0.01096,0.001997
