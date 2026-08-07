@@ -20,7 +20,7 @@ Historical frozen-V2 summary:
 - profit factor about 2.23
 - full-period max drawdown about 11.54R in the recovered report
 
-## v0.1 pre-test
+## v0.1 recovered-ledger pre-test
 
 A strict leakage audit found that `m15_v2_setup_score` equals `net_r` exactly. It is now blacklisted.
 
@@ -32,7 +32,31 @@ After removing realized/post-trade fields, an expanding-year walk-forward experi
 - training-median score cohort (q50): 613 trades, ~0.987R expectancy
 - training-70th-percentile score cohort (q70): 395 trades, ~1.211R expectancy
 
-These are research results, not a live-trading claim. The next major checks are raw-candle reproduction, M1/tick fill sequencing, point-in-time macro/news features, leave-symbol-out validation, and a frozen live shadow period.
+## v0.2 independent public-data proxy
+
+Because the exact original V2 source and broker candles are not currently available, a separate proxy experiment reconstructs the core idea with explicit rules and runs it on public Hugging Face M15/M5 data for EURUSD, GBPUSD, XAUUSD and NAS100.
+
+The proxy is intentionally **not** presented as the exact historical V2 implementation.
+
+Independent public-data result:
+
+- 1,080 generated setups
+- 1,022 resolved trades after excluding 58 remaining intrabar ambiguities
+- 53.03% win rate
+- ~0.466R baseline expectancy
+- PF ~1.78
+- 242 setups required 5-minute data to resolve M15 stop/target ordering
+
+Expanding-year 2023–2025 meta-model result:
+
+- 566 OOS trades
+- pooled AUC ~0.729 with the first full feature set
+- q50: 295 trades, ~0.820R expectancy
+- q70: 170 trades, ~1.130R expectancy
+
+Ablation found that price/setup-only features ranked slightly better than the first raw calendar implementation, so macro/news remains a separate research layer rather than being forced into the core model.
+
+See `reports/public_data/PUBLIC_DATA_PROXY_REPORT.md` for the full methodology, cost stress and limitations.
 
 ## Repository map
 
@@ -41,9 +65,13 @@ These are research results, not a live-trading claim. The next major checks are 
 - `docs/MODEL_CARD.md` – current model and limitations
 - `src/v2trading/` – leakage-safe feature/model/backtest code
 - `scripts/run_recovered_ledger_experiment.py` – reproducible recovered-ledger experiment
+- `scripts/public_data_v2_proxy.py` – explicit public-data V2 proxy engine
+- `scripts/public_data_v2_proxy_runner.py` – pandas/string-safe research runner
+- `scripts/public_data_ablation.py` – price vs event-context ablation
 - `scripts/mt5_export.py` – broker-candle export script for the original Windows/MT5 machine
 - `scripts/news_features.py` – recent GDELT research collector
-- `reports/` – walk-forward, stress and pre-test outputs
+- `reports/public_data/` – independent proxy findings
+- `reports/` – recovered-ledger walk-forward, stress and pre-test outputs
 - `web/` – lightweight research dashboard
 
 ## Run the recovered-ledger experiment
