@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/v06_prospective_detector_validation.py'
+      - 'scripts/v06_prospective_detector_validation_np.py'
       - 'scripts/v06_proxy_entry_recall.py'
       - '.github/workflows/v06-prospective-validation.yml'
       - 'scripts/public_data_v2_proxy.py'
@@ -37,7 +38,7 @@ jobs:
           ls -lh .research-data/market
       - name: Run strict candle-by-candle replay
         run: |
-          PYTHONPATH=scripts python scripts/v06_prospective_detector_validation.py \
+          PYTHONPATH=scripts python scripts/v06_prospective_detector_validation_np.py \
             --data-dir .research-data/market \
             --start 2023-01-01 \
             --out research-output/v06
