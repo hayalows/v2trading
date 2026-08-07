@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-"""Relabel original V2 trades from the same MT5 broker export.
+"""Core same-broker execution relabeling utilities for V2 Quant v0.5.
 
-Preferred path: direct bid/ask ticks from ``v05_mt5_export.py``.
-Fallback path: broker M1 bid OHLC plus the bar spread field. Fallback labels are marked
-lower quality and any same-minute stop/target ordering ambiguity is retained rather
-than guessed.
+Use ``v05_same_broker_relabel_runner.py`` as the supported CLI. This module contains
+only deterministic parsing, storage and replay logic so tests and the runner share one
+implementation.
 """
 
-import argparse
 import json
-import math
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -67,7 +64,7 @@ def normalize_outcome(v: object, net_r: float | None) -> str:
     return "unknown"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Trade:
     setup_id: str
     symbol: str
@@ -85,12 +82,10 @@ class Trade:
 
 
 def load_ledger(path: Path, reward_r: float = 2.5) -> pd.DataFrame:
-    if path.suffix.lower() in {".parquet", ".pq"}:
-        raw = pd.read_parquet(path)
-    else:
-        raw = pd.read_csv(path, low_memory=False)
-    cols = {k: find_col(raw, k, required=k not in {"exit_time", "target", "net_r", "outcome", "setup_id"}) for k in COL_ALIASES}
-    rows = []
+    raw = pd.read_parquet(path) if path.suffix.lower() in {".parquet", ".pq"} else pd.read_csv(path, low_memory=False)
+    optional = {"exit_time", "target", "net_r", "outcome", "setup_id"}
+    cols = {k: find_col(raw, k, required=k not in optional) for k in COL_ALIASES}
+    rows: list[dict] = []
     for i, r in raw.iterrows():
         try:
             direction = normalize_direction(r[cols["direction"]])
@@ -106,9 +101,8 @@ def load_ledger(path: Path, reward_r: float = 2.5) -> pd.DataFrame:
                 target = entry + reward_r * risk if direction == "long" else entry - reward_r * risk
             net_r = None
             if cols["net_r"] is not None:
-                x = pd.to_numeric(pd.Series([r[cols["net_r"]]]), errors="coerce").iloc[0]
-                net_r = float(x) if np.isfinite(x) else None
-            outcome_value = r[cols["outcome"]] if cols["outcome"] is not None else None
+                nr = pd.to_numeric(pd.Series([r[cols["net_r"]]]), errors="coerce").iloc[0]
+                net_r = float(nr) if np.isfinite(nr) else None
             ts = pd.to_datetime(r[cols["entry_time"]], utc=True, errors="coerce")
             if pd.isna(ts):
                 continue
@@ -122,10 +116,10 @@ def load_ledger(path: Path, reward_r: float = 2.5) -> pd.DataFrame:
                 "stop": stop,
                 "target": float(target),
                 "risk_distance": risk,
-                "source_outcome": normalize_outcome(outcome_value, net_r),
+                "source_outcome": normalize_outcome(r[cols["outcome"]] if cols["outcome"] is not None else None, net_r),
                 "source_net_r": net_r,
             })
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, KeyError):
             continue
     out = pd.DataFrame(rows)
     if out.empty:
@@ -135,25 +129,31 @@ def load_ledger(path: Path, reward_r: float = 2.5) -> pd.DataFrame:
 
 class SameBrokerStore:
     def __init__(self, root: Path):
-        self.root = root
-        self.manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
-        self.point: dict[str, float] = {}
-        for sym, meta in self.manifest.get("symbols", {}).items():
-            self.point[sym.upper()] = float(meta.get("metadata", {}).get("point") or np.nan)
+        self.root = root.resolve()
+        self.manifest = json.loads((self.root / "manifest.json").read_text(encoding="utf-8"))
+        self.point = {
+            sym.upper(): float(meta.get("metadata", {}).get("point") or np.nan)
+            for sym, meta in self.manifest.get("symbols", {}).items()
+        }
         self._m1: dict[str, pd.DataFrame] = {}
         self._ticks: dict[tuple[str, str], pd.DataFrame] = {}
 
     def has_symbol(self, symbol: str) -> bool:
-        return symbol.upper() in {s.upper() for s in self.manifest.get("symbols", {})}
+        return symbol.upper() in self.point
+
+    def _symbol_dir(self, symbol: str) -> Path:
+        direct = self.root / symbol.upper()
+        if direct.exists():
+            return direct
+        matches = [p for p in self.root.iterdir() if p.is_dir() and p.name.upper() == symbol.upper()]
+        if len(matches) == 1:
+            return matches[0]
+        return direct
 
     def m1(self, symbol: str) -> pd.DataFrame:
         s = symbol.upper()
         if s not in self._m1:
-            p = self.root / s / "bars" / "M1.parquet"
-            if not p.exists():
-                # Exporter sanitizes research symbol but normally this is identical.
-                matches = list(self.root.glob(f"*/bars/M1.parquet"))
-                p = next((x for x in matches if x.parents[1].name.upper() == s), p)
+            p = self._symbol_dir(s) / "bars" / "M1.parquet"
             f = pd.read_parquet(p)
             f["time"] = pd.to_datetime(f.time, utc=True)
             self._m1[s] = f.sort_values("time").reset_index(drop=True)
@@ -161,13 +161,14 @@ class SameBrokerStore:
 
     def ticks_for_window(self, symbol: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.DataFrame:
         s = symbol.upper()
-        days = pd.date_range(start.floor("D"), end.floor("D"), freq="D", tz="UTC")
+        start = pd.Timestamp(start).tz_convert("UTC") if pd.Timestamp(start).tzinfo else pd.Timestamp(start, tz="UTC")
+        end = pd.Timestamp(end).tz_convert("UTC") if pd.Timestamp(end).tzinfo else pd.Timestamp(end, tz="UTC")
         frames = []
-        for day in days:
+        for day in pd.date_range(start.floor("D"), end.floor("D"), freq="D"):
             ds = day.date().isoformat()
             key = (s, ds)
             if key not in self._ticks:
-                p = self.root / s / "ticks" / f"date={ds}" / "ticks.parquet"
+                p = self._symbol_dir(s) / "ticks" / f"date={ds}" / "ticks.parquet"
                 if not p.exists():
                     self._ticks[key] = pd.DataFrame()
                 else:
@@ -182,68 +183,70 @@ class SameBrokerStore:
         return f[(f.time >= start) & (f.time <= end)].copy()
 
 
+def _median_spread_r(frame: pd.DataFrame, risk: float) -> float:
+    if frame.empty:
+        return np.nan
+    return float(((pd.to_numeric(frame.ask, errors="coerce") - pd.to_numeric(frame.bid, errors="coerce")) / risk).median())
+
+
 def relabel_ticks(t: Trade, ticks: pd.DataFrame, max_hold_hours: float = 12.0) -> dict:
     if ticks.empty or not {"bid", "ask", "time"}.issubset(ticks.columns):
         return {"label_source": "no_ticks", "execution_outcome": "no_data", "filled": 0}
     w = ticks[(ticks.time >= t.entry_time) & (ticks.time <= t.entry_time + pd.Timedelta(hours=max_hold_hours))].copy()
-    w = w[(pd.to_numeric(w.bid, errors="coerce") > 0) & (pd.to_numeric(w.ask, errors="coerce") > 0)]
+    w["bid"] = pd.to_numeric(w.bid, errors="coerce")
+    w["ask"] = pd.to_numeric(w.ask, errors="coerce")
+    w = w[(w.bid > 0) & (w.ask > 0) & (w.ask >= w.bid)].sort_values("time").reset_index(drop=True)
     if w.empty:
         return {"label_source": "no_ticks", "execution_outcome": "no_data", "filled": 0}
+
     risk = t.risk
-    fill_idx = None
-    for idx, r in w.iterrows():
-        if (t.direction == "long" and float(r.ask) <= t.entry) or (t.direction == "short" and float(r.bid) >= t.entry):
-            fill_idx = idx
+    fill_pos = None
+    for j, r in w.iterrows():
+        if (t.direction == "long" and r.ask <= t.entry) or (t.direction == "short" and r.bid >= t.entry):
+            fill_pos = j
             break
-    if fill_idx is None:
+    if fill_pos is None:
         return {"label_source": "tick_direct", "execution_outcome": "no_fill", "filled": 0,
-                "spread_median_r": float(((w.ask-w.bid)/risk).median())}
-    pos = w.index.get_loc(fill_idx)
-    fill = w.loc[fill_idx]
+                "spread_median_r": _median_spread_r(w, risk)}
+
+    fill = w.iloc[fill_pos]
     fill_price = min(float(fill.ask), t.entry) if t.direction == "long" else max(float(fill.bid), t.entry)
-    fill_spread_r = (float(fill.ask) - float(fill.bid)) / risk
-    after = w.iloc[pos:]
+    fill_spread_r = float((fill.ask - fill.bid) / risk)
+    after = w.iloc[fill_pos:]
+    med_spread = _median_spread_r(after, risk)
+
     for _, r in after.iterrows():
         bid, ask = float(r.bid), float(r.ask)
         if t.direction == "long":
             if bid <= t.stop:
-                return {
-                    "label_source": "tick_direct", "execution_outcome": "loss", "filled": 1,
-                    "fill_time": fill.time, "exit_time": r.time, "fill_price": fill_price, "exit_price": bid,
-                    "execution_r": (bid-fill_price)/risk, "fill_spread_r": fill_spread_r,
-                    "stop_slippage_r": max(0.0, t.stop-bid)/risk,
-                    "spread_median_r": float(((after.ask-after.bid)/risk).median()),
-                }
+                return {"label_source": "tick_direct", "execution_outcome": "loss", "filled": 1,
+                        "fill_time": fill.time, "exit_time": r.time, "fill_price": fill_price, "exit_price": bid,
+                        "execution_r": (bid-fill_price)/risk, "fill_spread_r": fill_spread_r,
+                        "stop_slippage_r": max(0.0, t.stop-bid)/risk, "spread_median_r": med_spread}
             if bid >= t.target:
-                return {
-                    "label_source": "tick_direct", "execution_outcome": "win", "filled": 1,
-                    "fill_time": fill.time, "exit_time": r.time, "fill_price": fill_price, "exit_price": t.target,
-                    "execution_r": (t.target-fill_price)/risk, "fill_spread_r": fill_spread_r,
-                    "stop_slippage_r": 0.0, "spread_median_r": float(((after.ask-after.bid)/risk).median()),
-                }
+                return {"label_source": "tick_direct", "execution_outcome": "win", "filled": 1,
+                        "fill_time": fill.time, "exit_time": r.time, "fill_price": fill_price, "exit_price": t.target,
+                        "execution_r": (t.target-fill_price)/risk, "fill_spread_r": fill_spread_r,
+                        "stop_slippage_r": 0.0, "spread_median_r": med_spread}
         else:
             if ask >= t.stop:
-                return {
-                    "label_source": "tick_direct", "execution_outcome": "loss", "filled": 1,
-                    "fill_time": fill.time, "exit_time": r.time, "fill_price": fill_price, "exit_price": ask,
-                    "execution_r": (fill_price-ask)/risk, "fill_spread_r": fill_spread_r,
-                    "stop_slippage_r": max(0.0, ask-t.stop)/risk,
-                    "spread_median_r": float(((after.ask-after.bid)/risk).median()),
-                }
+                return {"label_source": "tick_direct", "execution_outcome": "loss", "filled": 1,
+                        "fill_time": fill.time, "exit_time": r.time, "fill_price": fill_price, "exit_price": ask,
+                        "execution_r": (fill_price-ask)/risk, "fill_spread_r": fill_spread_r,
+                        "stop_slippage_r": max(0.0, ask-t.stop)/risk, "spread_median_r": med_spread}
             if ask <= t.target:
-                return {
-                    "label_source": "tick_direct", "execution_outcome": "win", "filled": 1,
-                    "fill_time": fill.time, "exit_time": r.time, "fill_price": fill_price, "exit_price": t.target,
-                    "execution_r": (fill_price-t.target)/risk, "fill_spread_r": fill_spread_r,
-                    "stop_slippage_r": 0.0, "spread_median_r": float(((after.ask-after.bid)/risk).median()),
-                }
+                return {"label_source": "tick_direct", "execution_outcome": "win", "filled": 1,
+                        "fill_time": fill.time, "exit_time": r.time, "fill_price": fill_price, "exit_price": t.target,
+                        "execution_r": (fill_price-t.target)/risk, "fill_spread_r": fill_spread_r,
+                        "stop_slippage_r": 0.0, "spread_median_r": med_spread}
+
     last = after.iloc[-1]
     mark = float(last.bid) if t.direction == "long" else float(last.ask)
     rr = (mark-fill_price)/risk if t.direction == "long" else (fill_price-mark)/risk
     return {"label_source": "tick_direct", "execution_outcome": "timeout", "filled": 1,
             "fill_time": fill.time, "exit_time": last.time, "fill_price": fill_price, "exit_price": mark,
             "execution_r": float(np.clip(rr, -2.0, 3.0)), "fill_spread_r": fill_spread_r,
-            "stop_slippage_r": 0.0, "spread_median_r": float(((after.ask-after.bid)/risk).median())}
+            "stop_slippage_r": 0.0, "spread_median_r": med_spread}
 
 
 def relabel_m1(t: Trade, m1: pd.DataFrame, point: float, max_hold_hours: float = 12.0) -> dict:
@@ -252,36 +255,38 @@ def relabel_m1(t: Trade, m1: pd.DataFrame, point: float, max_hold_hours: float =
         return {"label_source": "m1_spread_approx", "execution_outcome": "no_data", "filled": 0}
     if not np.isfinite(point) or point <= 0:
         point = max(abs(t.entry) * 1e-6, 1e-9)
-    spread_px = pd.to_numeric(w.get("spread", 0), errors="coerce").fillna(0) * point
-    w["ask_low"] = w.low + spread_px
-    w["ask_high"] = w.high + spread_px
+    spread_points = pd.to_numeric(w["spread"], errors="coerce").fillna(0) if "spread" in w else pd.Series(0.0, index=w.index)
+    spread_px = spread_points * point
+    w["ask_low"] = pd.to_numeric(w.low, errors="coerce") + spread_px
+    w["ask_high"] = pd.to_numeric(w.high, errors="coerce") + spread_px
+    w = w.reset_index(drop=True)
+    spread_px = spread_px.reset_index(drop=True)
     risk = t.risk
 
     fill_pos = None
-    for j, r in w.reset_index(drop=True).iterrows():
+    for j, r in w.iterrows():
         if (t.direction == "long" and float(r.ask_low) <= t.entry) or (t.direction == "short" and float(r.high) >= t.entry):
             fill_pos = j
             break
     if fill_pos is None:
         return {"label_source": "m1_spread_approx", "execution_outcome": "no_fill", "filled": 0}
-    w = w.reset_index(drop=True)
+
     for j in range(fill_pos, len(w)):
         r = w.iloc[j]
         if t.direction == "long":
             stop_hit, tp_hit = float(r.low) <= t.stop, float(r.high) >= t.target
         else:
             stop_hit, tp_hit = float(r.ask_high) >= t.stop, float(r.ask_low) <= t.target
-        # Entry ordering inside the fill minute and stop-vs-target ordering cannot be known from M1 OHLC.
         if stop_hit and tp_hit:
             return {"label_source": "m1_spread_approx", "execution_outcome": "ambiguous_m1", "filled": 1}
         if j == fill_pos and (stop_hit or tp_hit):
             return {"label_source": "m1_spread_approx", "execution_outcome": "ambiguous_entry_minute", "filled": 1}
         if stop_hit:
             return {"label_source": "m1_spread_approx", "execution_outcome": "loss", "filled": 1,
-                    "execution_r": -1.0, "fill_spread_r": float((spread_px.iloc[min(j, len(spread_px)-1)])/risk)}
+                    "execution_r": -1.0, "fill_spread_r": float(spread_px.iloc[j]/risk)}
         if tp_hit:
             return {"label_source": "m1_spread_approx", "execution_outcome": "win", "filled": 1,
-                    "execution_r": abs(t.target-t.entry)/risk, "fill_spread_r": float((spread_px.iloc[min(j, len(spread_px)-1)])/risk)}
+                    "execution_r": abs(t.target-t.entry)/risk, "fill_spread_r": float(spread_px.iloc[j]/risk)}
     return {"label_source": "m1_spread_approx", "execution_outcome": "timeout", "filled": 1}
 
 
@@ -290,66 +295,9 @@ def quality(rec: dict) -> str:
     if rec.get("label_source") == "tick_direct" and outcome in {"win", "loss"}:
         spread = pd.to_numeric(pd.Series([rec.get("fill_spread_r")]), errors="coerce").iloc[0]
         slip = pd.to_numeric(pd.Series([rec.get("stop_slippage_r", 0)]), errors="coerce").fillna(0).iloc[0]
-        if np.isfinite(spread) and spread <= 0.20 and slip <= 0.10:
-            return "trusted_tick"
-        return "tick_high_friction"
+        return "trusted_tick" if np.isfinite(spread) and spread <= 0.20 and slip <= 0.10 else "tick_high_friction"
     if rec.get("label_source") == "m1_spread_approx" and outcome in {"win", "loss"}:
         return "m1_unambiguous"
     if str(outcome).startswith("ambiguous"):
         return "ambiguous"
     return "unresolved"
-
-
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--ledger", type=Path, required=True)
-    ap.add_argument("--export-root", type=Path, required=True)
-    ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--reward-r", type=float, default=2.5)
-    ap.add_argument("--max-hold-hours", type=float, default=12.0)
-    ap.add_argument("--tick-only", action="store_true", help="Do not fall back to M1 when direct ticks are unavailable")
-    args = ap.parse_args()
-
-    trades = load_ledger(args.ledger, args.reward_r)
-    store = SameBrokerStore(args.export_root)
-    missing_symbols = sorted(set(trades.symbol) - {s.upper() for s in store.manifest.get("symbols", {})})
-    if missing_symbols:
-        print(f"warning: ledger symbols not present in export: {missing_symbols}")
-
-    rows = []
-    for rec in trades.to_dict("records"):
-        if not store.has_symbol(rec["symbol"]):
-            continue
-        t = Trade(**rec)
-        end = t.entry_time + pd.Timedelta(hours=args.max_hold_hours)
-        ticks = store.ticks_for_window(t.symbol, t.entry_time - pd.Timedelta(minutes=5), end)
-        result = relabel_ticks(t, ticks, args.max_hold_hours)
-        if result.get("execution_outcome") == "no_data" and not args.tick_only:
-            result = relabel_m1(t, store.m1(t.symbol), store.point.get(t.symbol, np.nan), args.max_hold_hours)
-        result["label_quality"] = quality(result)
-        rows.append({**rec, **result})
-
-    out = pd.DataFrame(rows)
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    out.to_csv(args.out, index=False)
-    clear = out[out.execution_outcome.isin(["win", "loss"])] if not out.empty else out
-    direct = clear[clear.label_source == "tick_direct"] if not clear.empty else clear
-    summary = {
-        "trades_loaded": int(len(trades)),
-        "trades_replayed": int(len(out)),
-        "direct_tick_clear": int(len(direct)),
-        "m1_fallback_clear": int((clear.label_source == "m1_spread_approx").sum()) if len(clear) else 0,
-        "ambiguous": int(out.execution_outcome.astype(str).str.startswith("ambiguous").sum()) if len(out) else 0,
-        "no_fill": int((out.execution_outcome == "no_fill").sum()) if len(out) else 0,
-        "no_data": int((out.execution_outcome == "no_data").sum()) if len(out) else 0,
-        "direct_tick_agreement": float((direct.execution_outcome == direct.source_outcome).mean()) if len(direct) else np.nan,
-        "direct_tick_execution_expectancy_r": float(pd.to_numeric(direct.execution_r, errors="coerce").mean()) if len(direct) else np.nan,
-        "trusted_tick_count": int((out.label_quality == "trusted_tick").sum()) if len(out) else 0,
-    }
-    summary_path = args.out.with_suffix(".summary.json")
-    summary_path.write_text(json.dumps(summary, indent=2, default=str), encoding="utf-8")
-    print(json.dumps(summary, indent=2, default=str))
-
-
-if __name__ == "__main__":
-    main()
