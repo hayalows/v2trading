@@ -5,6 +5,7 @@ on:
     paths:
       - 'scripts/public_data_v2_proxy.py'
       - 'scripts/public_data_v2_proxy_runner.py'
+      - 'scripts/public_data_ablation.py'
       - '.github/workflows/public-data-research.yml'
       - 'requirements.txt'
   workflow_dispatch:
@@ -56,6 +57,12 @@ jobs:
             --calendar .research-data/forex_factory_cache.csv \
             --out research-output
 
+      - name: Run model and event ablations
+        run: |
+          python scripts/public_data_ablation.py \
+            --trades research-output/public_v2_proxy_trades.csv \
+            --out research-output
+
       - name: Show summary
         if: always()
         run: |
@@ -63,6 +70,8 @@ jobs:
           if [ -f research-output/public_symbol_summary.csv ]; then cat research-output/public_symbol_summary.csv; fi
           if [ -f research-output/public_walk_forward_yearly.csv ]; then cat research-output/public_walk_forward_yearly.csv; fi
           if [ -f research-output/public_cost_stress.csv ]; then cat research-output/public_cost_stress.csv; fi
+          if [ -f research-output/public_model_ablation.csv ]; then cat research-output/public_model_ablation.csv; fi
+          if [ -f research-output/public_event_proximity.csv ]; then cat research-output/public_event_proximity.csv; fi
 
       - name: Upload research outputs
         if: always()
