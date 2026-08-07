@@ -15,15 +15,17 @@ No new ML model is allowed until this label-integrity gate passes.
 
 For each research symbol (`EURUSD`, `GBPUSD`, `XAUUSD`, `US30` by default):
 
-- M1 bars;
-- M5 bars;
-- M15 bars;
-- daily partitions of historical bid/ask ticks, when MT5 exposes them;
+- full-period M1 bars;
+- full-period M5 bars;
+- full-period M15 bars;
+- bid/ask ticks on the UTC dates required to replay recovered trades, with one-day boundary padding;
 - broker symbol mapping;
 - digits, point, tick size/value, contract size, stop/freeze levels, volume rules and swap metadata;
 - bar-integrity diagnostics;
 - daily tick diagnostics;
 - SHA256 for every exported file.
+
+The targeted tick mode is the default because exporting every tick for four markets over more than six years can be unnecessarily large. `v05_mt5_export.py` still exists for a full continuous tick archive when one is specifically needed.
 
 Account login and account-holder name are intentionally not exported.
 
@@ -55,21 +57,34 @@ powershell -ExecutionPolicy Bypass -File scripts\v05_run_same_broker.ps1 `
   -Aliases @("EURUSD=EURUSD.a","GBPUSD=GBPUSD.a","XAUUSD=XAUUSD.a","US30=US30.cash")
 ```
 
-The default requested research window is 2020-01-01 through 2026-08-01. Change `-Start` / `-End` if the broker has a different archive range.
+The default requested bar window is 2020-01-01 through 2026-08-01. Tick days are derived from actual recovered trade timestamps. Change `-Start` / `-End` if the broker has a different archive range.
 
 ## Manual workflow
 
 ### 1. Export same-broker data
 
+Preferred targeted export:
+
 ```powershell
-python scripts\v05_mt5_export.py `
+python scripts\v05_mt5_targeted_export.py `
+  --ledger "C:\path\to\FULL_2020_2026_HTF_ENRICHED_TRADE_LEDGER.csv" `
   --symbols EURUSD GBPUSD XAUUSD US30 `
   --start 2020-01-01 `
   --end 2026-08-01 `
   --out same-broker-v05\export
 ```
 
-If a symbol is ambiguous, the script stops and asks for an explicit `--alias`. It will not silently select a similarly named CFD.
+If a symbol is ambiguous, the script stops and requires an explicit `--alias`; it will not silently select a similarly named CFD.
+
+For a complete continuous tick archive instead of trade-window days:
+
+```powershell
+python scripts\v05_mt5_export.py `
+  --symbols EURUSD GBPUSD XAUUSD US30 `
+  --start 2020-01-01 `
+  --end 2026-08-01 `
+  --out same-broker-v05\full-export
+```
 
 ### 2. Verify immutable hashes
 
@@ -153,14 +168,15 @@ For direct ticks:
 - short entry uses **bid**;
 - long stop/target uses **bid**;
 - short stop/target uses **ask**;
-- a stop gap records actual crossed quote and stop slippage;
+- invalid crossed quotes (`ask < bid`) are discarded;
+- a stop gap records the actual crossed quote and slippage;
 - a target uses the target limit level once the executable quote reaches it.
 
 There is no cross-broker basis adjustment in v0.5 because all levels and quotes should be from the original broker.
 
 ## What to send back for remote review
 
-Do not upload years of raw tick files unless specifically necessary. The useful small outputs are:
+Do not upload the raw tick archive unless specifically necessary. The useful small outputs are:
 
 - `v05_same_broker_relabels.csv`
 - `v05_same_broker_relabels.summary.json`
