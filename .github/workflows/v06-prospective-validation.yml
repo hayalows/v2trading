@@ -1,0 +1,63 @@
+name: v06-prospective-detector-validation
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/v06_prospective_detector_validation.py'
+      - 'scripts/v06_prospective_detector_validation_np.py'
+      - 'scripts/v06_proxy_entry_recall.py'
+      - '.github/workflows/v06-prospective-validation.yml'
+      - 'scripts/public_data_v2_proxy.py'
+      - 'requirements.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Download EURUSD and GBPUSD M15 public history
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD; do
+            curl -L --fail --retry 4 --retry-delay 2 -o ".research-data/market/${symbol}-15m.feather" "${base}/${symbol}-15m.feather?download=true"
+          done
+          ls -lh .research-data/market
+      - name: Run strict candle-by-candle replay
+        run: |
+          PYTHONPATH=scripts python scripts/v06_prospective_detector_validation_np.py \
+            --data-dir .research-data/market \
+            --start 2023-01-01 \
+            --out research-output/v06
+      - name: Benchmark warnings against independent proxy entries
+        run: |
+          PYTHONPATH=scripts python scripts/v06_proxy_entry_recall.py \
+            --data-dir .research-data/market \
+            --states research-output/v06/prospective_states.csv \
+            --start 2023-01-01 \
+            --out research-output/v06
+      - name: Show validation summaries
+        run: |
+          echo '--- self-consistent stage conversion ---'
+          cat research-output/v06/summary.json
+          echo '--- independent proxy-entry recall ---'
+          cat research-output/v06/proxy_entry_validation.json
+      - name: Upload validation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: v06-prospective-detector-validation
+          path: research-output/v06/
+          retention-days: 14
