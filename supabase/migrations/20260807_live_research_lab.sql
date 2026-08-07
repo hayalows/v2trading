@@ -102,10 +102,12 @@ alter table public.market_states enable row level security;
 alter table public.market_state_history enable row level security;
 
 drop policy if exists instruments_public_read on public.instruments;
+drop policy if exists provider_cache_service_role_all on public.provider_cache;
 drop policy if exists market_bars_public_read on public.market_bars;
 drop policy if exists market_states_public_read on public.market_states;
 drop policy if exists market_state_history_public_read on public.market_state_history;
 create policy instruments_public_read on public.instruments for select using (true);
+create policy provider_cache_service_role_all on public.provider_cache for all to service_role using (true) with check (true);
 create policy market_bars_public_read on public.market_bars for select using (true);
 create policy market_states_public_read on public.market_states for select using (true);
 create policy market_state_history_public_read on public.market_state_history for select using (true);
