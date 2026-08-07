@@ -1,0 +1,136 @@
+name: v04-execution-first
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/v04_tick_manifest.py'
+      - 'scripts/v04_tick_relabel.mjs'
+      - 'scripts/v04_execution_analysis.py'
+      - '.github/workflows/v04-execution-first.yml'
+      - 'scripts/v03_quant_stack.py'
+      - 'scripts/v03_execution_audit.py'
+      - 'scripts/v03_tick_basis_manifest.py'
+      - 'requirements.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  execution-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install research dependencies
+        run: |
+          pip install -r requirements.txt
+          npm install --no-save dukascopy-node@1.50.0
+
+      - name: Download public market data
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market .research-data/macro research-output
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD XAUUSD NAS100; do
+            curl -L --fail --retry 4 --retry-delay 2 -o ".research-data/market/${symbol}-15m.feather" "${base}/${symbol}-15m.feather?download=true"
+            curl -L --fail --retry 4 --retry-delay 2 -o ".research-data/market/${symbol}-5m.feather" "${base}/${symbol}-5m.feather?download=true"
+          done
+          curl -L --fail --retry 5 --retry-delay 3 \
+            -o .research-data/XAUUSD_1m.csv \
+            'https://huggingface.co/datasets/ta4500/xauusd/resolve/main/XAUUSD_1m.csv?download=true'
+
+      - name: Download causal event and macro inputs used by frozen v0.3 baseline
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -L --fail --retry 4 --retry-delay 2 \
+            -o .research-data/forex_factory_cache.csv \
+            'https://huggingface.co/datasets/Ehsanrs2/Forex_Factory_Calendar/resolve/main/forex_factory_cache.csv?download=true'
+          for sid in DFII10 DGS10 T10YIE DTWEXBGS VIXCLS DCOILWTICO DFF BAMLH0A0HYM2; do
+            curl -L --fail --retry 4 --retry-delay 2 \
+              -o ".research-data/macro/${sid}.csv" \
+              "https://fred.stlouisfed.org/graph/fredgraph.csv?id=${sid}&cosd=2019-01-01"
+          done
+          curl -L --fail --retry 4 --retry-delay 2 \
+            -o .research-data/data_gpr_export.xls \
+            'https://www.matteoiacoviello.com/gpr_files/data_gpr_export.xls'
+
+      - name: Recreate proxy ledger and frozen v0.3 OOS probabilities
+        run: |
+          PYTHONPATH=scripts python scripts/public_data_v2_proxy_runner.py \
+            --data-dir .research-data/market \
+            --calendar .research-data/forex_factory_cache.csv \
+            --out research-output
+          PYTHONPATH=scripts python scripts/v03_quant_stack_runner.py \
+            --trades research-output/public_v2_proxy_trades.csv \
+            --data-dir .research-data/market \
+            --calendar .research-data/forex_factory_cache.csv \
+            --macro-dir .research-data/macro \
+            --gpr .research-data/data_gpr_export.xls \
+            --out research-output
+
+      - name: Re-run independent XAUUSD M1 audit
+        run: |
+          PYTHONPATH=scripts python scripts/v03_execution_audit_runner.py \
+            --trades research-output/v03_trade_feature_ledger.csv \
+            --m1 .research-data/XAUUSD_1m.csv \
+            --source15 .research-data/market/XAUUSD-15m.feather \
+            --out research-output
+
+      - name: Build score-stratified v0.4 tick sample
+        run: |
+          python scripts/v04_tick_manifest.py \
+            --ledger research-output/v03_trade_feature_ledger.csv \
+            --predictions research-output/v03_price_oos_predictions.csv \
+            --per-symbol 16 \
+            --bins 8 \
+            --out research-output/v04_tick_windows.csv
+          PYTHONPATH=scripts python scripts/v03_tick_basis_manifest.py \
+            --manifest research-output/v04_tick_windows.csv \
+            --data-dir .research-data/market \
+            --out research-output/v04_tick_windows_basis.csv
+
+      - name: Re-label selected setups with executable bid-ask ticks
+        run: |
+          node scripts/v04_tick_relabel.mjs research-output/v04_tick_windows_basis.csv research-output
+
+      - name: Test frozen v0.3 ranking against execution labels
+        run: |
+          python scripts/v04_execution_analysis.py \
+            --predictions research-output/v03_price_oos_predictions.csv \
+            --m1-audit research-output/v03_xau_m1_execution_audit.csv \
+            --tick-audit research-output/v04_tick_execution_audit.csv \
+            --out research-output
+
+      - name: Show v0.4 decision
+        if: always()
+        run: |
+          echo '=== V0.4 EXECUTION FIRST ==='
+          test -f research-output/v04_summary.json && cat research-output/v04_summary.json || true
+          echo '=== TICK RELABEL SUMMARY ==='
+          test -f research-output/v04_tick_execution_summary.json && cat research-output/v04_tick_execution_summary.json || true
+          echo '=== EXECUTION THRESHOLDS ==='
+          test -f research-output/v04_execution_thresholds.csv && cat research-output/v04_execution_thresholds.csv || true
+          echo '=== BY SYMBOL ==='
+          test -f research-output/v04_execution_by_symbol.csv && cat research-output/v04_execution_by_symbol.csv || true
+
+      - name: Upload v0.4 research outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v04-execution-first-results
+          path: research-output/
+          if-no-files-found: warn
+          retention-days: 21
