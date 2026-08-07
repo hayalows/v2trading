@@ -5,7 +5,9 @@ on:
     paths:
       - 'scripts/v03_quant_stack.py'
       - 'scripts/v03_quant_stack_runner.py'
+      - 'scripts/v03_postprocess.py'
       - 'scripts/v03_execution_audit.py'
+      - 'scripts/v03_execution_audit_runner.py'
       - 'scripts/v03_tick_audit.mjs'
       - '.github/workflows/v03-quant-research.yml'
       - 'requirements.txt'
@@ -81,6 +83,10 @@ jobs:
             --gpr .research-data/data_gpr_export.xls \
             --out research-output
 
+      - name: Reconcile v0.3 model blends and acceptance decisions
+        run: |
+          python scripts/v03_postprocess.py --out research-output
+
       - name: Download independent XAUUSD one-minute history
         shell: bash
         run: |
@@ -92,7 +98,7 @@ jobs:
 
       - name: Run independent XAUUSD M1 execution audit
         run: |
-          PYTHONPATH=scripts python scripts/v03_execution_audit.py \
+          PYTHONPATH=scripts python scripts/v03_execution_audit_runner.py \
             --trades research-output/v03_trade_feature_ledger.csv \
             --m1 .research-data/XAUUSD_1m.csv \
             --source15 .research-data/market/XAUUSD-15m.feather \
