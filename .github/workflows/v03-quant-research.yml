@@ -1,0 +1,129 @@
+name: v03-quant-research
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/v03_quant_stack.py'
+      - 'scripts/v03_execution_audit.py'
+      - 'scripts/v03_tick_audit.mjs'
+      - '.github/workflows/v03-quant-research.yml'
+      - 'requirements.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install research dependencies
+        run: |
+          pip install -r requirements.txt
+          npm install --no-save dukascopy-node@1.50.0
+
+      - name: Download public M15 and M5 market data
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD XAUUSD NAS100; do
+            curl -L --fail --retry 4 --retry-delay 2 -o ".research-data/market/${symbol}-15m.feather" "${base}/${symbol}-15m.feather?download=true"
+            curl -L --fail --retry 4 --retry-delay 2 -o ".research-data/market/${symbol}-5m.feather" "${base}/${symbol}-5m.feather?download=true"
+          done
+
+      - name: Download economic calendar and macro state data
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/macro
+          curl -L --fail --retry 4 --retry-delay 2 \
+            -o .research-data/forex_factory_cache.csv \
+            'https://huggingface.co/datasets/Ehsanrs2/Forex_Factory_Calendar/resolve/main/forex_factory_cache.csv?download=true'
+          for sid in DFII10 DGS10 T10YIE DTWEXBGS VIXCLS DCOILWTICO DFF BAMLH0A0HYM2; do
+            curl -L --fail --retry 4 --retry-delay 2 \
+              -o ".research-data/macro/${sid}.csv" \
+              "https://fred.stlouisfed.org/graph/fredgraph.csv?id=${sid}&cosd=2019-01-01"
+          done
+          curl -L --fail --retry 4 --retry-delay 2 \
+            -o .research-data/data_gpr_export.xls \
+            'https://www.matteoiacoviello.com/gpr_files/data_gpr_export.xls'
+
+      - name: Recreate public V2 proxy ledger
+        run: |
+          mkdir -p research-output
+          PYTHONPATH=scripts python scripts/public_data_v2_proxy_runner.py \
+            --data-dir .research-data/market \
+            --calendar .research-data/forex_factory_cache.csv \
+            --out research-output
+
+      - name: Run V2 Quant v0.3 price event and gold macro stack
+        run: |
+          PYTHONPATH=scripts python scripts/v03_quant_stack.py \
+            --trades research-output/public_v2_proxy_trades.csv \
+            --data-dir .research-data/market \
+            --calendar .research-data/forex_factory_cache.csv \
+            --macro-dir .research-data/macro \
+            --gpr .research-data/data_gpr_export.xls \
+            --out research-output
+
+      - name: Download independent XAUUSD one-minute history
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -L --fail --retry 5 --retry-delay 3 \
+            -o .research-data/XAUUSD_1m.csv \
+            'https://huggingface.co/datasets/ta4500/xauusd/resolve/main/XAUUSD_1m.csv?download=true'
+          ls -lh .research-data/XAUUSD_1m.csv
+
+      - name: Run independent XAUUSD M1 execution audit
+        run: |
+          PYTHONPATH=scripts python scripts/v03_execution_audit.py \
+            --trades research-output/v03_trade_feature_ledger.csv \
+            --m1 .research-data/XAUUSD_1m.csv \
+            --source15 .research-data/market/XAUUSD-15m.feather \
+            --out research-output
+
+      - name: Run targeted Dukascopy bid-ask tick audit
+        env:
+          TICK_AUDIT_PER_SYMBOL: '4'
+        run: |
+          node scripts/v03_tick_audit.mjs research-output/v03_tick_windows.csv research-output
+
+      - name: Show v0.3 summaries
+        if: always()
+        run: |
+          echo '=== V0.3 MODEL ==='
+          test -f research-output/v03_summary.json && cat research-output/v03_summary.json || true
+          echo '=== XAU M1 EXECUTION ==='
+          test -f research-output/v03_xau_m1_execution_summary.json && cat research-output/v03_xau_m1_execution_summary.json || true
+          echo '=== TICK EXECUTION ==='
+          test -f research-output/v03_tick_execution_summary.json && cat research-output/v03_tick_execution_summary.json || true
+          echo '=== PRICE WALK FORWARD ==='
+          test -f research-output/v03_price_walk_forward.csv && cat research-output/v03_price_walk_forward.csv || true
+          echo '=== EVENT MODEL ==='
+          test -f research-output/v03_event_model_yearly.csv && cat research-output/v03_event_model_yearly.csv || true
+          echo '=== GOLD MACRO ==='
+          test -f research-output/v03_gold_macro_yearly.csv && cat research-output/v03_gold_macro_yearly.csv || true
+
+      - name: Upload v0.3 research outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v03-quant-research-results
+          path: research-output/
+          if-no-files-found: warn
+          retention-days: 21
