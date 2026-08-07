@@ -1,0 +1,69 @@
+{
+  "version": "V2 Quant v0.3",
+  "strict_price": {
+    "n": 566,
+    "auc": 0.7127877877877877,
+    "brier": 0.21512087973427574,
+    "all_expectancy_r": 0.42975907593063434,
+    "q50_n": 283,
+    "q50_expectancy_r": 0.8084569667358221,
+    "q70_n": 170,
+    "q70_expectancy_r": 1.2104152542352962
+  },
+  "price_plus_event": {
+    "n": 566,
+    "auc": 0.7069069069069069,
+    "brier": 0.2172137622838706,
+    "q50_expectancy_r": 0.7788587643713087,
+    "q70_expectancy_r": 1.1871159365389197
+  },
+  "gold_price_only": {
+    "n": 165,
+    "auc": 0.7117871840094063,
+    "brier": 0.21396892689225572,
+    "q50_expectancy_r": 0.716899745818796,
+    "q70_expectancy_r": 1.0948677568173648
+  },
+  "gold_price_plus_macro": {
+    "n": 165,
+    "auc": 0.7075249853027631,
+    "brier": 0.21529920383285722,
+    "q50_expectancy_r": 0.7948144607137864,
+    "q70_expectancy_r": 1.1747121345340787
+  },
+  "xau_m1_execution": {
+    "audited_trades": 169,
+    "adjusted_fill_rate": 0.9289940828402367,
+    "remaining_m1_ambiguous": 3,
+    "comparable_win_loss_trades": 152,
+    "m15_m1_directional_agreement": 0.5526315789473685,
+    "median_abs_quote_offset_bps": 5.750234097833879
+  },
+  "dukascopy_tick_execution": {
+    "requested_trades": 16,
+    "successful_tick_windows": 16,
+    "basis_available_rate": 0.9375,
+    "adjusted_tick_fill_rate": 0.875,
+    "adjusted_comparable_win_loss": 13,
+    "adjusted_m15_tick_outcome_agreement": 0.5384615384615384,
+    "median_observed_spread_as_r": 0.5490196078427388,
+    "p90_observed_spread_as_r": 2.2737900170343104
+  },
+  "moving_block_bootstrap": {
+    "all_oos_mean_r": 0.429759,
+    "all_oos_95pct_interval_r": [0.2893, 0.5641],
+    "training_q50_mean_r": 0.836389,
+    "training_q50_95pct_interval_r": [0.6478, 0.9990],
+    "training_q70_mean_r": 1.193298,
+    "training_q70_95pct_interval_r": [0.9782, 1.3711]
+  },
+  "acceptance": {
+    "strict_price_model": "ACCEPT_RESEARCH_BASELINE",
+    "economic_event_model": "REJECT_AS_INCREMENTAL_FILTER",
+    "xau_macro_geopolitical_model": "REJECT_AS_INCREMENTAL_FILTER",
+    "independent_m1_execution_gate": "FAIL",
+    "bid_ask_tick_execution_gate": "FAIL",
+    "live_money": "DISABLED",
+    "live_buy_sell_signals": "DISABLED"
+  }
+}
