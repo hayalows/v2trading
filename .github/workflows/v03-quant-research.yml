@@ -8,6 +8,7 @@ on:
       - 'scripts/v03_postprocess.py'
       - 'scripts/v03_execution_audit.py'
       - 'scripts/v03_execution_audit_runner.py'
+      - 'scripts/v03_tick_basis_manifest.py'
       - 'scripts/v03_tick_audit.mjs'
       - '.github/workflows/v03-quant-research.yml'
       - 'requirements.txt'
@@ -104,11 +105,18 @@ jobs:
             --source15 .research-data/market/XAUUSD-15m.feather \
             --out research-output
 
+      - name: Add source-price anchors to tick audit manifest
+        run: |
+          PYTHONPATH=scripts python scripts/v03_tick_basis_manifest.py \
+            --manifest research-output/v03_tick_windows.csv \
+            --data-dir .research-data/market \
+            --out research-output/v03_tick_windows_basis.csv
+
       - name: Run targeted Dukascopy bid-ask tick audit
         env:
           TICK_AUDIT_PER_SYMBOL: '4'
         run: |
-          node scripts/v03_tick_audit.mjs research-output/v03_tick_windows.csv research-output
+          node scripts/v03_tick_audit.mjs research-output/v03_tick_windows_basis.csv research-output
 
       - name: Show v0.3 summaries
         if: always()
