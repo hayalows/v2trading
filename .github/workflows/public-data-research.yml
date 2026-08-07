@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/public_data_v2_proxy.py'
+      - 'scripts/public_data_v2_proxy_runner.py'
       - '.github/workflows/public-data-research.yml'
       - 'requirements.txt'
   workflow_dispatch:
@@ -50,7 +51,7 @@ jobs:
       - name: Run public V2 proxy experiment
         run: |
           mkdir -p research-output
-          python scripts/public_data_v2_proxy.py \
+          PYTHONPATH=scripts python scripts/public_data_v2_proxy_runner.py \
             --data-dir .research-data/market \
             --calendar .research-data/forex_factory_cache.csv \
             --out research-output
@@ -61,6 +62,7 @@ jobs:
           if [ -f research-output/public_summary.json ]; then cat research-output/public_summary.json; fi
           if [ -f research-output/public_symbol_summary.csv ]; then cat research-output/public_symbol_summary.csv; fi
           if [ -f research-output/public_walk_forward_yearly.csv ]; then cat research-output/public_walk_forward_yearly.csv; fi
+          if [ -f research-output/public_cost_stress.csv ]; then cat research-output/public_cost_stress.csv; fi
 
       - name: Upload research outputs
         if: always()
