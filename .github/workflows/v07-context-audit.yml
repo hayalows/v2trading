@@ -1,0 +1,41 @@
+name: v07-quant-context-audit
+
+on:
+  pull_request:
+    paths:
+      - 'src/v2trading/live_diagnostics.py'
+      - 'scripts/v07_context_audit.py'
+      - '.github/workflows/v07-context-audit.yml'
+      - 'supabase/functions/market-lab/index.ts'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Download independent EURUSD/GBPUSD M15 history
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD; do
+            curl -L --fail --retry 4 --retry-delay 2 -o ".research-data/market/${symbol}-15m.feather" "${base}/${symbol}-15m.feather?download=true"
+          done
+      - name: Audit v0.7 context diagnostics
+        run: python scripts/v07_context_audit.py --data-dir .research-data/market --start 2023-01-01 --out research-output/v07
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v07-quant-context-audit
+          path: research-output/v07/
+          retention-days: 14
