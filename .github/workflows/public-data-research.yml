@@ -1,0 +1,83 @@
+name: public-data-v2-proxy
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/public_data_v2_proxy.py'
+      - 'scripts/public_data_v2_proxy_runner.py'
+      - 'scripts/public_data_ablation.py'
+      - '.github/workflows/public-data-research.yml'
+      - 'requirements.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install research dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download public M15 and M5 market data
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD XAUUSD NAS100; do
+            curl -L --fail --retry 4 --retry-delay 2 -o ".research-data/market/${symbol}-15m.feather" "${base}/${symbol}-15m.feather?download=true"
+            curl -L --fail --retry 4 --retry-delay 2 -o ".research-data/market/${symbol}-5m.feather" "${base}/${symbol}-5m.feather?download=true"
+          done
+          ls -lh .research-data/market
+
+      - name: Download historical economic calendar
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -L --fail --retry 4 --retry-delay 2 \
+            -o .research-data/forex_factory_cache.csv \
+            'https://huggingface.co/datasets/Ehsanrs2/Forex_Factory_Calendar/resolve/main/forex_factory_cache.csv?download=true'
+          ls -lh .research-data/forex_factory_cache.csv
+
+      - name: Run public V2 proxy experiment
+        run: |
+          mkdir -p research-output
+          PYTHONPATH=scripts python scripts/public_data_v2_proxy_runner.py \
+            --data-dir .research-data/market \
+            --calendar .research-data/forex_factory_cache.csv \
+            --out research-output
+
+      - name: Run model and event ablations
+        run: |
+          python scripts/public_data_ablation.py \
+            --trades research-output/public_v2_proxy_trades.csv \
+            --out research-output
+
+      - name: Show summary
+        if: always()
+        run: |
+          if [ -f research-output/public_summary.json ]; then cat research-output/public_summary.json; fi
+          if [ -f research-output/public_symbol_summary.csv ]; then cat research-output/public_symbol_summary.csv; fi
+          if [ -f research-output/public_walk_forward_yearly.csv ]; then cat research-output/public_walk_forward_yearly.csv; fi
+          if [ -f research-output/public_cost_stress.csv ]; then cat research-output/public_cost_stress.csv; fi
+          if [ -f research-output/public_model_ablation.csv ]; then cat research-output/public_model_ablation.csv; fi
+          if [ -f research-output/public_event_proximity.csv ]; then cat research-output/public_event_proximity.csv; fi
+
+      - name: Upload research outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-data-v2-proxy-results
+          path: research-output/
+          if-no-files-found: warn
+          retention-days: 14
