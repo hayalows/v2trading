@@ -135,6 +135,41 @@ For recent M15 history the engine checks:
 
 The website now calls the system **Near-live research** rather than implying tick-level execution data.
 
+## Independent historical context audit
+
+The v0.7 context diagnostics were then run independently over public EURUSD/GBPUSD M15 history from 2023 onward. This was a descriptive audit, not a parameter-optimization exercise. The thresholds were not changed after observing the result.
+
+The mathematical sanity gate passed for both pairs:
+
+- efficiency ratio remained inside [0, 1]
+- volatility percentile remained inside [0, 100]
+- shift score remained inside [0, 100]
+- stable, elevated and high shift states all occurred in meaningful sample sizes
+
+### EURUSD
+
+77,389 eligible M15 observations:
+
+| Shift state | N | Share | Median next 1h absolute move | Median next 4h absolute move |
+|---|---:|---:|---:|---:|
+| Stable | 67,376 | 87.1% | 3.54 bps | 7.61 bps |
+| Elevated | 7,144 | 9.2% | 5.75 bps | 11.21 bps |
+| High | 2,869 | 3.7% | 7.36 bps | 13.11 bps |
+
+### GBPUSD
+
+77,284 eligible M15 observations:
+
+| Shift state | N | Share | Median next 1h absolute move | Median next 4h absolute move |
+|---|---:|---:|---:|---:|
+| Stable | 67,341 | 87.1% | 3.87 bps | 8.22 bps |
+| Elevated | 7,033 | 9.1% | 6.55 bps | 12.67 bps |
+| High | 2,910 | 3.8% | 7.84 bps | 14.64 bps |
+
+The ordering was monotonic on both markets: elevated/high shift states were followed by larger **absolute** market movement than stable states at both 1h and 4h horizons.
+
+This supports the diagnostic's intended use as a **change/movement-risk indicator**. It does **not** show direction, profitability or that a V2 setup should be traded when shift risk is high.
+
 ## Current live smoke test
 
 After v0.7 deployment the force-refresh completed for both core pairs.
