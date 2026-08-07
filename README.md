@@ -2,142 +2,165 @@
 
 Research-first quantitative trading laboratory built around the recovered V2 M15 setup concept.
 
-> **Status:** active research. **No live-money execution and no live buy/sell signals.** v0.3 accepts the strict price-ranking model as a research baseline but fails the independent execution-validation gate.
+> **Status:** active research. **No live-money execution and no live buy/sell signals.** v0.4 showed that the frozen price-ranking signal does not currently survive independent executable relabeling. v0.5 is therefore focused on same-broker label reconstruction, not new predictive models.
 
 ## Core question
 
-Given that the V2 engine has already produced a valid structural setup, can information available at that exact moment improve the estimated probability that the trade reaches its fixed 2.5R target before its stop, after realistic execution costs?
+Can the recovered V2 structural setup be reproduced with execution labels that remain valid when entries, stops and targets are evaluated on the correct bid/ask side of the same broker feed?
 
-## What was recovered
+Only after that question is answered does model optimization become meaningful.
 
-The original project lived locally at `C:/Users/USER/Documents/strategy_lab_mvp` and was connected to MT5. The recovered Library data includes a 2,227-trade 2020–July 2026 enriched ledger with 132 fields.
+## Recovered historical V2
 
-Historical frozen-V2 summary:
+The original project lived locally at `C:/Users/USER/Documents/strategy_lab_mvp` and was connected to MT5. Recovered reports describe a 2,227-trade 2020–July 2026 enriched ledger.
+
+Historical report summary:
 
 - 2,227 trades
 - 48.72% win rate
 - 0.656R average expectancy after recovered spread cost
 - profit factor about 2.23
-- full-period max drawdown about 11.54R in the recovered report
+- max drawdown about 11.54R
 
-## v0.1 recovered-ledger pre-test
+These are historical research statistics, not expected live returns.
 
-A leakage audit found that `m15_v2_setup_score` equals `net_r` exactly. It is blacklisted together with realized/post-trade fields.
+## v0.1 — recovered-ledger leakage audit
 
-After removing outcome information, the first expanding-year model still showed useful but imperfect ranking power.
+`m15_v2_setup_score` was found to equal realized `net_r` exactly and was blacklisted together with post-trade fields. A weaker but still interesting entry-time ranking signal remained after leakage removal.
 
-## v0.2 independent public-data proxy
+## v0.2 — independent public-data proxy
 
-Because the exact original V2 source and broker candles are not currently available, a separate explicit proxy reconstructs:
+An explicit proxy reconstructed:
 
 `liquidity sweep -> BOS -> fresh POI -> 50% POI entry -> stop -> fixed 2.5R`
 
-It runs on independent public M15/M5 data for EURUSD, GBPUSD, XAUUSD and NAS100.
+on independent public M15/M5 data for EURUSD, GBPUSD, XAUUSD and NAS100.
 
 - 1,080 generated setups
 - 1,022 resolved trades
 - 53.03% win rate
 - ~0.466R proxy expectancy
 - PF ~1.78
-- 242 setups required 5-minute sequencing checks
 
-The proxy is **not** presented as the unavailable original MT5 implementation.
+The proxy is not presented as the unavailable original MT5 implementation.
 
 See `reports/public_data/PUBLIC_DATA_PROXY_REPORT.md`.
 
-## v0.3 — causal models + execution falsification
+## v0.3 — causal model stack
 
-v0.3 removes two additional sources of timestamp optimism:
+v0.3 removed entry-candle leakage, future economic-surprise leakage, macro publication-timing optimism and OOS boundary overlap.
 
-- the model cannot use the entry candle's eventual close/volume; price state comes from completed M15 bars only;
-- a pre-release trade cannot see an economic announcement's future actual/surprise value.
-
-It also lags daily macro data, conservatively publication-lags monthly geopolitical-risk data, purges trades overlapping OOS year boundaries, and prevents duplicate model-output joins.
-
-### Strict price/setup model
-
-2023–2025 pooled OOS:
+Strict price/setup model, 2023–2025 pooled OOS:
 
 - 566 trades
 - AUC **0.713**
-- Brier **0.215**
 - all-trade proxy expectancy **+0.430R**
-- pooled q50 cohort: **+0.808R**
-- pooled q70 cohort: **+1.210R**
+- q50 **+0.808R**
+- q70 **+1.210R**
 
-The stricter AUC is lower than the earlier v0.2 headline, which is expected after removing information that was not definitely available at entry. The ranking signal survives.
+Economic-event and XAU macro/geopolitical overlays were rejected because they did not improve the frozen price baseline consistently.
 
-### Context layers
+See `reports/v03/V03_QUANT_RESEARCH_REPORT.md`.
 
-Economic-event overlay:
+## v0.4 — Execution First
 
-- **REJECTED as an incremental filter**
-- fixed 80/20 price+event blend worsened AUC from 0.713 to 0.707
+v0.4 froze the v0.3 score and tested it against a deterministic score-stratified sample of real Dukascopy bid/ask ticks plus an independent XAUUSD M1 feed.
 
-XAUUSD macro/geopolitical overlay:
+### Tick audit
 
-- **REJECTED as an incremental filter**
-- 2025 was promising, but 2023/2024 were unstable and the fixed blend worsened aggregate AUC/calibration
+- 64 score-stratified trades
+- 61 clear executable labels
+- 31 trusted low-friction labels
+- 96.9% fill rate
+- source M15/M5 vs tick agreement: **59.0%**
+- frozen v0.3 price AUC on executable labels: **0.389**
+- source expectancy on the same 61 trades: **+0.381R**
+- executable score-stratified expectancy: **-0.612R**
+- median fill spread: **0.153R**
+- p90 fill spread: **0.655R**
 
-### Execution audit
+Even the <=0.10R spread cohort only produced 0.338 AUC, so spread alone does not explain the failure.
 
-Independent XAUUSD M1 replay:
+### Independent XAU M1 check
 
-- 169 overlapping trades audited
-- 92.9% adjusted fill rate
-- only **55.3%** agreement between source M15/M5 win/loss outcome and independent M1 outcome
+- 44 OOS-prediction-overlap trades
+- source vs M1 agreement: **52.3%**
+- frozen price AUC on M1 labels: **0.378**
 
-Targeted Dukascopy bid/ask tick replay:
+### v0.4 decision
 
-- 16 stratified windows
-- 87.5% adjusted fill rate
-- only **53.8%** win/loss agreement in comparable trades
-- median observed spread ≈ **0.55R** of planned risk
-- p90 observed spread ≈ **2.27R**
+**Live gate: FAIL.**
 
-Therefore the historical R figures remain **proxy research statistics, not expected live returns**. The execution gate fails until labels can be reproduced on broker-appropriate lower-timeframe/bid-ask data.
+The current candle labels are not robust enough to be treated as executable ground truth, and the frozen ranking is not promoted or inverted after the negative result.
 
-See `reports/v03/V03_QUANT_RESEARCH_REPORT.md` and `reports/v03/v03_summary.json`.
+See `reports/v04/V04_EXECUTION_FIRST_REPORT.md`.
+
+## v0.5 — Same-Broker Reconstruction
+
+v0.5 addresses the main unresolved question from v0.4: were the disagreements caused by an invalid source simulator, or by comparing different brokers/data vendors?
+
+The v0.5 pipeline exports from the original MT5 broker:
+
+- M1, M5 and M15 bars;
+- partitioned historical bid/ask ticks;
+- symbol point/tick/contract/execution metadata;
+- immutable SHA256 file hashes;
+- bar/tick integrity diagnostics.
+
+It then replays the recovered V2 ledger on that same feed using:
+
+- ask for long entries and short exits;
+- bid for short entries and long exits;
+- actual stop-cross quotes for slippage;
+- explicit ambiguous/no-fill/no-data labels;
+- M1+recorded-spread only as a fallback when direct ticks are unavailable.
+
+The pipeline refuses to create an executable-label training ledger unless a pre-registered integrity gate passes:
+
+- >=200 clear direct-tick labels;
+- >=100 trusted direct-tick labels;
+- >=30 direct-tick labels per market;
+- >=90% overall source-vs-same-broker-tick agreement;
+- >=93% agreement in trusted labels;
+- <=10% unresolved rate.
+
+Passing v0.5 would approve **model rebuilding only**, not live trading.
+
+Runbook: `docs/V05_SAME_BROKER_RUNBOOK.md`.
 
 ## Current acceptance state
 
 ```text
-V2 structural setup engine       -> RESEARCH
-Strict price meta-model          -> ACCEPTED RESEARCH BASELINE
+Recovered V2 historical report   -> RESEARCH EVIDENCE
+Strict v0.3 price model          -> HISTORICAL RANKING SIGNAL ONLY
 Economic-event overlay           -> REJECTED
 XAU macro/geopolitical overlay   -> REJECTED
-Independent M1 execution gate    -> FAILED
-Bid/ask tick execution gate      -> FAILED
+v0.4 cross-broker tick gate      -> FAILED
+v0.4 independent XAU M1 gate     -> FAILED
+v0.5 same-broker label gate      -> NOT RUN YET
+Executable-label retraining      -> BLOCKED UNTIL v0.5 PASSES
 Live-money execution             -> DISABLED
 Live buy/sell signals            -> DISABLED
 ```
 
 ## Repository map
 
-- `docs/RESEARCH_PLAN.md` – full research design
-- `docs/DATA_SOURCES.md` – market/macro/news source plan
-- `docs/MODEL_CARD.md` – model limitations
-- `src/v2trading/` – leakage-safe feature/model/backtest code
-- `scripts/run_recovered_ledger_experiment.py` – recovered-ledger experiment
-- `scripts/public_data_v2_proxy.py` – explicit public-data V2 proxy engine
-- `scripts/v03_quant_stack.py` – completed-bar price, causal event and gold macro research stack
-- `scripts/v03_postprocess.py` – duplicate-safe model combination and acceptance decisions
-- `scripts/v03_execution_audit.py` – independent XAUUSD M1 replay
-- `scripts/v03_tick_audit.mjs` – targeted Dukascopy bid/ask replay
-- `.github/workflows/v03-quant-research.yml` – reproducible v0.3 workflow
-- `reports/public_data/` – v0.2 independent proxy findings
-- `reports/v03/` – v0.3 findings and frozen summaries
-- `web/` – lightweight research dashboard
-
-## Next research gate
-
-The next version should be **execution-first**, not a larger AI model:
-
-1. rebuild labels from bid/ask or conservative broker-appropriate M1 data;
-2. model `spread / risk` and genuine fill probability as first-class variables;
-3. reject geometrically tight setups whose planned stop is not large relative to transaction friction;
-4. retrain the price meta-model only after execution-validated labels exist;
-5. add Deflated Sharpe Ratio, CSCV/Probability of Backtest Overfitting and a frozen experiment registry before another model is promoted.
+- `docs/RESEARCH_PLAN.md` — research design
+- `docs/V05_SAME_BROKER_RUNBOOK.md` — same-broker Windows workflow
+- `src/v2trading/` — leakage-safe feature/model/backtest code
+- `scripts/public_data_v2_proxy.py` — explicit public-data proxy
+- `scripts/v03_quant_stack.py` — causal v0.3 model stack
+- `scripts/v04_tick_relabel.mjs` — cross-broker executable relabeler
+- `scripts/v04_execution_analysis.py` — frozen-score execution test
+- `scripts/v05_mt5_export.py` — original-broker M1/M5/M15/tick exporter
+- `scripts/v05_verify_export.py` — SHA256 export verifier
+- `scripts/v05_same_broker_relabel_runner.py` — same-broker executable replay
+- `scripts/v05_label_gate.py` — pre-registered label-integrity gate
+- `scripts/v05_prepare_training_ledger.py` — gated executable-label ledger builder
+- `scripts/v05_run_same_broker.ps1` — one-command Windows workflow
+- `reports/v03/` — v0.3 findings
+- `reports/v04/` — v0.4 execution findings
+- `web/` — lightweight research dashboard
 
 ## Research rule
 

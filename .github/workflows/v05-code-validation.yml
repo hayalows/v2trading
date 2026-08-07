@@ -1,0 +1,49 @@
+name: v05-code-validation
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/v05_*.py'
+      - 'scripts/v05_*.ps1'
+      - 'tests/test_v05_same_broker.py'
+      - 'requirements-mt5.txt'
+      - '.github/workflows/v05-code-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Compile v0.5 Python code
+        run: |
+          python -m py_compile \
+            scripts/v05_mt5_export.py \
+            scripts/v05_mt5_targeted_export.py \
+            scripts/v05_verify_export.py \
+            scripts/v05_same_broker_relabel.py \
+            scripts/v05_same_broker_relabel_runner.py \
+            scripts/v05_label_gate.py \
+            scripts/v05_prepare_training_ledger.py
+      - name: Test execution semantics
+        run: PYTHONPATH=src pytest -q tests/test_v05_same_broker.py
+      - name: Check analysis CLIs
+        run: |
+          python scripts/v05_verify_export.py --help >/dev/null
+          python scripts/v05_same_broker_relabel_runner.py --help >/dev/null
+          python scripts/v05_label_gate.py --help >/dev/null
+          python scripts/v05_prepare_training_ledger.py --help >/dev/null
+      - name: Parse PowerShell workflow when pwsh is available
+        shell: bash
+        run: |
+          if command -v pwsh >/dev/null 2>&1; then
+            pwsh -NoProfile -Command '$tokens=$null; $errors=$null; [System.Management.Automation.Language.Parser]::ParseFile("scripts/v05_run_same_broker.ps1",[ref]$tokens,[ref]$errors) > $null; if ($errors.Count -gt 0) { $errors | Format-List | Out-String | Write-Error; exit 1 }'
+          fi
