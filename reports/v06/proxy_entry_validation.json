@@ -1,0 +1,45 @@
+{
+  "version": "v0.6 independent proxy-entry recall",
+  "symbols": {
+    "EURUSD": {
+      "proxy_entries": 128,
+      "stage3_recall": 1.0,
+      "stage3_median_lead_minutes": 367.5,
+      "stage4_recall": 0.9765625,
+      "stage4_median_lead_minutes": 360.0,
+      "stage5_recall": 0.828125,
+      "stage5_median_lead_minutes": 60.0,
+      "stage6_recall": 0.6796875,
+      "stage6_median_lead_minutes": 60.0,
+      "stage7_recall": 0.0390625,
+      "stage7_median_lead_minutes": 15.0
+    },
+    "GBPUSD": {
+      "proxy_entries": 151,
+      "stage3_recall": 1.0,
+      "stage3_median_lead_minutes": 345.0,
+      "stage4_recall": 1.0,
+      "stage4_median_lead_minutes": 330.0,
+      "stage5_recall": 0.8145695364238411,
+      "stage5_median_lead_minutes": 60.0,
+      "stage6_recall": 0.7417218543046358,
+      "stage6_median_lead_minutes": 60.0,
+      "stage7_recall": 0.013245033112582781,
+      "stage7_median_lead_minutes": 15.0
+    }
+  },
+  "pooled": {
+    "proxy_entries": 279,
+    "stage3_recall": 1.0,
+    "stage3_median_lead_minutes": 360.0,
+    "stage4_recall": 0.989247311827957,
+    "stage4_median_lead_minutes": 345.0,
+    "stage5_recall": 0.8207885304659498,
+    "stage5_median_lead_minutes": 60.0,
+    "stage6_recall": 0.7132616487455197,
+    "stage6_median_lead_minutes": 60.0,
+    "stage7_recall": 0.025089605734767026,
+    "stage7_median_lead_minutes": 15.0
+  },
+  "interpretation": "Recall answers whether the live detector warned before a separately generated proxy entry. It does not validate trade profitability or broker execution."
+}
