@@ -1,8 +1,14 @@
 from __future__ import annotations
 
+from pathlib import Path
+import sys
+
 import pandas as pd
 
-from scripts.v05_same_broker_relabel import Trade, quality, relabel_m1, relabel_ticks
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from v05_same_broker_relabel import Trade, quality, relabel_m1, relabel_ticks
 
 UTC = "UTC"
 
@@ -17,15 +23,15 @@ def test_tick_long_uses_ask_for_entry_and_bid_for_target():
     t = trade("long")
     ticks = pd.DataFrame({
         "time": pd.to_datetime(["2025-01-02 10:00:00Z", "2025-01-02 10:00:01Z", "2025-01-02 10:00:02Z"]),
-        "bid": [1.0998, 1.1001, 1.1025],
-        "ask": [1.1001, 1.1003, 1.1027],
+        "bid": [1.0998, 1.0999, 1.1025],
+        "ask": [1.1001, 1.1002, 1.1027],
     })
-    # First tick's bid is below entry but ask is above it, so it must not fill yet.
-    # There is still no long limit fill in this window.
+    # Bid touching the limit is insufficient for a buy: the ask must reach it.
     out = relabel_ticks(t, ticks)
     assert out["execution_outcome"] == "no_fill"
 
     ticks.loc[1, "ask"] = 1.1000
+    ticks.loc[1, "bid"] = 1.0998
     out = relabel_ticks(t, ticks)
     assert out["execution_outcome"] == "win"
     assert out["filled"] == 1
