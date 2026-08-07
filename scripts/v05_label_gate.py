@@ -51,24 +51,33 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--relabels", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--expected-symbols", nargs="+", default=["EURUSD", "GBPUSD", "XAUUSD", "US30"])
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
 
     df = pd.read_csv(args.relabels, low_memory=False)
+    df["symbol"] = df.symbol.astype(str).str.upper()
+    expected = [s.upper() for s in args.expected_symbols]
     overall = metrics(df)
+
     by_symbol = []
-    for symbol, g in df.groupby("symbol"):
-        by_symbol.append({"symbol": symbol, **metrics(g)})
+    for symbol in expected:
+        by_symbol.append({"symbol": symbol, **metrics(df[df.symbol == symbol])})
+    # Preserve any unexpected symbols for diagnosis without allowing them to replace
+    # a required market in the gate.
+    for symbol in sorted(set(df.symbol) - set(expected)):
+        by_symbol.append({"symbol": symbol, **metrics(df[df.symbol == symbol])})
     by_symbol_df = pd.DataFrame(by_symbol)
 
     unresolved = ~df.execution_outcome.isin(["win", "loss"])
     unresolved_rate = float(unresolved.mean()) if len(df) else 1.0
-    min_per_symbol = int(by_symbol_df.direct_tick_clear.min()) if len(by_symbol_df) else 0
+    expected_rows = by_symbol_df[by_symbol_df.symbol.isin(expected)]
+    min_per_symbol = int(expected_rows.direct_tick_clear.min()) if len(expected_rows) else 0
+    present = sorted(set(df.symbol) & set(expected))
+    missing = sorted(set(expected) - set(df.symbol))
 
-    # Pre-registered v0.5 label gate. This is intentionally much stricter than the
-    # v0.4 cross-broker gate because setup candles and executable labels now come
-    # from the same broker feed.
     gate = {
+        "all_expected_symbols_present": bool(not missing),
         "minimum_direct_tick_clear_200": bool(overall["direct_tick_clear"] >= 200),
         "minimum_trusted_tick_clear_100": bool(overall["trusted_tick_clear"] >= 100),
         "minimum_30_direct_tick_labels_per_symbol": bool(min_per_symbol >= 30),
@@ -81,11 +90,15 @@ def main() -> None:
     summary = {
         "version": "V2 Quant v0.5 Same-Broker Reconstruction",
         "purpose": "Validate label integrity before any executable-label model retraining",
+        "expected_symbols": expected,
+        "present_expected_symbols": present,
+        "missing_expected_symbols": missing,
         "overall": overall,
         "unresolved_rate": unresolved_rate,
-        "minimum_direct_tick_labels_in_any_symbol": min_per_symbol,
+        "minimum_direct_tick_labels_in_any_expected_symbol": min_per_symbol,
         "by_symbol": by_symbol,
         "pre_registered_gate": {
+            "all_expected_symbols_required": True,
             "direct_tick_clear": 200,
             "trusted_tick_clear": 100,
             "direct_tick_per_symbol": 30,
