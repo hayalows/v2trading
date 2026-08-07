@@ -5,8 +5,9 @@ from __future__ import annotations
 GitHub's current pandas build can preserve different datetime resolutions after
 CSV/Feather parsing (for example datetime64[us, UTC] vs datetime64[ns, UTC]).
 `merge_asof` requires exact matching dtypes. This wrapper normalizes datetime join
-keys to UTC nanoseconds and changes no research logic, features, labels, lags,
-thresholds, or model parameters.
+keys to UTC nanoseconds and removes stale helper join keys before subsequent as-of
+merges. It changes no research logic, features, labels, lags, thresholds, or model
+parameters.
 """
 
 import pandas as pd
@@ -20,8 +21,8 @@ def _as_ns_utc(series: pd.Series) -> pd.Series:
 
 
 def _merge_asof_compat(left, right, *args, **kwargs):
-    l = left
-    r = right
+    l = left.copy()
+    r = right.copy()
     left_on = kwargs.get("left_on")
     right_on = kwargs.get("right_on")
     on = kwargs.get("on")
@@ -30,8 +31,11 @@ def _merge_asof_compat(left, right, *args, **kwargs):
         left_on = right_on = on
 
     if left_on is not None and right_on is not None:
-        l = left.copy()
-        r = right.copy()
+        # A prior as-of merge can leave the previous right-side helper key on the
+        # left frame. Drop it before a new join so pandas does not create _x/_y
+        # suffixes that break the caller's normal post-merge cleanup.
+        if right_on != left_on and right_on in l.columns:
+            l = l.drop(columns=[right_on])
         if is_datetime64_any_dtype(l[left_on].dtype):
             l[left_on] = _as_ns_utc(l[left_on])
         if is_datetime64_any_dtype(r[right_on].dtype):
