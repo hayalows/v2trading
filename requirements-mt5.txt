@@ -1,0 +1,6 @@
+# Install on the Windows machine running the original broker's MetaTrader 5 terminal.
+# MetaTrader5 is not available on Linux GitHub-hosted runners.
+MetaTrader5>=5.0.45
+pandas>=2.2
+numpy>=2.0
+pyarrow>=15.0
