@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/v06_prospective_detector_validation.py'
+      - 'scripts/v06_proxy_entry_recall.py'
       - '.github/workflows/v06-prospective-validation.yml'
       - 'scripts/public_data_v2_proxy.py'
       - 'requirements.txt'
@@ -40,8 +41,19 @@ jobs:
             --data-dir .research-data/market \
             --start 2023-01-01 \
             --out research-output/v06
-      - name: Show prospective validation summary
-        run: cat research-output/v06/summary.json
+      - name: Benchmark warnings against independent proxy entries
+        run: |
+          PYTHONPATH=scripts python scripts/v06_proxy_entry_recall.py \
+            --data-dir .research-data/market \
+            --states research-output/v06/prospective_states.csv \
+            --start 2023-01-01 \
+            --out research-output/v06
+      - name: Show validation summaries
+        run: |
+          echo '--- self-consistent stage conversion ---'
+          cat research-output/v06/summary.json
+          echo '--- independent proxy-entry recall ---'
+          cat research-output/v06/proxy_entry_validation.json
       - name: Upload validation artifact
         uses: actions/upload-artifact@v4
         with:
