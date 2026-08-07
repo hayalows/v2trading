@@ -18,8 +18,12 @@ if (-not (Test-Path $Ledger)) {
 
 python -m pip install -r requirements-mt5.txt
 
+# Full M1/M5/M15 bars are exported for the research period. Bid/ask ticks are
+# downloaded only for dates required by the recovered trades (+/- one UTC day),
+# avoiding an unnecessary multi-year full-tick archive.
 $exportArgs = @(
-  "scripts/v05_mt5_export.py",
+  "scripts/v05_mt5_targeted_export.py",
+  "--ledger", $Ledger,
   "--symbols"
 ) + $Symbols + @(
   "--start", $Start,
@@ -30,7 +34,7 @@ foreach ($a in $Aliases) {
   $exportArgs += @("--alias", $a)
 }
 
-Write-Host "`n[1/5] Exporting original-broker bars and bid/ask ticks..." -ForegroundColor Cyan
+Write-Host "`n[1/5] Exporting original-broker bars + trade-window bid/ask ticks..." -ForegroundColor Cyan
 python @exportArgs
 if ($LASTEXITCODE -ne 0) { throw "MT5 export failed" }
 
