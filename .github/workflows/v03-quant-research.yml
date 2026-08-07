@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/v03_quant_stack.py'
+      - 'scripts/v03_quant_stack_runner.py'
       - 'scripts/v03_execution_audit.py'
       - 'scripts/v03_tick_audit.mjs'
       - '.github/workflows/v03-quant-research.yml'
@@ -72,7 +73,7 @@ jobs:
 
       - name: Run V2 Quant v0.3 price event and gold macro stack
         run: |
-          PYTHONPATH=scripts python scripts/v03_quant_stack.py \
+          PYTHONPATH=scripts python scripts/v03_quant_stack_runner.py \
             --trades research-output/public_v2_proxy_trades.csv \
             --data-dir .research-data/market \
             --calendar .research-data/forex_factory_cache.csv \
