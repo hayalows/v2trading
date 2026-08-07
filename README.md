@@ -2,13 +2,65 @@
 
 Research-first quantitative trading laboratory built around the recovered V2 M15 setup concept.
 
-> **Status:** active research. **No live-money execution and no live buy/sell signals.** v0.4 showed that the frozen price-ranking signal does not currently survive independent executable relabeling. v0.5 is therefore focused on same-broker label reconstruction, not new predictive models.
+> **Status:** active research. **No live-money execution and no live buy/sell signals.** v0.4 showed that the frozen price-ranking signal does not currently survive independent executable relabeling. v0.5 remains the same-broker validation gate, while **V2 Research Lab v1** now observes live/recent market state prospectively using a zero-cost public-data stack.
 
-## Core question
+## V2 Research Lab v1 — live market observation
+
+The project now has a live research layer that works without MT5, a paid data API, or a new market-data account.
+
+Current stack:
+
+- Supabase Free — database, Edge Function and five-minute Cron refresh;
+- Vercel — public research interface;
+- Yahoo Finance public chart endpoints — completed-bar structure/history;
+- exchangerate.dev anonymous endpoint — EURUSD and GBPUSD reference rates when available;
+- goldprice.dev anonymous endpoint — XAUUSD spot reference and bid/ask when available;
+- TradingView free widget — interactive visual chart only, separate from research calculations.
+
+The live lab currently covers:
+
+- EURUSD
+- GBPUSD
+- XAUUSD
+- US30 / Dow context
+
+Because there is no broker execution feed, the lab is deliberately a **market-state and formation monitor**, not a signal engine.
+
+It calculates:
+
+- D1, H4, H1 and M15 trend + strength;
+- trending/ranging/transition/volatility regimes;
+- recent swing and liquidity context;
+- previous-day levels;
+- M15 ATR and recent-range position;
+- a deterministic V2 formation state machine from liquidity proximity through sweep, BOS, fresh POI and research entry-zone proximity;
+- source freshness and proxy warnings.
+
+The formation states are:
+
+```text
+0  NO_SETUP
+1  LIQUIDITY_NEARBY
+2  POI_USED
+3  SWEEP_CONFIRMED
+4  WAITING_FOR_BOS
+5  BOS_CONFIRMED
+6  FRESH_POI_IDENTIFIED
+7  APPROACHING_POI
+8  ENTRY_ZONE_REACHED   # research state, not a trade signal
+```
+
+XAUUSD structure currently uses COMEX gold futures as a free proxy while an anonymous XAUUSD spot reference is used when available. US30 uses E-mini Dow futures as a free extended-hours proxy for broker US30 CFDs. These limitations are shown in the UI and API.
+
+The lab writes timestamped state observations to Supabase so future research can measure stage transition rates and outcomes prospectively rather than fitting only to recovered historical trades.
+
+Architecture and methodology: `docs/LIVE_RESEARCH_LAB_V1.md`.
+
+## Core validation question
 
 Can the recovered V2 structural setup be reproduced with execution labels that remain valid when entries, stops and targets are evaluated on the correct bid/ask side of the same broker feed?
 
-Only after that question is answered does model optimization become meaningful.
+Only after that question is answered does probability-model optimization become meaningful. The live research lab is useful in parallel because trend/structure observation does not require us to pretend the old execution labels are valid.
 
 ## Recovered historical V2
 
@@ -138,7 +190,8 @@ XAU macro/geopolitical overlay   -> REJECTED
 v0.4 cross-broker tick gate      -> FAILED
 v0.4 independent XAU M1 gate     -> FAILED
 v0.5 same-broker label gate      -> NOT RUN YET
-Executable-label retraining      -> BLOCKED UNTIL v0.5 PASSES
+Live Research Lab v1             -> ACTIVE OBSERVATION / RESEARCH ONLY
+Executable-label retraining      -> BLOCKED UNTIL VALID LABELS EXIST
 Live-money execution             -> DISABLED
 Live buy/sell signals            -> DISABLED
 ```
@@ -146,8 +199,11 @@ Live buy/sell signals            -> DISABLED
 ## Repository map
 
 - `docs/RESEARCH_PLAN.md` — research design
+- `docs/LIVE_RESEARCH_LAB_V1.md` — zero-cost live lab architecture and methodology
 - `docs/V05_SAME_BROKER_RUNBOOK.md` — same-broker Windows workflow
 - `src/v2trading/` — leakage-safe feature/model/backtest code
+- `supabase/functions/market-lab/index.ts` — live market-state engine
+- `supabase/migrations/20260807_live_research_lab.sql` — live lab database schema and RLS source
 - `scripts/public_data_v2_proxy.py` — explicit public-data proxy
 - `scripts/v03_quant_stack.py` — causal v0.3 model stack
 - `scripts/v04_tick_relabel.mjs` — cross-broker executable relabeler
@@ -160,7 +216,7 @@ Live buy/sell signals            -> DISABLED
 - `scripts/v05_run_same_broker.ps1` — one-command Windows workflow
 - `reports/v03/` — v0.3 findings
 - `reports/v04/` — v0.4 execution findings
-- `web/` — lightweight research dashboard
+- `web/` — live V2 Research Lab interface
 
 ## Research rule
 
