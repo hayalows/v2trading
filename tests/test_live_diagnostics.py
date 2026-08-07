@@ -33,12 +33,21 @@ def test_volatility_percentile_is_bounded():
 
 
 def test_weighted_alignment_and_context_are_descriptive():
+    labels = {"d1": "bullish", "h4": "bullish", "h1": "bullish", "m15": "bearish"}
+    direction, alignment = weighted_trend_alignment(labels)
+    assert direction == "bullish"
+    assert alignment >= 55
+    assert formation_context("long", labels) == "supportive"
+    assert formation_context("short", labels) == "conflicting"
+
+
+def test_balanced_alignment_is_mixed_context_not_false_confluence():
     labels = {"d1": "bullish", "h4": "bullish", "h1": "bearish", "m15": "bearish"}
     direction, alignment = weighted_trend_alignment(labels)
     assert direction == "bullish"
-    assert 0 < alignment < 100
-    assert formation_context("long", labels) == "supportive"
-    assert formation_context("short", labels) == "conflicting"
+    assert alignment < 55
+    assert formation_context("long", labels) == "mixed"
+    assert formation_context("short", labels) == "mixed"
 
 
 def test_shift_diagnostic_is_causal_and_bounded():
