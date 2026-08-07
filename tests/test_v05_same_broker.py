@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import sys
 
@@ -8,7 +9,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from v05_same_broker_relabel import Trade, quality, relabel_m1, relabel_ticks
+from v05_same_broker_relabel import SameBrokerStore, Trade, load_ledger, quality, relabel_m1, relabel_ticks
 
 UTC = "UTC"
 
@@ -26,7 +27,6 @@ def test_tick_long_uses_ask_for_entry_and_bid_for_target():
         "bid": [1.0998, 1.0999, 1.1025],
         "ask": [1.1001, 1.1002, 1.1027],
     })
-    # Bid touching the limit is insufficient for a buy: the ask must reach it.
     out = relabel_ticks(t, ticks)
     assert out["execution_outcome"] == "no_fill"
 
@@ -71,3 +71,40 @@ def test_quality_requires_low_spread_and_slippage_for_trusted_tick():
     bad = {"label_source": "tick_direct", "execution_outcome": "loss", "fill_spread_r": 0.30, "stop_slippage_r": 0.0}
     assert quality(good) == "trusted_tick"
     assert quality(bad) == "tick_high_friction"
+
+
+def test_load_ledger_accepts_common_aliases_and_infers_2p5r_target(tmp_path):
+    p = tmp_path / "ledger.csv"
+    pd.DataFrame({
+        "trade_id": ["A"],
+        "ticker": ["EURUSD"],
+        "side": ["buy"],
+        "open_time": ["2025-01-02T10:00:00Z"],
+        "open_price": [1.1000],
+        "sl": [1.0990],
+        "realized_r": [2.5],
+    }).to_csv(p, index=False)
+    got = load_ledger(p)
+    assert len(got) == 1
+    assert got.loc[0, "direction"] == "long"
+    assert abs(got.loc[0, "target"] - 1.1025) < 1e-9
+    assert got.loc[0, "source_outcome"] == "win"
+
+
+def test_store_reads_daily_tick_partitions_without_timezone_reinterpretation(tmp_path):
+    root = tmp_path / "export"
+    (root / "EURUSD" / "ticks" / "date=2025-01-02").mkdir(parents=True)
+    (root / "EURUSD" / "bars").mkdir(parents=True)
+    (root / "manifest.json").write_text(json.dumps({
+        "symbols": {"EURUSD": {"metadata": {"point": 0.0001}}},
+        "files": [],
+    }))
+    ticks = pd.DataFrame({
+        "time": pd.to_datetime(["2025-01-02 09:59:59Z", "2025-01-02 10:00:01Z"]),
+        "bid": [1.0999, 1.1000], "ask": [1.1001, 1.1002],
+    })
+    ticks.to_parquet(root / "EURUSD" / "ticks" / "date=2025-01-02" / "ticks.parquet", index=False)
+    store = SameBrokerStore(root)
+    got = store.ticks_for_window("EURUSD", pd.Timestamp("2025-01-02 10:00:00Z"), pd.Timestamp("2025-01-02 10:01:00Z"))
+    assert len(got) == 1
+    assert got.iloc[0].time == pd.Timestamp("2025-01-02 10:00:01Z")
