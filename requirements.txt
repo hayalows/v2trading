@@ -5,3 +5,4 @@ lightgbm>=4.0
 joblib>=1.4
 requests>=2.32
 pytest>=8.0
+pyarrow>=15.0
