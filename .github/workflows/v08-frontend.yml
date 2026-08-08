@@ -1,0 +1,17 @@
+name: v08-frontend
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'scripts/v08_validate_frontend.mjs'
+      - '.github/workflows/v08-frontend.yml'
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/v08_validate_frontend.mjs
