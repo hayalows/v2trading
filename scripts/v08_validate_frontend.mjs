@@ -14,7 +14,7 @@ const required = [
   'bottom-nav',
   'nav-rail',
   'lab-insights',
-  'TradingView',
+  's3.tradingview.com',
   'aria-label="Primary navigation"',
   'min-width:48px',
   ':focus-visible',
