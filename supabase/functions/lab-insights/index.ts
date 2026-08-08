@@ -1,154 +1,22 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Cache-Control": "public, max-age=60",
-};
-const CORE = ["EURUSD", "GBPUSD"];
+const db=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,{auth:{persistSession:false}});
+const CORE=["EURUSD","GBPUSD"];
+const CORS={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"GET, OPTIONS","Cache-Control":"public, max-age=60"};
+const response=(d:unknown,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{...CORS,"Content-Type":"application/json; charset=utf-8"}});
 
-function response(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), { status, headers: { ...CORS, "Content-Type": "application/json; charset=utf-8" } });
-}
-function marketClock(now = new Date()) {
-  const day = now.getUTCDay(), hour = now.getUTCHours();
-  const closed = day === 6 || (day === 0 && hour < 21) || (day === 5 && hour >= 22);
-  if (!closed) return { status: "open", label: "FX market open", nextOpen: null };
-  const next = new Date(now);
-  const add = day === 6 ? 1 : day === 5 ? 2 : 0;
-  next.setUTCDate(next.getUTCDate() + add);
-  next.setUTCHours(21, 0, 0, 0);
-  return { status: "closed", label: "FX market closed", nextOpen: next.toISOString() };
-}
-function attention(stage: number) {
-  if (stage <= 2) return { key: "background", label: "Background", rank: 0 };
-  if (stage <= 4) return { key: "watch", label: "Watchlist", rank: 1 };
-  if (stage <= 6) return { key: "review", label: "Review now", rank: 2 };
-  return { key: "location", label: "At location", rank: 3 };
-}
-function describeTransition(a: any, b: any) {
-  if (!a) return `${b.formation_code?.replaceAll("_", " ") ?? "Initial state"}`;
-  const dir = b.formation_direction ? `${b.formation_direction} ` : "";
-  if (a.formation_direction !== b.formation_direction && b.formation_direction) return `Direction changed to ${b.formation_direction}; ${b.formation_code.replaceAll("_", " ").toLowerCase()}`;
-  if (a.formation_stage !== b.formation_stage) return `${dir}Stage ${a.formation_stage} → Stage ${b.formation_stage}: ${b.formation_code.replaceAll("_", " ").toLowerCase()}`;
-  return `${dir}${b.formation_code.replaceAll("_", " ").toLowerCase()}`;
-}
-function isMeaningfulChange(a: any, b: any) {
-  if (!a) return true;
-  if (a.formation_direction !== b.formation_direction && (a.formation_stage >= 3 || b.formation_stage >= 3)) return true;
-  if (a.formation_stage !== b.formation_stage && Math.max(a.formation_stage, b.formation_stage) >= 3) return true;
-  return false;
-}
-function analytics(rows: any[]) {
-  let changes = 0, flicker = 0, stage5Arrivals = 0, stage6Arrivals = 0, stage8Arrivals = 0;
-  const meaningful: any[] = [];
-  for (let i = 1; i < rows.length; i++) {
-    const a = rows[i - 1], b = rows[i];
-    const changed = a.formation_stage !== b.formation_stage || a.formation_direction !== b.formation_direction;
-    if (changed) changes++;
-    if ([0, 1].includes(a.formation_stage) && [0, 1].includes(b.formation_stage) && a.formation_stage !== b.formation_stage) flicker++;
-    if (a.formation_stage < 5 && b.formation_stage >= 5) stage5Arrivals++;
-    if (a.formation_stage < 6 && b.formation_stage >= 6) stage6Arrivals++;
-    if (a.formation_stage < 8 && b.formation_stage >= 8) stage8Arrivals++;
-    if (isMeaningfulChange(a, b)) meaningful.push({ at: b.as_of, fromStage: a.formation_stage, toStage: b.formation_stage, direction: b.formation_direction, code: b.formation_code, text: describeTransition(a, b) });
-  }
-  const obs = rows.length;
-  return {
-    observations: obs,
-    firstSeen: rows[0]?.as_of ?? null,
-    lastSeen: rows.at(-1)?.as_of ?? null,
-    totalStateChanges: changes,
-    lowSignalFlicker: flicker,
-    meaningfulChanges: meaningful.length,
-    stage5Arrivals,
-    stage6Arrivals,
-    stage8Arrivals,
-    watchObservations: rows.filter(r => r.formation_stage >= 3).length,
-    matureObservations: rows.filter(r => r.formation_stage >= 5).length,
-    latestMeaningful: meaningful.at(-1) ?? null,
-    recentMeaningful: meaningful.slice(-6),
-    sampleStatus: obs < 100 ? "early" : obs < 1000 ? "building" : "research-ready",
-  };
-}
-function brief(symbol: string, state: any, stats: any, clock: any) {
-  const stage = Number(state?.formation_stage ?? 0), att = attention(stage);
-  const d = state?.details?.diagnostics ?? {}, health = state?.data_health ?? {};
-  const context = d.structureContext ?? "neutral";
-  const direction = state?.formation_direction;
-  const marketClosed = clock.status === "closed";
-  let headline = "No mature structure needs attention";
-  if (stage >= 7) headline = `${direction ? direction[0].toUpperCase() + direction.slice(1) + " " : ""}V2 structure is at the research location`;
-  else if (stage >= 5) headline = `${direction ? direction[0].toUpperCase() + direction.slice(1) + " " : ""}structure is mature enough to review`;
-  else if (stage >= 3) headline = `${direction ? direction[0].toUpperCase() + direction.slice(1) + " " : ""}sequence is developing`;
-  if (marketClosed) headline = `Market closed · ${headline.toLowerCase()}`;
+function marketClock(now=new Date()){const day=now.getUTCDay(),hour=now.getUTCHours(),closed=day===6||(day===0&&hour<21)||(day===5&&hour>=22);if(!closed)return{status:"open",label:"FX market open",nextOpen:null};const next=new Date(now),add=day===6?1:day===5?2:0;next.setUTCDate(next.getUTCDate()+add);next.setUTCHours(21,0,0,0);return{status:"closed",label:"FX market closed",nextOpen:next.toISOString()}}
+function attention(stage:number){if(stage<=2)return{key:"background",label:"Background",rank:0};if(stage<=4)return{key:"watch",label:"Observe",rank:1};if(stage<=6)return{key:"review",label:"Review",rank:2};return{key:"location",label:"Investigate location",rank:3}}
+function describeTransition(a:any,b:any){if(!a)return b.formation_code?.replaceAll("_"," ")??"Initial state";const dir=b.formation_direction?`${b.formation_direction} `:"";if(a.formation_direction!==b.formation_direction&&b.formation_direction)return`Direction changed to ${b.formation_direction}; ${b.formation_code.replaceAll("_"," ").toLowerCase()}`;if(a.formation_stage!==b.formation_stage)return`${dir}Stage ${a.formation_stage} → Stage ${b.formation_stage}: ${b.formation_code.replaceAll("_"," ").toLowerCase()}`;return`${dir}${b.formation_code.replaceAll("_"," ").toLowerCase()}`}
+function meaningful(a:any,b:any){if(!a)return true;if(a.formation_direction!==b.formation_direction&&(a.formation_stage>=3||b.formation_stage>=3))return true;if(a.formation_stage!==b.formation_stage&&Math.max(a.formation_stage,b.formation_stage)>=3)return true;return false}
+function analytics(rows:any[]){let changes=0,flicker=0,s5=0,s6=0,s8=0;const events:any[]=[];for(let i=1;i<rows.length;i++){const a=rows[i-1],b=rows[i],changed=a.formation_stage!==b.formation_stage||a.formation_direction!==b.formation_direction;if(changed)changes++;if([0,1].includes(a.formation_stage)&&[0,1].includes(b.formation_stage)&&a.formation_stage!==b.formation_stage)flicker++;if(a.formation_stage<5&&b.formation_stage>=5)s5++;if(a.formation_stage<6&&b.formation_stage>=6)s6++;if(a.formation_stage<8&&b.formation_stage>=8)s8++;if(meaningful(a,b))events.push({at:b.as_of,fromStage:a.formation_stage,toStage:b.formation_stage,direction:b.formation_direction,code:b.formation_code,text:describeTransition(a,b)})}const obs=rows.length;return{observations:obs,firstSeen:rows[0]?.as_of??null,lastSeen:rows.at(-1)?.as_of??null,totalStateChanges:changes,lowSignalFlicker:flicker,meaningfulChanges:events.length,stage5Arrivals:s5,stage6Arrivals:s6,stage8Arrivals:s8,watchObservations:rows.filter(r=>r.formation_stage>=3).length,matureObservations:rows.filter(r=>r.formation_stage>=5).length,latestMeaningful:events.at(-1)??null,recentMeaningful:events.slice(-8),sampleStatus:obs<100?"early":obs<1000?"building":"research-ready"}}
+const median=(xs:number[])=>{if(!xs.length)return null;const a=[...xs].sort((x,y)=>x-y),m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2};
+function wilson(success:number,n:number,z=1.96){if(!n)return null;const p=success/n,z2=z*z,d=1+z2/n,c=(p+z2/(2*n))/d,h=z*Math.sqrt((p*(1-p)+z2/(4*n))/n)/d;return{low:Math.max(0,c-h),high:Math.min(1,c+h)}}
+function evidenceLabel(n:number){if(n<10)return{key:"insufficient",label:"Insufficient evidence",safe:false};if(n<30)return{key:"early",label:"Early evidence",safe:true};if(n<100)return{key:"building",label:"Building evidence",safe:true};return{key:"research-ready",label:"Research-ready descriptive sample",safe:true}}
+function stageEvidence(outcomes:any[],stage:number){const xs=outcomes.filter(o=>Number(o.anchor_stage)===stage&&Number(o.complete_through_minutes)>=60&&o.signed_ret_1h_bps!=null),n=xs.length,e=evidenceLabel(n),vals=xs.map(o=>Number(o.signed_ret_1h_bps)).filter(Number.isFinite),favorable=vals.filter(v=>v>0).length,ci=wilson(favorable,n);return{anchorStage:stage,n,status:e.key,label:e.label,safeToInterpret:e.safe,favorable1hCount:favorable,favorable1hRate:e.safe&&n?favorable/n:null,favorable1hWilson95:e.safe?ci:null,medianSigned1hBps:e.safe?median(vals):null,medianMfe1hAtr:e.safe?median(xs.map(o=>Number(o.mfe_1h_atr)).filter(Number.isFinite)):null,medianMae1hAtr:e.safe?median(xs.map(o=>Number(o.mae_1h_atr)).filter(Number.isFinite)):null,note:e.safe?"Descriptive forward movement only; not broker PnL or win probability.":`Need at least 10 completed Stage-${stage} anchors before showing outcome rates.`}}
+function durationMinutes(a:string|null,b:string|null){if(!a)return null;return Math.max(0,Math.round(((b?new Date(b):new Date()).getTime()-new Date(a).getTime())/60000))}
+function episodeSummary(episodes:any[]){const latest=episodes[0]??null,active=episodes.find(e=>e.status==="active")??null,e=active??latest;if(!e)return{active:null,latest:null,total:0,stage6Episodes:0,lifecycle:null};return{active:active?{episodeKey:active.episode_key,direction:active.direction,startedAt:active.started_at,ageMinutes:durationMinutes(active.started_at,null),maxStage:active.max_stage,stage5At:active.stage5_at,stage6At:active.stage6_at}:null,latest:{episodeKey:e.episode_key,direction:e.direction,status:e.status,startedAt:e.started_at,endedAt:e.ended_at,durationMinutes:durationMinutes(e.started_at,e.ended_at),maxStage:e.max_stage,endReason:e.end_reason,stage5At:e.stage5_at,stage6At:e.stage6_at},total:episodes.length,stage5Episodes:episodes.filter(x=>x.max_stage>=5).length,stage6Episodes:episodes.filter(x=>x.max_stage>=6).length,lifecycle:active?`Active ${active.direction} episode · ${durationMinutes(active.started_at,null)} min old · max Stage ${active.max_stage}`:`Latest episode ended · max Stage ${e.max_stage} · ${durationMinutes(e.started_at,e.ended_at)} min duration`}}
+function priority(state:any,clock:any,health:any){const stage=Number(state?.formation_stage??0);if(clock.status==="closed")return{key:"review-only",label:"Review only",action:"Review the last session; no live market action is needed."};if(health?.structureStatus&&!["current completed candle","current"].includes(health.structureStatus))return{key:"data-hold",label:"Data hold",action:"Do not interpret the setup until completed-candle data is current."};if(stage<=2)return{key:"background",label:"No focus",action:"No immediate investigation. Wait for a clean Stage-3 liquidity event."};if(stage<=4)return{key:"observe",label:"Observe",action:"Watch for BOS. Do not anticipate the break."};if(stage<=6)return{key:"review",label:"Review structure",action:"Open the chart and verify BOS, POI, context and invalidation."};return{key:"investigate",label:"Investigate location",action:"Inspect the POI interaction and record the outcome. This is not an execution instruction."}}
+function brief(state:any,stats:any,clock:any,episode:any,evidence:any){const stage=Number(state?.formation_stage??0),att=attention(stage),d=state?.details?.diagnostics??{},health=state?.data_health??{},context=d.structureContext??"neutral",direction=state?.formation_direction,closed=clock.status==="closed",p=priority(state,clock,health);let headline="No mature structure needs attention";if(stage>=7)headline=`${direction?direction[0].toUpperCase()+direction.slice(1)+" ":""}V2 structure is at the research location`;else if(stage>=5)headline=`${direction?direction[0].toUpperCase()+direction.slice(1)+" ":""}structure is mature enough to review`;else if(stage>=3)headline=`${direction?direction[0].toUpperCase()+direction.slice(1)+" ":""}sequence is developing`;if(closed)headline=`Market closed · ${headline.toLowerCase()}`;const reasons=[`Stage ${stage}/8 · ${state?.formation_label??state?.formation_code??"unknown"}`];if(direction)reasons.push(`Higher-timeframe context is ${context}`);reasons.push(`Regime: ${state?.regime??"unknown"}`);if(d.shiftRisk&&d.shiftRisk!=="stable")reasons.push(`Market-change pressure is ${d.shiftRisk}`);if(episode?.lifecycle)reasons.push(episode.lifecycle);return{attention:att,researchPriority:p,headline,reasons,next:closed?`No live decision is needed while FX is closed. Use the preserved state for review; next expected weekly open is around ${new Date(clock.nextOpen).toUTCString()}.`:p.action,context,dominantDirection:d.dominantDirection??"mixed",alignmentPct:d.alignmentPct??0,shiftRisk:d.shiftRisk??"stable",latestMeaningful:stats.latestMeaningful,evidenceStatus:evidence?.label??"Insufficient evidence"}}
 
-  const reasons: string[] = [];
-  reasons.push(`Stage ${stage}/8 · ${state?.formation_label ?? state?.formation_code ?? "unknown"}`);
-  if (direction) reasons.push(`Higher-timeframe context is ${context}`);
-  reasons.push(`Regime: ${state?.regime ?? "unknown"}`);
-  if (d.shiftRisk && d.shiftRisk !== "stable") reasons.push(`Market-change pressure is ${d.shiftRisk}`);
-  if (health.structureStatus === "current completed candle") reasons.push("Structure data was current at the last open-market refresh");
-
-  let next = "No action required. Recheck when a clean liquidity event develops.";
-  if (stage === 3 || stage === 4) next = "Inspect the chart only if useful; the structural question is whether BOS confirms. Do not anticipate it.";
-  if (stage === 5) next = "Review the BOS and look for a clean fresh POI before treating the sequence as mature.";
-  if (stage === 6) next = "Review the fresh POI, higher-timeframe context and invalidation. Observe whether price returns without structure failing.";
-  if (stage >= 7) next = "Inspect the POI interaction and record what happens next. This remains research, not an execution instruction.";
-  if (marketClosed) next = `No live decision is needed while FX is closed. Use the preserved state for review; next expected weekly open is around ${new Date(clock.nextOpen).toUTCString()}.`;
-
-  return {
-    attention: att,
-    headline,
-    reasons,
-    next,
-    context,
-    dominantDirection: d.dominantDirection ?? "mixed",
-    alignmentPct: d.alignmentPct ?? 0,
-    shiftRisk: d.shiftRisk ?? "stable",
-    latestMeaningful: stats.latestMeaningful,
-  };
-}
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
-  if (req.method !== "GET") return response({ error: "GET only" }, 405);
-  try {
-    const u = new URL(req.url), requested = (u.searchParams.get("symbol") ?? CORE.join(",")).split(",").map(s => s.toUpperCase()).filter(s => CORE.includes(s));
-    const symbols = requested.length ? [...new Set(requested)] : CORE;
-    const clock = marketClock();
-    const output: any[] = [];
-    for (const symbol of symbols) {
-      const [stateQ, historyQ] = await Promise.all([
-        db.from("market_states").select("*").eq("symbol", symbol).maybeSingle(),
-        db.from("market_state_history").select("as_of,formation_stage,formation_code,formation_direction,regime,state").eq("symbol", symbol).order("as_of", { ascending: true }).limit(1000),
-      ]);
-      if (stateQ.error) throw new Error(`${symbol} state: ${stateQ.error.message}`);
-      if (historyQ.error) throw new Error(`${symbol} history: ${historyQ.error.message}`);
-      const rows = historyQ.data ?? [], stats = analytics(rows), state = stateQ.data;
-      output.push({ symbol, stats, brief: brief(symbol, state, stats, clock), stateAsOf: state?.as_of ?? null, structureLastBar: state?.data_health?.lastM15Bar ?? null });
-    }
-    const totalObs = output.reduce((s, x) => s + x.stats.observations, 0), totalFlicker = output.reduce((s, x) => s + x.stats.lowSignalFlicker, 0), totalChanges = output.reduce((s, x) => s + x.stats.totalStateChanges, 0), mature = output.reduce((s, x) => s + x.stats.stage6Arrivals, 0);
-    return response({
-      version: "V2 Research Lab insights v0.8",
-      generatedAt: new Date().toISOString(),
-      market: clock,
-      portfolioBrief: {
-        headline: clock.status === "closed" ? "FX is closed. Review the last recorded research state; do not interpret missing weekend candles as stale data." : "Use the pair with the highest attention state first; ignore background noise.",
-        totalProspectiveObservations: totalObs,
-        totalStateChanges: totalChanges,
-        lowSignalFlicker: totalFlicker,
-        stage6Arrivals: mature,
-        finding: totalChanges ? `${totalFlicker} of ${totalChanges} recorded state changes were only Stage 0↔1 flicker. v0.8 therefore suppresses low-signal churn in the primary experience.` : "The live stream is still initializing.",
-        inferenceGate: totalObs < 200 ? "Too early for live outcome-rate inference." : "Descriptive transition analysis is becoming more useful; execution-safe profitability inference is still blocked.",
-      },
-      pairs: output,
-      productPolicy: {
-        primaryQuestion: "What deserves attention now, what changed, why, and what should I inspect next?",
-        detailsPolicy: "Quant metrics remain available for investigation but are secondary to the research brief.",
-        signalPolicy: "No buy/sell instruction and no win probability until execution-safe labels exist.",
-      },
-    });
-  } catch (e) { return response({ error: String(e) }, 500); }
-});
+Deno.serve(async req=>{if(req.method==="OPTIONS")return new Response("ok",{headers:CORS});if(req.method!=="GET")return response({error:"GET only"},405);try{const u=new URL(req.url),requested=(u.searchParams.get("symbol")??CORE.join(",")).split(",").map(s=>s.toUpperCase()).filter(s=>CORE.includes(s)),symbols=requested.length?[...new Set(requested)]:CORE,clock=marketClock(),output:any[]=[];for(const symbol of symbols){const[stateQ,historyQ,episodesQ]=await Promise.all([db.from("market_states").select("*").eq("symbol",symbol).maybeSingle(),db.from("market_state_history").select("as_of,formation_stage,formation_code,formation_direction,regime,state").eq("symbol",symbol).order("as_of",{ascending:true}).limit(2000),db.from("formation_episodes").select("*").eq("symbol",symbol).order("started_at",{ascending:false}).limit(200)]);if(stateQ.error)throw new Error(`${symbol} state: ${stateQ.error.message}`);if(historyQ.error)throw new Error(`${symbol} history: ${historyQ.error.message}`);if(episodesQ.error)throw new Error(`${symbol} episodes: ${episodesQ.error.message}`);const episodes=episodesQ.data??[],keys=episodes.map(e=>e.episode_key);let outcomes:any[]=[];if(keys.length){const q=await db.from("episode_outcomes").select("*").in("episode_key",keys).order("anchor_at",{ascending:false});if(q.error)throw new Error(`${symbol} outcomes: ${q.error.message}`);outcomes=q.data??[]}const rows=historyQ.data??[],stats=analytics(rows),ep=episodeSummary(episodes),ev3=stageEvidence(outcomes,3),ev5=stageEvidence(outcomes,5),ev6=stageEvidence(outcomes,6),currentStage=Number(stateQ.data?.formation_stage??0),relevant=currentStage>=6?ev6:currentStage>=5?ev5:ev3;output.push({symbol,stats,episode:ep,evidence:{relevant,stage3:ev3,stage5:ev5,stage6:ev6},brief:brief(stateQ.data,stats,clock,ep,relevant),stateAsOf:stateQ.data?.updated_at??null,structureLastBar:stateQ.data?.data_health?.lastM15Bar??stateQ.data?.data_health?.last_m15_bar??null})}const totalObs=output.reduce((s,x)=>s+x.stats.observations,0),totalFlicker=output.reduce((s,x)=>s+x.stats.lowSignalFlicker,0),totalChanges=output.reduce((s,x)=>s+x.stats.totalStateChanges,0),totalEpisodes=output.reduce((s,x)=>s+x.episode.total,0),stage6Episodes=output.reduce((s,x)=>s+x.episode.stage6Episodes,0);return response({version:"V2 Intelligence Lab v1.1",generatedAt:new Date().toISOString(),market:clock,portfolioBrief:{headline:clock.status==="closed"?"FX is closed. Use the last session for research review; weekend inactivity is not a feed failure.":"Start with research priority, then inspect the episode lifecycle and evidence before opening the chart.",totalProspectiveObservations:totalObs,totalStateChanges:totalChanges,lowSignalFlicker:totalFlicker,totalEpisodes,stage6Episodes,finding:`${totalEpisodes} formation episodes are now tracked separately from ${totalObs} raw state observations. Episode outcomes are measured prospectively at fixed horizons.`,inferenceGate:stage6Episodes<10?"Stage-6 prospective evidence is insufficient. The lab must abstain from outcome-rate claims.":"Stage-6 descriptive evidence has crossed the minimum display gate; it is still not a trading signal."},pairs:output,productPolicy:{primaryQuestion:"What deserves attention, which episode is active, what must happen next, and how much evidence supports the interpretation?",episodePolicy:"Episodes, not refresh snapshots, are the unit of prospective research.",uncertaintyPolicy:"Outcome rates remain hidden until a minimum completed sample exists; intervals accompany rates when enabled.",signalPolicy:"No buy/sell instruction and no profit probability without calibrated, execution-safe validation."}})}catch(e){console.error(e);return response({error:String(e)},500)}});
