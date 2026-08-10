@@ -16,6 +16,7 @@ for(const marker of ['create table if not exists public.paper_trades','create ta
 for(const marker of ['createPriceLine','createSeriesMarkers','CandlestickSeries','Entry midpoint','Stop loss','Take profit · 2.5R','Research simulation']) assert.ok(paper.includes(marker),`missing chart/journal marker: ${marker}`);
 for(const marker of ['50% midpoint','0.03 ATR','2.5R','8 completed M15 bars','48 M15 bars']) assert.ok(protocol.includes(marker),`missing frozen protocol marker: ${marker}`);
 
+function close(a,b,eps=1e-12){return Math.abs(a-b)<=eps}
 function plan(direction,poiLow,poiHigh,sweepExtreme,atr){
   const entry=(poiLow+poiHigh)/2;
   const stop=direction==='long'?sweepExtreme-0.03*atr:sweepExtreme+0.03*atr;
@@ -24,12 +25,12 @@ function plan(direction,poiLow,poiHigh,sweepExtreme,atr){
   return {entry,stop,risk,target,riskAtr:risk/atr};
 }
 const long=plan('long',1.1000,1.1020,1.0950,0.0100);
-assert.equal(long.entry,1.101);
+assert.ok(close(long.entry,1.101));
 assert.ok(Math.abs((long.target-long.entry)/long.risk-2.5)<1e-12);
 assert.ok(long.stop<1.0950,'long stop must sit beyond sweep extreme');
 assert.ok(long.riskAtr>=0.08&&long.riskAtr<=1.60,'sample plan should pass frozen risk gate');
 const short=plan('short',1.1980,1.2000,1.2050,0.0100);
-assert.equal(short.entry,1.199);
+assert.ok(close(short.entry,1.199));
 assert.ok(Math.abs((short.entry-short.target)/short.risk-2.5)<1e-12);
 assert.ok(short.stop>1.2050,'short stop must sit beyond sweep extreme');
 
@@ -39,10 +40,10 @@ function firstFutureFill(bars,bosIdx,entry){
   return k<0?null:bosIdx+1+k;
 }
 const bars=[
-  {low:0.9,high:1.1}, // pre
-  {low:0.8,high:1.2}, // BOS bar touches entry but must not fill
+  {low:0.9,high:1.1},
+  {low:0.8,high:1.2},
   {low:1.01,high:1.05},
-  {low:0.99,high:1.01}, // first future fill
+  {low:0.99,high:1.01},
 ];
 assert.equal(firstFutureFill(bars,1,1.0),3,'BOS candle must never count as paper entry');
 const noFill=Array.from({length:10},()=>({low:1.1,high:1.2}));
