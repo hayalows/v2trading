@@ -105,7 +105,7 @@ async function capture(){
     const predictions={
       "walkforward-base-v1":{kind:"probability",p:BASE_P,frozen:true},
       "state-twin-v16":{kind:"historical_candidate",p:null,status:"withheld",similarity:twin?.analog?.similarityScore??null},
-      "granite-ttm-r2-v17":{kind:"challenger",p:null,status:"offline_research_not_promoted"},
+      "granite-ttm-r2-v17":{kind:"shadow",p:null,status:"historical_gate_passed_live_score_pending"},
     };
     const row={forecast_key:key,symbol:state.symbol,campaign_key:c.campaign_key,observed_at:new Date().toISOString(),observed_bar_at:bar,direction:state.formation_direction,formation_stage:Number(state.formation_stage),landmark_age_bars:age,horizon_bars:HORIZON,target_stage:5,regime:state.regime,baseline_probability:BASE_P,predictions,feature_snapshot:snapshot(state,twin,c,age),model_spec_hash:SPEC_HASH,status:"pending"};
     const w=await db.from("shadow_forecasts").upsert(row,{onConflict:"forecast_key",ignoreDuplicates:true});
@@ -129,7 +129,7 @@ async function summary(){
   const rows=f.data??[],resolved=rows.filter((r:any)=>r.status==="resolved"&&r.outcome!==null),pending=rows.filter((r:any)=>r.status==="pending");
   const pair=(symbol:string)=>{const rr=resolved.filter((x:any)=>x.symbol===symbol);return {resolved:rr.length,events:rr.filter((x:any)=>x.outcome===1).length,eventRate:rr.length?rr.filter((x:any)=>x.outcome===1).length/rr.length:null,baselineBrier:brier(rr)}};
   return {
-    version:"V2 Shadow Arena v1.7-alpha.1",researchOnly:true,probabilityVisible:false,
+    version:"V2 Shadow Arena v1.7-alpha.2",researchOnly:true,probabilityVisible:false,
     target:"Stage 3/4 → same-direction BOS / Stage 5 within 16 completed M15 bars",
     counts:{total:rows.length,pending:pending.length,resolved:resolved.length,events:resolved.filter((x:any)=>x.outcome===1).length},
     calibration:{baselineProbability:BASE_P,baselineBrier:brier(resolved),baselineLogLoss:logloss(resolved),observedEventRate:resolved.length?resolved.filter((x:any)=>x.outcome===1).length/resolved.length:null,note:"Model probabilities remain hidden. These are pre-outcome shadow records, not trade signals."},
