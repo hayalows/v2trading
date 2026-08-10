@@ -10,7 +10,7 @@
     if(!a)return {value:'Building',sub:'Comparable-state layer is loading.'};
     if(a.weightedRate!=null)return {value:pct(a.weightedRate),sub:`Descriptive ${a.target} rate within ${a.horizonHours}h · effective n ${n(a.effectiveN,1)}.`};
     const similarity=Number.isFinite(Number(a.similarityScore))?`${n(a.similarityScore)} / 100`:'Building';
-    return {value:similarity,sub:`Nearest-state similarity only · ${a.candidateEpisodes??0} de-correlated live episodes found. Outcome probability stays hidden until the multi-year gate passes.`};
+    return {value:similarity,sub:`Nearest-state similarity only · ${a.candidateEpisodes??0} de-correlated live episodes found. The historical gate passed, but current probability stays hidden during prospective shadow calibration.`};
   }
   function stabilityCopy(x){
     if(!x)return 'Loading regime-change diagnostics.';
@@ -34,7 +34,17 @@
   function ensureResearchCard(){
     const view=document.getElementById('evidenceView');if(!view||document.getElementById('stateTwinResearch'))return;
     const card=document.createElement('article');card.id='stateTwinResearch';card.className='card stateTwinResearch';card.style.marginTop='12px';
-    card.innerHTML='<div class="cardLabel"><span class="material-symbols-rounded">neurology</span>V2 StateTwin v1.6</div><h3>Predict structural transitions, not the next candle.</h3><p>The live layer combines the existing multi-timeframe V2 state with a Bayesian online run-length model, de-correlated state similarity and EURUSD/GBPUSD co-movement. Comparable states can be shown now, but outcome probability stays withheld until the preregistered multi-year walk-forward gate passes.</p><div class="v15ResearchNote"><strong>Foundation-model policy:</strong> Chronos-2/Chronos-Bolt, TimesFM, MOMENT and patch/representation models remain challenger models. They only enter the live stack if walk-forward testing improves calibration beyond the simpler structural baseline. The earlier broker-execution failure still blocks live-money claims.</div>';
+    card.innerHTML=`<div class="cardLabel"><span class="material-symbols-rounded">neurology</span>V2 StateTwin v1.6 · accepted research candidate</div>
+      <h3>Structural-transition model passed its frozen historical gate.</h3>
+      <p>The primary question is whether a live Stage-3/4 formation reaches same-direction BOS within 16 M15 bars. Chronological 2022–partial-2026 OOS testing produced AUC <strong>0.688</strong>, Brier <strong>0.1465</strong> versus <strong>0.1576</strong> for the walk-forward base rate, with positive improvement in four test years.</p>
+      <div class="stateTwinEvidenceGrid">
+        <div><span>Primary OOS</span><b>38,331</b><small>dynamic landmarks</small></div>
+        <div><span>Independent audit</span><b>8,526</b><small>one campaign each, 2022–2025</small></div>
+        <div><span>Campaign AUC</span><b>0.666</b><small>earliest landmark only</small></div>
+        <div><span>Live probability</span><b>Withheld</b><small>prospective shadow calibration first</small></div>
+      </div>
+      <div class="v15ResearchNote"><strong>What passed:</strong> ranking and calibration for a structural event. <strong>What did not pass:</strong> trade-profit or broker-execution validation. Partial 2026 was weaker than its base-rate Brier, so the app keeps the present-time probability hidden instead of promoting the historical model directly.</div>
+      <div class="v15ResearchNote"><strong>Foundation-model policy:</strong> Chronos-2/Chronos-Bolt, TimesFM, MOMENT and patch/representation models remain challenger models. They enter only if the same chronological tests show better calibration than this simpler baseline.</div>`;
     const model=document.getElementById('v15RevisitModel');if(model)model.insertAdjacentElement('afterend',card);else view.querySelector('.stats')?.insertAdjacentElement('afterend',card);
   }
   async function loadTwin(){if(loading)return;loading=true;try{const r=await fetch(STATE_TWIN,{cache:'no-store'});if(!r.ok)throw new Error('StateTwin unavailable');twin=await r.json();renderTwin()}catch(e){console.warn('StateTwin',e)}finally{loading=false}}
