@@ -1,0 +1,57 @@
+name: v14-poi-waiting-time
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/v14_poi_waiting_time_study.py'
+      - 'scripts/public_data_v2_proxy.py'
+      - '.github/workflows/v14-poi-waiting-time.yml'
+      - 'requirements.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Download public EURUSD and GBPUSD M15/M5 data
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD; do
+            curl -L --fail --retry 4 --retry-delay 2 -o ".research-data/market/${symbol}-15m.feather" "${base}/${symbol}-15m.feather?download=true"
+            curl -L --fail --retry 4 --retry-delay 2 -o ".research-data/market/${symbol}-5m.feather" "${base}/${symbol}-5m.feather?download=true"
+          done
+          ls -lh .research-data/market
+      - name: Run preregistered POI waiting-time study
+        run: |
+          mkdir -p research-output
+          PYTHONPATH=scripts python scripts/v14_poi_waiting_time_study.py \
+            --data-dir .research-data/market \
+            --out research-output
+      - name: Show results
+        if: always()
+        run: |
+          test -f research-output/v14_summary.json && cat research-output/v14_summary.json || true
+          test -f research-output/v14_waiting_horizons.csv && cat research-output/v14_waiting_horizons.csv || true
+          test -f research-output/v14_shallow_touch.csv && cat research-output/v14_shallow_touch.csv || true
+      - name: Upload outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v14-poi-waiting-time-results
+          path: research-output/
+          if-no-files-found: error
+          retention-days: 14
