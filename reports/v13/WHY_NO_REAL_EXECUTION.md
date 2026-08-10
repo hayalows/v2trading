@@ -1,0 +1,1 @@
+The v1.3 engine intentionally simulates research trades only. No broker API, account credentials, bid/ask execution stream, spread model, or order-routing capability is connected. The app must not present these records as live brokerage fills.
