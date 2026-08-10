@@ -1,0 +1,24 @@
+name: v16-state-twin-ui
+
+on:
+  pull_request:
+    paths:
+      - 'web/index.html'
+      - 'web/v16.css'
+      - 'web/v16-state-twin.js'
+      - 'scripts/v16_validate_state_twin.mjs'
+      - '.github/workflows/v16-state-twin-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/v16_validate_state_twin.mjs
