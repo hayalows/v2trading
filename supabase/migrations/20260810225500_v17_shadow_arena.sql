@@ -46,6 +46,9 @@ create index if not exists shadow_forecasts_campaign_idx on public.shadow_foreca
 alter table public.shadow_model_registry enable row level security;
 alter table public.shadow_forecasts enable row level security;
 
+grant select,insert,update,delete on table public.shadow_model_registry to service_role;
+grant select,insert,update,delete on table public.shadow_forecasts to service_role;
+
 insert into public.shadow_model_registry(model_version,model_family,status,probability_visible,training_cutoff,spec_hash,metadata)
 values
   ('walkforward-base-v1','historical base rate','baseline',false,'2025-12-31T23:59:59Z','v17-base-primary-h16',jsonb_build_object('target','Stage 3/4 to same-direction Stage 5 within 16 M15 bars','p',0.1957945266233597)),
