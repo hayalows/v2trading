@@ -11,6 +11,7 @@ Key discipline:
 - horizons are evaluated after the candidate set is frozen;
 - right-censored observations remain censored rather than being called failures;
 - unfilled-at-8-bars is not called structural invalidation;
+- pre-entry extension is measured before the midpoint fill and never uses post-entry data;
 - broker execution truth is still unavailable, so results remain paper research.
 """
 
@@ -94,20 +95,30 @@ def detect_candidates(m15_raw: pd.DataFrame, m5: pd.DataFrame | None, symbol: st
 
             bars_to_zone = (zone_touch_i - bos_i) if zone_touch_i is not None else np.nan
             bars_to_mid = (midpoint_i - bos_i) if midpoint_i is not None else np.nan
-            shallow_before_mid = bool(
-                zone_touch_i is not None and midpoint_i is not None and zone_touch_i < midpoint_i
-            )
+            shallow_before_mid = bool(zone_touch_i is not None and midpoint_i is not None and zone_touch_i < midpoint_i)
 
-            outcome = "unfilled_48"
+            # Point-in-time pre-entry extension: how far the market moved in the intended
+            # direction after BOS but BEFORE the first midpoint fill. This detects cases
+            # where the original directional move may already have delivered the planned TP.
+            pre_end = (midpoint_i - 1) if midpoint_i is not None else end_i
+            pre = df.iloc[bos_i + 1 : pre_end + 1] if pre_end >= bos_i + 1 else df.iloc[0:0]
+            if len(pre):
+                if direction == "long":
+                    pre_fav_r = (float(pre.high.max()) - entry) / risk
+                else:
+                    pre_fav_r = (entry - float(pre.low.min())) / risk
+            else:
+                pre_fav_r = 0.0
+            pre_target_reached = bool(pre_fav_r >= cfg.reward_r)
+
+            outcome = f"unfilled_{MAX_FOLLOW}"
             gross_r = np.nan
             net_r = np.nan
             exit_time = pd.NaT
             used_5m = False
             bars_held = np.nan
             if midpoint_i is not None:
-                outcome, exit_time, held, used_5m = proxy.resolve_m15_outcome(
-                    df, m5, midpoint_i, direction, entry, stop, target, cfg.max_hold_bars
-                )
+                outcome, exit_time, held, used_5m = proxy.resolve_m15_outcome(df, m5, midpoint_i, direction, entry, stop, target, cfg.max_hold_bars)
                 bars_held = held
                 if outcome.startswith("ambiguous"):
                     gross_r = np.nan
@@ -141,8 +152,10 @@ def detect_candidates(m15_raw: pd.DataFrame, m5: pd.DataFrame | None, symbol: st
                 "available_follow_bars": available,
                 "zone_touch_bars": bars_to_zone,
                 "midpoint_fill_bars": bars_to_mid,
-                "filled_within_48": midpoint_i is not None,
+                "filled_within_follow": midpoint_i is not None,
                 "shallow_zone_touch_before_midpoint": shallow_before_mid,
+                "pre_entry_favorable_r": pre_fav_r,
+                "pre_entry_target_reached": pre_target_reached,
                 "outcome": outcome,
                 "gross_r": gross_r,
                 "net_r": net_r,
@@ -168,11 +181,7 @@ def horizon_summary(df: pd.DataFrame) -> pd.DataFrame:
             if eligible.empty:
                 continue
             filled = eligible[eligible.midpoint_fill_bars.notna() & (eligible.midpoint_fill_bars <= h)]
-            late = eligible[
-                eligible.midpoint_fill_bars.notna()
-                & (eligible.midpoint_fill_bars > prev_h)
-                & (eligible.midpoint_fill_bars <= h)
-            ]
+            late = eligible[eligible.midpoint_fill_bars.notna() & (eligible.midpoint_fill_bars > prev_h) & (eligible.midpoint_fill_bars <= h)]
             resolved = filled[filled.net_r.notna()]
             late_resolved = late[late.net_r.notna()]
             rows.append({
@@ -198,8 +207,7 @@ def survival_curve(df: pd.DataFrame) -> pd.DataFrame:
     rows = []
     groups = [("ALL", df)] + [(s, g) for s, g in df.groupby("symbol")]
     for symbol, g in groups:
-        times = []
-        events = []
+        times, events = [], []
         for _, r in g.iterrows():
             avail = min(int(r.available_follow_bars), MAX_FOLLOW)
             if avail <= 0:
@@ -219,32 +227,38 @@ def survival_curve(df: pd.DataFrame) -> pd.DataFrame:
                 surv *= (1.0 - hazard)
             else:
                 hazard = np.nan
-            rows.append({
-                "symbol": symbol,
-                "bar": t,
-                "hours": t * 0.25,
-                "at_risk": risk,
-                "fills_at_bar": ev,
-                "hazard": hazard,
-                "survival_not_filled": surv,
-                "cumulative_fill_probability": 1.0 - surv,
-            })
+            rows.append({"symbol": symbol, "bar": t, "hours": t * 0.25, "at_risk": risk, "fills_at_bar": ev, "hazard": hazard, "survival_not_filled": surv, "cumulative_fill_probability": 1.0 - surv})
     return pd.DataFrame(rows)
 
 
 def shallow_touch_summary(df: pd.DataFrame) -> pd.DataFrame:
     x = df[df.midpoint_fill_bars.notna()].copy()
     rows = []
-    for label, g in [
-        ("direct_or_same_bar_midpoint", x[~x.shallow_zone_touch_before_midpoint]),
-        ("shallow_touch_then_later_midpoint", x[x.shallow_zone_touch_before_midpoint]),
-    ]:
+    for label, g in [("direct_or_same_bar_midpoint", x[~x.shallow_zone_touch_before_midpoint]), ("shallow_touch_then_later_midpoint", x[x.shallow_zone_touch_before_midpoint])]:
+        resolved = g[g.net_r.notna()]
+        rows.append({"group": label, "fills": len(g), "resolved": len(resolved), "median_midpoint_fill_bars": g.midpoint_fill_bars.median() if len(g) else np.nan, "net_r_mean": resolved.net_r.mean() if len(resolved) else np.nan, "win_rate": (resolved.outcome == "win").mean() if len(resolved) else np.nan})
+    return pd.DataFrame(rows)
+
+
+def extension_summary(df: pd.DataFrame) -> pd.DataFrame:
+    x = df[df.midpoint_fill_bars.notna()].copy()
+    rows = []
+    buckets = [
+        ("target_not_reached_before_entry", x[~x.pre_entry_target_reached]),
+        ("target_already_reached_before_entry", x[x.pre_entry_target_reached]),
+        ("pre_extension_lt_1R", x[x.pre_entry_favorable_r < 1]),
+        ("pre_extension_1_to_2_5R", x[(x.pre_entry_favorable_r >= 1) & (x.pre_entry_favorable_r < 2.5)]),
+        ("pre_extension_2_5_to_5R", x[(x.pre_entry_favorable_r >= 2.5) & (x.pre_entry_favorable_r < 5)]),
+        ("pre_extension_ge_5R", x[x.pre_entry_favorable_r >= 5]),
+    ]
+    for label, g in buckets:
         resolved = g[g.net_r.notna()]
         rows.append({
             "group": label,
             "fills": len(g),
             "resolved": len(resolved),
-            "median_midpoint_fill_bars": g.midpoint_fill_bars.median() if len(g) else np.nan,
+            "median_fill_bars": g.midpoint_fill_bars.median() if len(g) else np.nan,
+            "median_pre_entry_favorable_r": g.pre_entry_favorable_r.median() if len(g) else np.nan,
             "net_r_mean": resolved.net_r.mean() if len(resolved) else np.nan,
             "win_rate": (resolved.outcome == "win").mean() if len(resolved) else np.nan,
         })
@@ -269,11 +283,13 @@ def main() -> None:
     horizons = horizon_summary(candidates)
     survival = survival_curve(candidates)
     shallow = shallow_touch_summary(candidates)
+    extension = extension_summary(candidates)
 
     candidates.to_csv(args.out / "v14_poi_candidates.csv", index=False)
     horizons.to_csv(args.out / "v14_waiting_horizons.csv", index=False)
     survival.to_csv(args.out / "v14_survival_curve.csv", index=False)
     shallow.to_csv(args.out / "v14_shallow_touch.csv", index=False)
+    extension.to_csv(args.out / "v14_pre_entry_extension.csv", index=False)
 
     all_h = horizons[horizons.symbol == "ALL"].copy()
     h8 = all_h[all_h.horizon_bars == 8].iloc[0] if (all_h.horizon_bars == 8).any() else None
@@ -288,9 +304,7 @@ def main() -> None:
         late_n = int(late_rows.late_bucket_resolved.sum())
         late_weighted = np.nan
         if late_n:
-            late_weighted = float(
-                np.nansum(late_rows.late_bucket_net_r_mean * late_rows.late_bucket_resolved) / late_n
-            )
+            late_weighted = float(np.nansum(late_rows.late_bucket_net_r_mean * late_rows.late_bucket_resolved) / late_n)
         if extra >= 0.05 and late_n >= 30 and np.isfinite(late_weighted) and late_weighted > 0:
             decision = "REPLACE_8_BAR_EXPIRY_WITH_LIFECYCLE_WAIT"
             rationale = f"24-bar waiting recovers {extra:.1%} additional fills and 8-24-bar late fills retain positive mean net R ({late_weighted:.3f}R) in the public proxy."
@@ -314,6 +328,7 @@ def main() -> None:
     print(json.dumps(summary, indent=2, default=str))
     print("\nHORIZONS\n", horizons.to_string(index=False))
     print("\nSHALLOW TOUCH\n", shallow.to_string(index=False))
+    print("\nPRE-ENTRY EXTENSION\n", extension.to_string(index=False))
 
 
 if __name__ == "__main__":
