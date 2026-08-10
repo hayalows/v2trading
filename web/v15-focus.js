@@ -7,7 +7,15 @@
   let fp={trades:[]},loading=false;
   const safe=(v)=>typeof esc==='function'?esc(v):String(v??'');
   const price=(v)=>Number.isFinite(Number(v))?Number(v).toFixed(5):'—';
-  const currentTrade=()=>{const xs=(fp.trades||[]).filter(t=>t.symbol===selected);return xs.find(t=>t.status==='open')||xs.find(t=>t.status==='armed')||xs[0]||null};
+  const tradesFor=(symbol)=>(fp.trades||[]).filter(t=>t.symbol===symbol);
+  const currentTrade=(symbol=selected)=>{const xs=tradesFor(symbol);return xs.find(t=>t.status==='open')||xs.find(t=>t.status==='armed')||xs[0]||null};
+  function annotatePairBadges(){
+    document.querySelectorAll('[data-pair]').forEach(btn=>{
+      const t=currentTrade(btn.dataset.pair),small=btn.querySelector('.pairMeta small');if(!small||!t)return;
+      if(t.status==='open')small.textContent='Paper trade open · SL/TP tracking';
+      else if(t.status==='armed')small.textContent=`Paper plan waiting for POI · ${t.pending_age_bars??0} bars`;
+    });
+  }
   function statusFor(s,t){
     const stage=Number(s?.formation_stage||0);
     if(t?.status==='open')return {label:'PAPER TRADE OPEN',tone:'good',summary:'The midpoint was reached. The research engine is now tracking the frozen stop and 2.5R target.'};
@@ -39,7 +47,7 @@
     return [
       {n:'1',l:'Sweep',d:stage>=3||!!t,c:stage===3||stage===4},
       {n:'2',l:'BOS',d:stage>=5||!!t,c:stage===5},
-      {n:'3',l:'POI',d:poi,c:poi&&!entered&&(t?.status!=='armed'?stage===6: true)},
+      {n:'3',l:'POI',d:poi,c:poi&&!entered&&(t?.status!=='armed'?stage===6:true)},
       {n:'4',l:'Entry',d:entered,c:t?.status==='open'}
     ].map(x=>`<div class="focusStep ${x.d?'done':''} ${x.c?'current':''}"><b>${x.n}. ${x.l}</b><span>${x.d?'Reached':'Pending'}</span></div>`).join('');
   }
@@ -52,6 +60,7 @@
     return `${lead}The next study milestone is ${next.h}h, where ${Math.round(next.r*100)}% had reached midpoint. This is a historical lifecycle base rate, not a forecast for this trade.${condition}`;
   }
   function renderFocus(){
+    annotatePairBadges();
     const root=document.getElementById('focusBoard');if(!root||typeof state!=='function'||typeof info!=='function')return;
     const s=state(),i=info(),t=currentTrade(),st=statusFor(s,t),wl=watchLevel(s,t),p=i?.brief?.researchPriority?.label||'No focus';
     const age=t?.status==='armed'&&Number.isFinite(Number(t.pending_age_bars))?`${t.pending_age_bars} M15 bars waiting`:`Stage ${s?.formation_stage??'—'}/8`;
