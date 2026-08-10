@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/v14_poi_waiting_time_study.py'
+      - 'scripts/v14_poi_tail_runner.py'
       - 'scripts/public_data_v2_proxy.py'
       - '.github/workflows/v14-poi-waiting-time.yml'
       - 'requirements.txt'
@@ -35,10 +36,10 @@ jobs:
             curl -L --fail --retry 4 --retry-delay 2 -o ".research-data/market/${symbol}-5m.feather" "${base}/${symbol}-5m.feather?download=true"
           done
           ls -lh .research-data/market
-      - name: Run preregistered POI waiting-time study
+      - name: Run preregistered POI waiting-time study with long-tail observation
         run: |
           mkdir -p research-output
-          PYTHONPATH=scripts python scripts/v14_poi_waiting_time_study.py \
+          PYTHONPATH=scripts python scripts/v14_poi_tail_runner.py \
             --data-dir .research-data/market \
             --out research-output
       - name: Show results
