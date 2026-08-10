@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/v16_state_twin_research.py'
+      - 'scripts/v16_state_twin_falsification.py'
       - 'scripts/v06_prospective_detector_validation_np.py'
       - 'scripts/public_data_v2_proxy.py'
       - 'reports/v16/V16_STATE_TWIN_PROTOCOL.md'
@@ -44,9 +45,18 @@ jobs:
             --data-dir .research-data/market \
             --start 2020-01-01 \
             --out research-output/v16
-      - name: Show frozen decision
+      - name: Run post-gate independent-campaign falsification
+        run: |
+          python scripts/v16_state_twin_falsification.py \
+            --predictions research-output/v16/v16_state_twin_oos_predictions.csv \
+            --out research-output/v16/v16_state_twin_independence_audit.json \
+            --primary-horizon 16 \
+            --bootstrap 1000 \
+            --seed 42
+      - name: Show frozen decision and falsification result
         run: |
           cat research-output/v16/v16_state_twin_summary.json
+          cat research-output/v16/v16_state_twin_independence_audit.json
       - name: Upload StateTwin research artifacts
         uses: actions/upload-artifact@v4
         with:
