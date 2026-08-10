@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0f14">
-<meta name="description" content="V2 Intelligence Lab — prospective EURUSD and GBPUSD formation research with episode outcomes and explicit uncertainty.">
+<meta name="description" content="V2 Intelligence Lab — prospective EURUSD and GBPUSD campaign research with sweep-aware independent evidence and explicit uncertainty.">
 <title>V2 Intelligence Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,7 +28,7 @@
       <div class="topActions"><div class="market"><span class="dot" id="marketDot"></span><span id="marketText">Checking</span></div><button class="iconBtn" id="refresh" aria-label="Refresh research intelligence"><span class="material-symbols-rounded">refresh</span></button></div>
     </header>
     <div class="wrap">
-      <section class="intro"><div class="eyebrow">Version 1.1 · Episode intelligence</div><h1>Know what deserves attention, and know when the evidence is too weak.</h1><p>The lab now follows complete formation episodes, measures what happens afterward, and abstains when the prospective sample is too small. Start with research priority, then inspect the episode and chart.</p></section>
+      <section class="intro"><div class="eyebrow">Version 1.2 · Campaign intelligence</div><h1>Separate repeated sweeps from genuinely independent evidence.</h1><p>The lab now follows continuous formation campaigns, keeps every sweep event, and prevents repeated sweeps inside the same market sequence from inflating the evidence count. Start with research priority, then inspect campaign age, context, evidence and chart.</p></section>
       <section class="pairSwitch" id="pairSwitch" aria-label="Choose FX pair"></section>
 
       <section class="view active" id="overview">
@@ -36,7 +36,7 @@
           <article class="hero">
             <div class="heroHead"><div class="priority" id="priority"><span class="material-symbols-rounded">radio_button_unchecked</span><span>Loading</span></div><span class="sym" id="heroSym">EURUSD</span></div>
             <h2 id="headline">Reading the latest completed market structure…</h2>
-            <div class="heroCopy" id="heroCopy">The intelligence layer is loading the prospective state and episode history.</div>
+            <div class="heroCopy" id="heroCopy">The intelligence layer is loading the market state and campaign history.</div>
             <div class="why" id="why"></div>
             <div class="actions"><button class="btn primary" id="chartAction"><span class="material-symbols-rounded">candlestick_chart</span><span>Open chart</span></button><button class="btn tonal" id="evidenceAction"><span class="material-symbols-rounded">science</span><span>Check evidence</span></button></div>
             <div class="statusGrid" id="statusGrid"></div>
@@ -53,26 +53,27 @@
 
       <section class="view" id="chartView">
         <div class="chartShell"><div class="chartBar"><div><b id="chartTitle">EURUSD · 15 minute chart</b><span>Verify the sweep, BOS, POI and surrounding context yourself.</span></div><span id="chartState">Loading</span></div><div class="chart" id="chart"></div></div>
-        <section class="section"><article class="card"><div class="cardLabel"><span class="material-symbols-rounded">psychology_alt</span>Chart workflow</div><h3>Use the chart to challenge the detector.</h3><p>If the visual structure does not make sense, trust the discrepancy enough to investigate it. The chart is an audit surface, not a confirmation button.</p></article></section>
+        <section class="section"><article class="card"><div class="cardLabel"><span class="material-symbols-rounded">psychology_alt</span>Chart workflow</div><h3>Use the chart to challenge the detector.</h3><p>If the visual structure does not make sense, treat the discrepancy as something to investigate. A campaign can contain several sweep events, so the chart should help you see whether they belong to one continuous market sequence.</p></article></section>
       </section>
 
       <section class="view" id="evidenceView">
-        <div class="sectionHead"><h2>Prospective evidence</h2><p>Episodes are counted once. Outcome statistics remain locked until the minimum sample is reached.</p></div>
+        <div class="sectionHead"><h2>Independent prospective evidence</h2><p>Sweep events are retained, but inference uses one qualifying outcome per continuous formation campaign.</p></div>
         <div class="stats" id="stats"></div>
-        <article class="card" style="margin-top:12px"><div class="cardLabel"><span class="material-symbols-rounded">lock</span>Inference gate</div><h3 id="inferenceGate">The sample is still building.</h3><p>A percentage is not useful if the denominator is too small. The lab shows sample progress first and unlocks descriptive rates only after the preregistered threshold.</p></article>
+        <article class="card" style="margin-top:12px"><div class="cardLabel"><span class="material-symbols-rounded">lock</span>Independence gate</div><h3 id="inferenceGate">The independent sample is still building.</h3><p>A denominator is misleading when several observations come from overlapping sweeps in the same market campaign. The lab compresses those correlated sweep events before any percentage can unlock.</p></article>
         <div class="evidenceCards" id="evidenceCards"></div>
         <section class="section"><article class="card"><div class="cardLabel"><span class="material-symbols-rounded">fact_check</span>Historical detector validation</div><h3>Formation discovery passed; profitability did not.</h3><p>In causal replay, future candles were hidden across 154,665 M15 bars. Against 279 independently generated proxy entries, Stage 5 appeared beforehand 82.1% of the time and Stage 6 71.3%, typically around one hour before entry. This is recall, not win rate.</p></article></section>
-        <section class="section"><div class="sectionHead"><h2>Meaningful changes</h2><p>Low-value Stage 0↔1 flicker is suppressed.</p></div><div class="timeline" id="timeline"></div></section>
+        <section class="section"><div class="sectionHead"><h2>Meaningful changes</h2><p>Low-value Stage 0↔1 flicker is suppressed; repeated sweeps remain visible here without becoming extra independent evidence.</p></div><div class="timeline" id="timeline"></div></section>
       </section>
 
       <section class="view" id="dataView">
-        <div class="sectionHead"><h2>Data trust</h2><p>Know which layer is descriptive market data and which information is still unavailable.</p></div>
+        <div class="sectionHead"><h2>Data trust</h2><p>Know which layer is descriptive market data, how campaigns are grouped, and which information is still unavailable.</p></div>
         <div class="trust" id="trust"></div>
         <section class="section"><article class="card"><div class="cardLabel"><span class="material-symbols-rounded">menu_book</span>Quick glossary</div><div class="glossary">
-          <details><summary><span>Formation episode</span><span class="material-symbols-rounded">expand_more</span></summary><p>One continuous same-direction Stage-3+ sequence. It starts once, can mature through later stages, and ends on reset or direction change. Five-minute refreshes do not create five separate opportunities.</p></details>
-          <details><summary><span>Research priority</span><span class="material-symbols-rounded">expand_more</span></summary><p>An action category based on structural maturity, data status and market state: No focus, Observe, Review structure, Investigate location, Data hold, or Review only. It is not a trade recommendation.</p></details>
-          <details><summary><span>Evidence gate</span><span class="material-symbols-rounded">expand_more</span></summary><p>The lab withholds prospective outcome percentages until enough completed independent episodes exist. This prevents one or two unusual cases from becoming false certainty.</p></details>
-          <details><summary><span>MFE / MAE</span><span class="material-symbols-rounded">expand_more</span></summary><p>Maximum favorable and adverse excursion after an episode anchor, normalized by ATR. These describe price movement and do not include broker spread, slippage or fill logic.</p></details>
+          <details><summary><span>Formation campaign</span><span class="material-symbols-rounded">expand_more</span></summary><p>One continuous same-direction Stage-3+ market sequence. It starts after the structure becomes meaningful and ends on reset or direction change. A campaign may contain several distinct sweep events.</p></details>
+          <details><summary><span>Sweep event</span><span class="material-symbols-rounded">expand_more</span></summary><p>A specific liquidity sweep detected inside a campaign. Every sweep is retained for research, but repeated sweeps inside one campaign do not each count as independent evidence.</p></details>
+          <details><summary><span>Research priority</span><span class="material-symbols-rounded">expand_more</span></summary><p>An action category based on structural maturity, data status and market context: No focus, Observe, Observe counter-context, Review structure, Investigate location, Data hold, or Review only. It is not a trade recommendation.</p></details>
+          <details><summary><span>Independent evidence gate</span><span class="material-symbols-rounded">expand_more</span></summary><p>The lab withholds prospective outcome percentages until enough completed formation campaigns exist. Raw sweep outcomes are shown as diagnostics but do not control the inference gate.</p></details>
+          <details><summary><span>MFE / MAE</span><span class="material-symbols-rounded">expand_more</span></summary><p>Maximum favorable and adverse excursion after an anchor, normalized by ATR. These describe price movement and do not include broker spread, slippage or fill logic.</p></details>
         </div></article></section>
       </section>
     </div>
@@ -80,6 +81,6 @@
 </div>
 <nav class="bottom" aria-label="Primary navigation"><button class="navBtn active" data-view="overview"><span class="material-symbols-rounded">space_dashboard</span><span>Overview</span></button><button class="navBtn" data-view="chartView"><span class="material-symbols-rounded">candlestick_chart</span><span>Chart</span></button><button class="navBtn" data-view="evidenceView"><span class="material-symbols-rounded">science</span><span>Evidence</span></button><button class="navBtn" data-view="dataView"><span class="material-symbols-rounded">verified_user</span><span>Data</span></button></nav>
 <div class="snack" id="snack" role="status" aria-live="polite"></div>
-<script src="/v11.js"></script>
+<script src="/v12.js"></script>
 </body>
 </html>

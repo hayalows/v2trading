@@ -1,0 +1,31 @@
+name: v12-campaign-intelligence
+
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'supabase/functions/lab-insights/**'
+      - 'supabase/migrations/20260810103500_v12_campaign_intelligence.sql'
+      - 'scripts/v12_validate_campaign_logic.mjs'
+      - 'scripts/v08_validate_frontend.mjs'
+      - '.github/workflows/v12-campaign-intelligence.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate campaign independence semantics
+        run: node scripts/v12_validate_campaign_logic.mjs
+      - name: Validate campaign-aware frontend
+        run: node scripts/v08_validate_frontend.mjs
+      - name: Check campaign data-layer markers
+        run: |
+          grep -q 'formation_campaigns' supabase/migrations/20260810103500_v12_campaign_intelligence.sql
+          grep -q 'trg_v2_campaign_history' supabase/migrations/20260810103500_v12_campaign_intelligence.sql
+          grep -q 'independentCampaigns' supabase/functions/lab-insights/index.ts
+          grep -q 'rawSweepOutcomes' supabase/functions/lab-insights/index.ts
