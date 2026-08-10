@@ -38,9 +38,10 @@
     document.head.appendChild(style);
   }
 
-  const finite=v=>Number.isFinite(Number(v));
-  const fmtPrice=v=>finite(v)?Number(v).toFixed(5):'—';
-  const fmtAtr=v=>finite(v)?`${Number(v).toFixed(2)} ATR`:'—';
+  const asNum=v=>(v===null||v===undefined||v==='')?Number.NaN:Number(v);
+  const finite=v=>Number.isFinite(asNum(v));
+  const fmtPrice=v=>finite(v)?asNum(v).toFixed(5):'—';
+  const fmtAtr=v=>finite(v)?`${asNum(v).toFixed(2)} ATR`:'—';
 
   function ensurePoiSlot(){
     let slot=document.getElementById('poiWatchSlot');
@@ -57,9 +58,9 @@
 
   function poiState(s){
     const stage=Number(s?.formation_stage||0),direction=s?.formation_direction||null;
-    const low=Number(s?.poi_low),high=Number(s?.poi_high);
-    const structure=Number(s?.details?.structure_reference_price);
-    const distance=Number(s?.distance_to_poi_atr);
+    const low=asNum(s?.poi_low),high=asNum(s?.poi_high);
+    const structure=asNum(s?.details?.structure_reference_price);
+    const distance=asNum(s?.distance_to_poi_atr);
     const hasZone=stage>=6&&Number.isFinite(low)&&Number.isFinite(high)&&high>=low;
 
     if(!hasZone){
@@ -72,7 +73,7 @@
 
     const inside=Number.isFinite(structure)&&structure>=low&&structure<=high;
     const near=Number.isFinite(distance)&&distance<=0.35;
-    let status=inside||stage>=8?'POI reached':near||stage>=7?'Approaching POI':'Fresh POI found';
+    const status=inside||stage>=8?'POI reached':near||stage>=7?'Approaching POI':'Fresh POI found';
     let relation='Structure price unavailable';
     if(Number.isFinite(structure)) relation=inside?'Price is inside the POI zone':structure>high?'Price is above the POI zone':'Price is below the POI zone';
 
