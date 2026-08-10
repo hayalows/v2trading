@@ -18,6 +18,7 @@ const STOP_BUFFER_ATR = 0.03;
 const REWARD_R = 2.5;
 const MIN_RISK_ATR = 0.08;
 const MAX_RISK_ATR = 1.60;
+const HISTORY_RECOVERY_HOURS = 3;
 
 type Bar = { ts:string; open:number; high:number; low:number; close:number; source?:string };
 type PaperTrade = Record<string, any>;
@@ -75,6 +76,27 @@ async function campaignFor(symbol:string,direction:string,sweepTime:string){
   return (q.data??[]).find((r:any)=>isoMs(r.started_at)<=s&&(!r.ended_at||s<=isoMs(r.ended_at)))??null;
 }
 
+function historyState(row:any){
+  const f=row?.state?.formation??{},details=f?.details??{},trends=row?.state?.trends??{};
+  return {
+    symbol:row.symbol,
+    formation_stage:row.formation_stage,
+    formation_code:row.formation_code,
+    formation_direction:row.formation_direction,
+    poi_low:f.poiLow,
+    poi_high:f.poiHigh,
+    market_session:row?.state?.session??null,
+    regime:row.regime,
+    d1_trend:trends?.d1?.label??null,
+    h4_trend:trends?.h4?.label??null,
+    h1_trend:trends?.h1?.label??null,
+    m15_trend:trends?.m15?.label??null,
+    details:{formation:details,diagnostics:row?.state?.diagnostics??{}},
+    recovered_from_history:true,
+    recovered_as_of:row.as_of,
+  };
+}
+
 async function armFromState(state:any,bars:Bar[]):Promise<PaperTrade|null>{
   const stage=Number(state?.formation_stage??0),dir=state?.formation_direction;
   const form=state?.details?.formation??{};
@@ -97,10 +119,10 @@ async function armFromState(state:any,bars:Bar[]):Promise<PaperTrade|null>{
     armed_at:new Date().toISOString(),sweep_time:new Date(sweepTime).toISOString(),bos_time:new Date(bosTime).toISOString(),poi_time:poiTime?new Date(poiTime).toISOString():null,
     entry_expires_at:new Date(isoMs(bosTime)+(MAX_ENTRY_BARS+1)*15*60_000).toISOString(),poi_low:low,poi_high:high,entry_price:entry,stop_price:stop,target_price:target,
     sweep_extreme:sweepExtreme,atr_at_plan:atr,risk_distance:risk,risk_atr:riskAtr,reward_r:REWARD_R,
-    context:{formation_stage:stage,formation_code:state.formation_code,market_session:state.market_session,regime:state.regime,trends:{d1:state.d1_trend,h4:state.h4_trend,h1:state.h1_trend,m15:state.m15_trend},diagnostics:state?.details?.diagnostics??{},poi_source:'live full-candle POI; midpoint paper entry',entry_rule:'first future completed M15 bar after BOS touching POI midpoint',invalid_reason:valid?null:`risk_atr ${riskAtr.toFixed(3)} outside ${MIN_RISK_ATR}-${MAX_RISK_ATR}`},
+    context:{formation_stage:stage,formation_code:state.formation_code,market_session:state.market_session,regime:state.regime,trends:{d1:state.d1_trend,h4:state.h4_trend,h1:state.h1_trend,m15:state.m15_trend},diagnostics:state?.details?.diagnostics??{},poi_source:'live full-candle POI; midpoint paper entry',entry_rule:'first future completed M15 bar after BOS touching POI midpoint',recovered_from_history:Boolean(state.recovered_from_history),recovered_as_of:state.recovered_as_of??null,invalid_reason:valid?null:`risk_atr ${riskAtr.toFixed(3)} outside ${MIN_RISK_ATR}-${MAX_RISK_ATR}`},
   };
   const w=await db.from("paper_trades").insert(row).select("*").single();if(w.error)throw new Error(`arm ${tradeKey}: ${w.error.message}`);
-  await eventOnce(tradeKey,valid?'armed':'invalid',row.armed_at,valid?entry:null,{entry,stop,target,riskAtr,poiLow:low,poiHigh:high,reason:row.context.invalid_reason});
+  await eventOnce(tradeKey,valid?'armed':'invalid',row.armed_at,valid?entry:null,{entry,stop,target,riskAtr,poiLow:low,poiHigh:high,recoveredFromHistory:Boolean(state.recovered_from_history),reason:row.context.invalid_reason});
   return w.data;
 }
 
@@ -167,7 +189,7 @@ async function evaluateTrade(trade:PaperTrade,bars:Bar[]){
       const r=await resolveEntryBar5m(trade,bar);
       if(r.kind==='ambiguous'){await finalize(trade,'ambiguous',bar.ts,null,'5m',r.reason,bars,entryIdx,entryIdx);return}
       const entryAt=r.entryAt??bar.ts;
-      const basePatch:any={entry_at:entryAt,bars_to_entry:barsToEntry,resolution_timeframe:r.resolution??'5m',updated_at:new Date().toISOString()};
+      const basePatch:any={entry_at:entryAt,bars_to_entry:barsToEntry,resolution_timeframe:r.resolution??'5m',context:{...(trade.context??{}),entry_bar_resolved_5m:true},updated_at:new Date().toISOString()};
       if(r.kind==='win'||r.kind==='loss'){
         const w=await db.from("paper_trades").update({...basePatch,status:r.kind}).eq("trade_key",trade.trade_key);if(w.error)throw new Error(w.error.message);
         await eventOnce(trade.trade_key,'entry',entryAt,Number(trade.entry_price),{barsToEntry,resolution:r.resolution??'5m'});
@@ -184,7 +206,8 @@ async function evaluateTrade(trade:PaperTrade,bars:Bar[]){
   if(trade.status!=='open'||!trade.entry_at)return;
   const entryBar=floor15(trade.entry_at),entryIdx=bars.findIndex(b=>b.ts===entryBar);if(entryIdx<0)return;
   const last=Math.min(bars.length-1,entryIdx+MAX_HOLD_BARS);
-  for(let i=entryIdx;i<=last;i++){
+  const firstEval=trade?.context?.entry_bar_resolved_5m?entryIdx+1:entryIdx;
+  for(let i=firstEval;i<=last;i++){
     const h=m15Hit(trade,bars[i]);
     if(h.stop&&h.target){const r=await resolveBoth5m(trade,bars[i]);if(r.kind==='ambiguous'){await finalize(trade,'ambiguous',bars[i].ts,null,'5m',r.reason,bars,entryIdx,i);return}await finalize(trade,r.kind,r.exitAt!,r.exitPrice!,r.resolution??'5m',null,bars,entryIdx,i);return}
     if(h.stop){await finalize(trade,'loss',bars[i].ts,Number(trade.stop_price),'15m',null,bars,entryIdx,i);return}
@@ -202,15 +225,22 @@ async function evaluateTrade(trade:PaperTrade,bars:Bar[]){
 
 async function runEngine(){
   const states=await db.from("market_states").select("*").in("symbol",["EURUSD","GBPUSD"]);if(states.error)throw new Error(states.error.message);
+  const since=new Date(Date.now()-HISTORY_RECOVERY_HOURS*3600_000).toISOString();
+  const hist=await db.from("market_state_history").select("symbol,as_of,formation_stage,formation_code,formation_direction,regime,state").in("symbol",["EURUSD","GBPUSD"]).gte("formation_stage",6).gte("as_of",since).order("as_of",{ascending:false}).limit(120);if(hist.error)throw new Error(hist.error.message);
   const barCache:Record<string,Bar[]>={};
-  for(const s of states.data??[]){barCache[s.symbol]=await loadBars(s.symbol);await armFromState(s,barCache[s.symbol]);}
+  const candidates=[...(states.data??[]),...(hist.data??[]).map(historyState)],seen=new Set<string>();
+  for(const s of candidates){
+    const f=s?.details?.formation??{},key=f?.sweepTime?`${s.symbol}:${s.formation_direction}:${new Date(f.sweepTime).toISOString()}`:null;
+    if(key&&seen.has(key))continue;if(key)seen.add(key);
+    barCache[s.symbol]??=await loadBars(s.symbol);await armFromState(s,barCache[s.symbol]);
+  }
   const active=await db.from("paper_trades").select("*").in("status",["armed","open"]).order("armed_at",{ascending:true});if(active.error)throw new Error(active.error.message);
   for(const t of active.data??[]){barCache[t.symbol]??=await loadBars(t.symbol);await evaluateTrade(t,barCache[t.symbol]);}
-  return {states:(states.data??[]).length,evaluated:(active.data??[]).length};
+  return {states:(states.data??[]).length,recoveredHistory:(hist.data??[]).length,evaluated:(active.data??[]).length};
 }
 
 async function snapshot(symbols:string[],includeBars:boolean){
-  let tq=db.from("paper_trades").select("*").in("symbol",symbols).order("armed_at",{ascending:false}).limit(50);const trades=await tq;if(trades.error)throw new Error(trades.error.message);
+  const trades=await db.from("paper_trades").select("*").in("symbol",symbols).order("armed_at",{ascending:false}).limit(50);if(trades.error)throw new Error(trades.error.message);
   const keys=(trades.data??[]).map((x:any)=>x.trade_key);let events:any[]=[];
   if(keys.length){const e=await db.from("paper_trade_events").select("*").in("trade_key",keys).order("event_at",{ascending:false}).limit(100);if(e.error)throw new Error(e.error.message);events=e.data??[]}
   const summary:any={};for(const s of symbols){const xs=(trades.data??[]).filter((t:any)=>t.symbol===s);summary[s]={total:xs.length,armed:xs.filter((t:any)=>t.status==='armed').length,open:xs.filter((t:any)=>t.status==='open').length,closed:xs.filter((t:any)=>['win','loss','timeout','ambiguous'].includes(t.status)).length,wins:xs.filter((t:any)=>t.status==='win').length,losses:xs.filter((t:any)=>t.status==='loss').length,latest:xs[0]??null}}
@@ -225,6 +255,6 @@ Deno.serve(async req=>{
     const u=new URL(req.url),raw=(u.searchParams.get('symbol')??'EURUSD,GBPUSD').split(',').map(x=>x.toUpperCase()).filter(x=>SYMBOLS.has(x)),symbols=raw.length?raw:['EURUSD','GBPUSD'];
     const shouldRun=u.searchParams.get('run')==='1',includeBars=u.searchParams.get('bars')==='1';
     const run=shouldRun?await runEngine():null,snap=await snapshot(symbols,includeBars);
-    return json({version:'V2 paper-trade engine v1.3',research_only:true,broker_execution:false,generated_at:new Date().toISOString(),run,...snap,methodology:{entry:'50% live POI midpoint after fresh BOS-confirmed POI',entryWindowBars:MAX_ENTRY_BARS,stop:'sweep extreme +/- 0.03 ATR',targetR:REWARD_R,maxHoldBars:MAX_HOLD_BARS,riskAtrGate:[MIN_RISK_ATR,MAX_RISK_ATR],triggerData:'same-source completed M15 structural bars only',sameBarPolicy:'Use public 5m path when needed; otherwise mark ambiguous',executionTruth:'No broker bid/ask, spread, slippage or executable fill feed is connected. These are research paper trades.'}});
+    return json({version:'V2 paper-trade engine v1.3',research_only:true,broker_execution:false,generated_at:new Date().toISOString(),run,...snap,methodology:{entry:'50% live POI midpoint after fresh BOS-confirmed POI',entryWindowBars:MAX_ENTRY_BARS,stop:'sweep extreme +/- 0.03 ATR',targetR:REWARD_R,maxHoldBars:MAX_HOLD_BARS,riskAtrGate:[MIN_RISK_ATR,MAX_RISK_ATR],triggerData:'same-source completed M15 structural bars only',historyRecoveryHours:HISTORY_RECOVERY_HOURS,sameBarPolicy:'Use public 5m path when needed; otherwise mark ambiguous',executionTruth:'No broker bid/ask, spread, slippage or executable fill feed is connected. These are research paper trades.'}});
   }catch(e){return json({error:String(e)},500)}
 });
