@@ -37,6 +37,7 @@ function snapshot(state:any,twin:any,campaign:any,age:number){
       symbol:state.symbol, referencePrice:state.reference_price, structurePrice:d.structure_reference_price,
       formationStage:state.formation_stage, formationCode:state.formation_code, direction:state.formation_direction,
       regime:state.regime, rangePosition:state.range_position, atr15:state.atr15,
+      bosReference:d?.formation?.bosReference??null,
       poiHigh:state.poi_high, poiLow:state.poi_low, distanceToPoiAtr:state.distance_to_poi_atr,
     },
     campaign:{campaignKey:campaign.campaign_key,startedAt:campaign.started_at,firstSweepTime:campaign.first_sweep_time,sweepCount:campaign.sweep_count,maxStage:campaign.max_stage,landmarkAgeBars:age},
@@ -129,7 +130,7 @@ async function summary(){
   const rows=f.data??[],resolved=rows.filter((r:any)=>r.status==="resolved"&&r.outcome!==null),pending=rows.filter((r:any)=>r.status==="pending");
   const pair=(symbol:string)=>{const rr=resolved.filter((x:any)=>x.symbol===symbol);return {resolved:rr.length,events:rr.filter((x:any)=>x.outcome===1).length,eventRate:rr.length?rr.filter((x:any)=>x.outcome===1).length/rr.length:null,baselineBrier:brier(rr)}};
   return {
-    version:"V2 Shadow Arena v1.7-alpha.2",researchOnly:true,probabilityVisible:false,
+    version:"V2 Shadow Arena v1.7-alpha.3",researchOnly:true,probabilityVisible:false,
     target:"Stage 3/4 → same-direction BOS / Stage 5 within 16 completed M15 bars",
     counts:{total:rows.length,pending:pending.length,resolved:resolved.length,events:resolved.filter((x:any)=>x.outcome===1).length},
     calibration:{baselineProbability:BASE_P,baselineBrier:brier(resolved),baselineLogLoss:logloss(resolved),observedEventRate:resolved.length?resolved.filter((x:any)=>x.outcome===1).length/resolved.length:null,note:"Model probabilities remain hidden. These are pre-outcome shadow records, not trade signals."},
