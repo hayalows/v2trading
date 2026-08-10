@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0f14">
-<meta name="description" content="V2 Intelligence Lab — prospective EURUSD and GBPUSD campaign research with sweep-aware evidence, POI watch zones and explicit uncertainty.">
+<meta name="description" content="V2 Intelligence Lab — prospective FX formation research with automatic paper trades, POI watch, entry, SL and TP tracking.">
 <title>V2 Intelligence Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet">
 <link rel="stylesheet" href="/v11.css">
+<link rel="stylesheet" href="/v13.css">
 </head>
 <body>
 <div class="shell">
@@ -17,7 +18,8 @@
     <div class="railLogo" aria-label="V2 Intelligence Lab">V2</div>
     <div class="railNav">
       <button class="railBtn active" data-view="overview" aria-label="Overview"><span class="material-symbols-rounded">space_dashboard</span><span>Overview</span></button>
-      <button class="railBtn" data-view="chartView" aria-label="Chart"><span class="material-symbols-rounded">candlestick_chart</span><span>Chart</span></button>
+      <button class="railBtn" data-view="chartView" aria-label="TradingView chart"><span class="material-symbols-rounded">candlestick_chart</span><span>Chart</span></button>
+      <button class="railBtn" data-view="tradesView" aria-label="Paper trades"><span class="material-symbols-rounded">query_stats</span><span>Trades</span></button>
       <button class="railBtn" data-view="evidenceView" aria-label="Evidence"><span class="material-symbols-rounded">science</span><span>Evidence</span></button>
       <button class="railBtn" data-view="dataView" aria-label="Data trust"><span class="material-symbols-rounded">verified_user</span><span>Data</span></button>
     </div>
@@ -28,7 +30,7 @@
       <div class="topActions"><div class="market"><span class="dot" id="marketDot"></span><span id="marketText">Checking</span></div><button class="iconBtn" id="refresh" aria-label="Refresh research intelligence"><span class="material-symbols-rounded">refresh</span></button></div>
     </header>
     <div class="wrap">
-      <section class="intro"><div class="eyebrow">Version 1.2.1 · POI Watch</div><h1>Know when a POI exists, where it is, and what must happen next.</h1><p>The lab keeps campaign-level evidence intact while making the POI workflow explicit: no zone before BOS, exact POI high/low once confirmed, distance to the zone, and a clear next research action.</p></section>
+      <section class="intro"><div class="eyebrow">Version 1.3 · Automatic paper trades</div><h1>Let the lab follow the setup, simulate the trade, and record what happens.</h1><p>When BOS confirms a fresh POI, the lab can arm the frozen midpoint plan automatically, wait for a future POI revisit, then track the research entry, stop, 2.5R target and outcome without manual journaling.</p></section>
       <section class="pairSwitch" id="pairSwitch" aria-label="Choose FX pair"></section>
 
       <section class="view active" id="overview">
@@ -43,6 +45,8 @@
           </article>
           <div class="stack">
             <article class="card"><div class="cardLabel"><span class="material-symbols-rounded">route</span>What happens next</div><h3>Next checkpoint</h3><p id="nextText">Wait for the next completed structural event.</p><div class="episodeMeta"><span class="chip">Last meaningful change</span></div><p id="lastChange" style="margin-top:8px">—</p></article>
+            <div id="poiWatchSlot"></div>
+            <div id="paperTradeSlot"></div>
             <div id="episodeSlot"></div>
             <article class="card" id="evidenceMini"></article>
           </div>
@@ -52,8 +56,23 @@
       </section>
 
       <section class="view" id="chartView">
-        <div class="chartShell"><div class="chartBar"><div><b id="chartTitle">EURUSD · 15 minute chart</b><span>Verify the sweep, BOS, POI and surrounding context yourself.</span></div><span id="chartState">Loading</span></div><div class="chart" id="chart"></div></div>
-        <section class="section"><article class="card"><div class="cardLabel"><span class="material-symbols-rounded">psychology_alt</span>Chart workflow</div><h3>Use the chart to challenge the detector.</h3><p>If the visual structure does not make sense, treat the discrepancy as something to investigate. When a fresh POI exists, the POI Watch card gives the exact range to locate on this chart. A campaign can contain several sweep events, so the chart should also help you see whether they belong to one continuous market sequence.</p></article></section>
+        <div class="chartShell"><div class="chartBar"><div><b id="chartTitle">EURUSD · 15 minute chart</b><span>Use TradingView to visually challenge the sweep, BOS, POI and surrounding context.</span></div><span id="chartState">Loading</span></div><div class="chart" id="chart"></div></div>
+        <section class="section"><article class="card"><div class="cardLabel"><span class="material-symbols-rounded">psychology_alt</span>TradingView audit</div><h3>Use this chart for manual visual verification.</h3><p>The app cannot inject its own automatic SL/TP drawings into this free embed. For the exact research POI, entry, stop and target overlays, use the Paper Trades research chart.</p><div class="actions"><button class="btn tonal" onclick="setView('tradesView')"><span class="material-symbols-rounded">query_stats</span><span>Open paper-trade chart</span></button></div></article></section>
+      </section>
+
+      <section class="view" id="tradesView">
+        <div class="sectionHead"><h2>Automatic paper trades</h2><p>The lab records what its own frozen setup rules would have done. These are research simulations, not broker orders.</p></div>
+        <div class="tradeStats" id="paperStats"></div>
+        <div class="paperWorkspace section">
+          <article class="paperCurrent" id="paperCurrent"><div class="cardLabel"><span class="material-symbols-rounded">smart_toy</span>Automatic paper trade</div><h3>Loading paper journal…</h3></article>
+          <article class="card"><div class="cardLabel"><span class="material-symbols-rounded">rule</span>Frozen execution rule</div><h3>POI midpoint → sweep stop → 2.5R</h3><p>The engine arms only after a fresh BOS-confirmed POI. Entry is the 50% POI midpoint on a future completed M15 bar, SL is beyond the sweep extreme with a 0.03 ATR buffer, and TP is fixed at 2.5R. It has eight M15 bars to enter and 48 bars to resolve.</p><div class="paperNotice"><strong>Not real execution</strong>No broker bid/ask, live spread, slippage or order-fill feed is connected. Same-bar ambiguity is resolved with public 5-minute data when possible, otherwise it is recorded as ambiguous.</div></article>
+        </div>
+        <div class="researchChartShell">
+          <div class="researchChartHead"><div><b>Research Trade Chart</b><span>Same completed M15 structural bars used by the paper engine</span></div><span id="researchChartLabel">Loading</span></div>
+          <div class="researchChart" id="researchChart"></div>
+          <div class="chartLegend"><span><i class="legendDot legendPoi"></i>POI</span><span><i class="legendDot legendEntry"></i>Entry</span><span><i class="legendDot legendStop"></i>SL</span><span><i class="legendDot legendTarget"></i>TP</span></div>
+        </div>
+        <section class="section"><div class="sectionHead"><h2>Paper-trade journal</h2><p>Every armed plan and outcome is stored automatically in the research database.</p></div><div class="tradeList" id="paperHistory"></div></section>
       </section>
 
       <section class="view" id="evidenceView">
@@ -66,23 +85,24 @@
       </section>
 
       <section class="view" id="dataView">
-        <div class="sectionHead"><h2>Data trust</h2><p>Know which layer is descriptive market data, how campaigns are grouped, and which information is still unavailable.</p></div>
+        <div class="sectionHead"><h2>Data trust</h2><p>Know which layer is descriptive market data, how campaigns and paper trades are grouped, and which information is still unavailable.</p></div>
         <div class="trust" id="trust"></div>
         <section class="section"><article class="card"><div class="cardLabel"><span class="material-symbols-rounded">menu_book</span>Quick glossary</div><div class="glossary">
           <details><summary><span>Formation campaign</span><span class="material-symbols-rounded">expand_more</span></summary><p>One continuous same-direction Stage-3+ market sequence. It starts after the structure becomes meaningful and ends on reset or direction change. A campaign may contain several distinct sweep events.</p></details>
-          <details><summary><span>Sweep event</span><span class="material-symbols-rounded">expand_more</span></summary><p>A specific liquidity sweep detected inside a campaign. Every sweep is retained for research, but repeated sweeps inside one campaign do not each count as independent evidence.</p></details>
-          <details><summary><span>Fresh POI</span><span class="material-symbols-rounded">expand_more</span></summary><p>The origin zone identified only after break of structure confirms. The app deliberately shows no POI before BOS. Once a fresh zone exists, POI Watch shows its high, low, distance and current relationship to structure price.</p></details>
-          <details><summary><span>Research priority</span><span class="material-symbols-rounded">expand_more</span></summary><p>An action category based on structural maturity, data status and market context: No focus, Observe, Observe counter-context, Review structure, Investigate location, Data hold, or Review only. It is not a trade recommendation.</p></details>
-          <details><summary><span>Independent evidence gate</span><span class="material-symbols-rounded">expand_more</span></summary><p>The lab withholds prospective outcome percentages until enough completed formation campaigns exist. Raw sweep outcomes are shown as diagnostics but do not control the inference gate.</p></details>
-          <details><summary><span>MFE / MAE</span><span class="material-symbols-rounded">expand_more</span></summary><p>Maximum favorable and adverse excursion after an anchor, normalized by ATR. These describe price movement and do not include broker spread, slippage or fill logic.</p></details>
+          <details><summary><span>Fresh POI</span><span class="material-symbols-rounded">expand_more</span></summary><p>The origin zone identified only after break of structure confirms. Once a fresh zone exists, POI Watch shows its high, low, distance and current relationship to structure price.</p></details>
+          <details><summary><span>Automatic paper trade</span><span class="material-symbols-rounded">expand_more</span></summary><p>A simulated research trade created automatically from the lab's frozen POI midpoint rule. It records the planned entry, stop, target, actual bar-based entry event and outcome without requiring a manual journal entry.</p></details>
+          <details><summary><span>Research vs execution truth</span><span class="material-symbols-rounded">expand_more</span></summary><p>Paper trades use public completed structural bars. They do not represent the price, spread, slippage or fill sequence your broker would have produced.</p></details>
+          <details><summary><span>Independent evidence gate</span><span class="material-symbols-rounded">expand_more</span></summary><p>The lab withholds prospective outcome percentages until enough completed formation campaigns exist. Raw sweep outcomes are diagnostic only.</p></details>
         </div></article></section>
       </section>
     </div>
   </main>
 </div>
-<nav class="bottom" aria-label="Primary navigation"><button class="navBtn active" data-view="overview"><span class="material-symbols-rounded">space_dashboard</span><span>Overview</span></button><button class="navBtn" data-view="chartView"><span class="material-symbols-rounded">candlestick_chart</span><span>Chart</span></button><button class="navBtn" data-view="evidenceView"><span class="material-symbols-rounded">science</span><span>Evidence</span></button><button class="navBtn" data-view="dataView"><span class="material-symbols-rounded">verified_user</span><span>Data</span></button></nav>
+<nav class="bottom" aria-label="Primary navigation"><button class="navBtn active" data-view="overview"><span class="material-symbols-rounded">space_dashboard</span><span>Overview</span></button><button class="navBtn" data-view="chartView"><span class="material-symbols-rounded">candlestick_chart</span><span>Chart</span></button><button class="navBtn" data-view="tradesView"><span class="material-symbols-rounded">query_stats</span><span>Trades</span></button><button class="navBtn" data-view="evidenceView"><span class="material-symbols-rounded">science</span><span>Evidence</span></button><button class="navBtn" data-view="dataView"><span class="material-symbols-rounded">verified_user</span><span>Data</span></button></nav>
 <div class="snack" id="snack" role="status" aria-live="polite"></div>
 <script src="/v12.js"></script>
 <script src="/poi-watch.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<script src="/paper-trades.js"></script>
 </body>
 </html>
