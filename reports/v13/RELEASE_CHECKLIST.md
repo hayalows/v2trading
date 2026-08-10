@@ -1,0 +1,1 @@
+Release checklist: CI green; hardened Edge Function deployed; live smoke test creates/recover plan correctly; Cron scheduled after market refresh; Supabase security advisor clean; frontend production deploy verified; Vercel runtime errors checked.
