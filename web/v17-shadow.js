@@ -8,6 +8,9 @@
     if(m.status==='baseline')return 'Frozen comparator';
     if(m.status==='historical_candidate')return 'Passed historical gate · live probability withheld';
     if(m.status==='challenger')return 'Research challenger · zero product influence';
+    if(m.status==='shadow')return 'Passed frozen historical gate · prospective shadow only';
+    if(m.status==='promoted')return 'Prospective gate passed';
+    if(m.status==='rejected')return 'Rejected by frozen gate';
     return String(m.status||'research');
   }
   function ensure(){
@@ -30,7 +33,7 @@
         <div><span>Base Brier</span><b>${n(cal.baselineBrier,4)}</b><small>Frozen ${pct(cal.baselineProbability)} walk-forward comparator</small></div>
       </div>
       <div class="shadowModels">${modelHtml}</div>
-      <div class="shadowFoot"><strong>${c.total?`${n(c.total)} immutable forecast record${Number(c.total)===1?'':'s'} collected.`:'Waiting for the next qualifying Stage-3/4 landmark.'}</strong><span>TTM and future foundation models must beat the structural baseline on untouched data before they can influence Focus.</span>${latest?`<ul>${latest}</ul>`:''}</div>`;
+      <div class="shadowFoot"><strong>${c.total?`${n(c.total)} immutable forecast record${Number(c.total)===1?'':'s'} collected.`:'Waiting for the next qualifying Stage-3/4 landmark.'}</strong><span>Granite TTM R2 passed its frozen standalone historical gate, but it still needs prospective scoring and must prove incremental value beyond StateTwin before it can influence Focus.</span>${latest?`<ul>${latest}</ul>`:''}</div>`;
   }
   async function load(){if(loading)return;loading=true;try{const r=await fetch(URL,{cache:'no-store'});if(!r.ok)throw new Error('Shadow Arena unavailable');arena=await r.json();render()}catch(e){console.warn('Shadow Arena',e)}finally{loading=false}}
   const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='evidenceView'){render();load()}}}
