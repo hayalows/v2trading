@@ -11,10 +11,10 @@ const requiredCss=['min-height:48px',':focus-visible','prefers-reduced-motion','
 for(const m of requiredCss)if(!css.includes(m))throw new Error(`Missing v1.2 CSS/accessibility marker: ${m}`);
 const requiredJs=['lab-insights','campaign','sweeps','independentCampaigns','rawSweepOutcomes','safeToInterpret','favorable1hWilson95','researchPriority','plainContext','s3.tradingview.com','Campaign intelligence refreshed'];
 for(const m of requiredJs)if(!js.includes(m))throw new Error(`Missing v1.2 intelligence marker: ${m}`);
-const requiredPoi=['POI Watch','Waiting for BOS','BOS confirmed','Fresh POI found','Approaching POI','POI reached','poi_low','poi_high','distance_to_poi_atr','Copy POI zone','Inspect on chart'];
+const requiredPoi=['POI Watch','Waiting for BOS','BOS confirmed','Fresh POI found','Approaching POI','POI reached','poi_low','poi_high','distance_to_poi_atr','Copy POI zone','Inspect on chart','v===null||v===undefined'];
 for(const m of requiredPoi)if(!poi.includes(m))throw new Error(`Missing POI Watch marker: ${m}`);
 new vm.Script(js,{filename:'web/v12.js'});
 new vm.Script(poi,{filename:'web/poi-watch.js'});
 if((css.match(/min-(?:width|height):48px/g)||[]).length<2)throw new Error('Expected explicit 48px interaction target rules');
 if(!html.includes('Check evidence')||!html.includes('Open chart'))throw new Error('Primary investigation actions missing');
-console.log('v1.2.1 frontend validation passed: campaign semantics, independence gate, POI state workflow, accessibility and TradingView present');
+console.log('v1.2.1 frontend validation passed: campaign semantics, independence gate, null-safe POI state workflow, accessibility and TradingView present');
