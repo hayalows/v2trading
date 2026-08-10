@@ -24,7 +24,7 @@ async function authorize(req:Request){
   if(Number(claims.exp??0)<=now||Number(claims.nbf??0)>now+30)throw new Error("OIDC token expired/not active");
   if(claims.repository!==REPOSITORY||claims.ref!=="refs/heads/main")throw new Error("OIDC repository/ref rejected");
   const wf=claims.job_workflow_ref??claims.workflow_ref;if(wf!==WORKFLOW_REF)throw new Error("OIDC workflow rejected");
-  if(!["schedule","workflow_dispatch"].includes(String(claims.event_name??"")))throw new Error("OIDC event rejected");
+  if(!["schedule","workflow_dispatch","push"].includes(String(claims.event_name??"")))throw new Error("OIDC event rejected");
   return claims;
 }
 
