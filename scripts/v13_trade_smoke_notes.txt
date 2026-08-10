@@ -1,0 +1,6 @@
+Expected live smoke test after deployment:
+- Recover any Stage-6 state recorded within the previous 3 hours.
+- Arm at most one plan per source sweep.
+- Do not enter on BOS candle.
+- If no future midpoint touch exists, remain armed.
+- Return paper-trade snapshot and chart bars without exposing private tables directly.

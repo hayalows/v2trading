@@ -1,0 +1,61 @@
+(()=>{
+  const PAPER='https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/paper-trade-engine?symbol=EURUSD,GBPUSD&bars=1';
+  let paperData={summary:{},trades:[],events:[],chartBars:{}},paperChart=null,paperSeries=null,paperMarkers=null,paperBusy=false;
+  const pnum=(v,d=5)=>(v===null||v===undefined||v===''||!Number.isFinite(Number(v)))?'—':Number(v).toFixed(d);
+  const ptime=t=>t?new Date(t).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+  const statuses={armed:'Plan armed',open:'Paper trade open',win:'Target reached',loss:'Stop reached',timeout:'Timed out',ambiguous:'Ambiguous path',expired:'Entry expired',invalid:'Plan rejected'};
+  const terminal=new Set(['win','loss','timeout','ambiguous','expired','invalid']);
+  function tradesFor(s=selected){return (paperData.trades||[]).filter(t=>t.symbol===s)}
+  function focusTrade(s=selected){const xs=tradesFor(s);return xs.find(t=>t.status==='open')||xs.find(t=>t.status==='armed')||xs[0]||null}
+  function badge(t){return `<span class="paperBadge ${esc(t?.status||'')}">${esc(statuses[t?.status]||cap(t?.status||'No plan'))}</span>`}
+  function level(label,value,cls=''){return `<div class="paperLevel ${cls}"><span>${esc(label)}</span><b>${esc(value)}</b></div>`}
+  function paperCopy(t){
+    if(!t)return 'No automatic paper trade has been armed for this pair yet.';
+    if(t.status==='armed')return 'The lab has a valid plan and is waiting for a future completed M15 bar to revisit the POI midpoint. Nothing has been counted as an entry yet.';
+    if(t.status==='open')return 'The POI midpoint was revisited and the research paper trade is now open. The engine is tracking stop, 2.5R target, MFE and MAE automatically.';
+    if(t.status==='win')return 'The public completed-candle research path reached the 2.5R target after entry.';
+    if(t.status==='loss')return 'The public completed-candle research path reached the planned stop after entry.';
+    if(t.status==='timeout')return 'Neither stop nor 2.5R target resolved within the frozen 48-bar holding window; the trade was marked to market.';
+    if(t.status==='ambiguous')return `The public bars could not establish a defensible ordering. ${t.ambiguous_reason||'The result remains unresolved.'}`;
+    if(t.status==='expired')return 'The POI midpoint was not revisited within the frozen eight-bar entry window after BOS.';
+    return t?.context?.invalid_reason?`The candidate was recorded but rejected by the frozen risk gate: ${t.context.invalid_reason}.`:'This candidate did not satisfy the frozen paper-trade rules.';
+  }
+  function paperCard(t,compact=false){
+    if(!t)return `<article class="card"><div class="cardLabel"><span class="material-symbols-rounded">smart_toy</span>Automatic paper trade</div><h3>No paper plan armed</h3><p>The lab will create one automatically only after BOS confirms and a fresh POI passes the frozen risk rules.</p></article>`;
+    const gross=t.gross_r==null?'—':`${Number(t.gross_r)>=0?'+':''}${pnum(t.gross_r,2)}R`;
+    const title=`${t.symbol} ${cap(t.direction)} · ${statuses[t.status]||cap(t.status)}`;
+    return `<article class="${compact?'card':'paperCurrent'}"><div class="paperTop"><div><div class="cardLabel"><span class="material-symbols-rounded">smart_toy</span>Automatic paper trade</div><h3>${esc(title)}</h3></div>${badge(t)}</div><p>${esc(paperCopy(t))}</p><div class="paperLevels">${level('POI',`${pnum(t.poi_low)} – ${pnum(t.poi_high)}`)}${level('Entry midpoint',pnum(t.entry_price),'entry')}${level('Stop loss',pnum(t.stop_price),'stop')}${level('Take profit · 2.5R',pnum(t.target_price),'target')}</div><div class="paperMeta"><span class="chip">Risk ${pnum(t.risk_atr,2)} ATR</span><span class="chip">MFE ${t.mfe_r==null?'—':pnum(t.mfe_r,2)+'R'}</span><span class="chip">MAE ${t.mae_r==null?'—':pnum(t.mae_r,2)+'R'}</span><span class="chip">Result ${gross}</span></div><div class="paperNotice"><strong>Research simulation</strong>Entry, SL and TP are evaluated from public completed candles. They are not broker fills and do not include live spread or slippage.</div></article>`;
+  }
+  function renderPaperOverview(){const slot=document.getElementById('paperTradeSlot');if(slot)slot.innerHTML=paperCard(focusTrade(),true)}
+  function stat(label,v){return `<div class="tradeStat"><b>${v}</b><span>${esc(label)}</span></div>`}
+  function tradeRow(t){return `<article class="tradeRow"><div class="tradeRowHead"><div><b>${esc(t.symbol)} ${esc(cap(t.direction))}</b><small>Armed ${ptime(t.armed_at)} · ${esc(t.context?.market_session||'session unknown')}</small></div>${badge(t)}</div><div class="tradeMini"><div><span>Entry</span><b>${pnum(t.entry_price)}</b></div><div><span>SL</span><b>${pnum(t.stop_price)}</b></div><div><span>TP</span><b>${pnum(t.target_price)}</b></div><div><span>Entered</span><b>${ptime(t.entry_at)}</b></div><div><span>Exited</span><b>${ptime(t.exit_at)}</b></div><div><span>Gross result</span><b>${t.gross_r==null?'—':`${Number(t.gross_r)>=0?'+':''}${pnum(t.gross_r,2)}R`}</b></div></div></article>`}
+  function renderTradesView(){
+    const all=paperData.trades||[],sum=Object.values(paperData.summary||{}).reduce((a,s)=>({total:a.total+(s.total||0),armed:a.armed+(s.armed||0),open:a.open+(s.open||0),wins:a.wins+(s.wins||0),losses:a.losses+(s.losses||0)}),{total:0,armed:0,open:0,wins:0,losses:0});
+    const stats=document.getElementById('paperStats');if(stats)stats.innerHTML=stat('plans recorded',sum.total)+stat('waiting for entry',sum.armed)+stat('open paper trades',sum.open)+stat('wins recorded',sum.wins)+stat('losses recorded',sum.losses);
+    const current=document.getElementById('paperCurrent');if(current)current.innerHTML=paperCard(focusTrade()).replace(/^<article class="paperCurrent">|<\/article>$/g,'');
+    const list=document.getElementById('paperHistory');if(list)list.innerHTML=all.length?all.map(tradeRow).join(''):'<div class="paperEmpty">No paper-trade plans have been recorded yet. The engine waits for a fresh Stage-6+ POI and then arms the midpoint plan automatically.</div>';
+    const label=document.getElementById('researchChartLabel');if(label){const t=focusTrade();label.textContent=t?`${selected} · ${statuses[t.status]||cap(t.status)} · entry ${pnum(t.entry_price)}`:`${selected} · no paper plan yet`}
+    if(typeof view!=='undefined'&&view==='tradesView')renderResearchChart();
+  }
+  function clearPaperChart(){if(paperChart){try{paperChart.remove()}catch{}paperChart=null;paperSeries=null;paperMarkers=null}}
+  function markerTime(ts,bars){const step=900;const sec=Math.floor(new Date(ts).getTime()/1000/step)*step;return bars.some(b=>Math.floor(new Date(b.ts).getTime()/1000)===sec)?sec:null}
+  function renderResearchChart(){
+    const el=document.getElementById('researchChart');if(!el)return;const bars=(paperData.chartBars?.[selected]||[]);clearPaperChart();
+    if(!bars.length||!window.LightweightCharts){el.innerHTML='<div class="paperEmpty">Research chart data is not available yet.</div>';return}
+    el.innerHTML='';paperChart=LightweightCharts.createChart(el,{autoSize:true,layout:{background:{type:'solid',color:'#070a0e'},textColor:'#bfc6d0',attributionLogo:true},grid:{vertLines:{color:'#171d25'},horzLines:{color:'#171d25'}},rightPriceScale:{borderColor:'#3e4651'},timeScale:{borderColor:'#3e4651',timeVisible:true,secondsVisible:false},crosshair:{mode:0}});
+    paperSeries=paperChart.addSeries(LightweightCharts.CandlestickSeries,{upColor:'#8fd8aa',downColor:'#ffb4ab',borderVisible:false,wickUpColor:'#8fd8aa',wickDownColor:'#ffb4ab',priceLineVisible:false});
+    const data=bars.map(b=>({time:Math.floor(new Date(b.ts).getTime()/1000),open:Number(b.open),high:Number(b.high),low:Number(b.low),close:Number(b.close)}));paperSeries.setData(data);
+    const t=focusTrade();if(t){
+      const lines=[
+        [Number(t.poi_low),'POI low','#f3c46f',2],[Number(t.poi_high),'POI high','#f3c46f',2],[Number(t.entry_price),'Entry','#a8c7fa',0],[Number(t.stop_price),'SL','#ffb4ab',2],[Number(t.target_price),'TP 2.5R','#8fd8aa',2]
+      ];for(const [price,title,color,style] of lines)if(Number.isFinite(price))paperSeries.createPriceLine({price,title,color,lineWidth:2,lineStyle:style,axisLabelVisible:true,lineVisible:true});
+      const ev=(paperData.events||[]).filter(e=>e.trade_key===t.trade_key).slice().reverse(),markers=[];for(const e of ev){const mt=markerTime(e.event_at,bars);if(mt==null)continue;let text=cap(e.event_type),shape='circle',position='aboveBar',color='#a8c7fa';if(e.event_type==='entry'){shape=t.direction==='long'?'arrowUp':'arrowDown';position=t.direction==='long'?'belowBar':'aboveBar';color='#a8c7fa'}if(e.event_type==='win'){color='#8fd8aa';text='TP'}if(e.event_type==='loss'){color='#ffb4ab';text='SL'}markers.push({time:mt,position,shape,color,text})}if(markers.length)paperMarkers=LightweightCharts.createSeriesMarkers(paperSeries,markers);
+    }
+    paperChart.timeScale().fitContent();
+  }
+  async function refreshPaper(manual=false){if(paperBusy)return;paperBusy=true;try{const r=await fetch(PAPER,{cache:'no-store'});if(!r.ok)throw new Error('paper trade engine');paperData=await r.json();renderPaperOverview();renderTradesView();if(manual&&typeof snack==='function')snack('Paper-trade journal refreshed')}catch(e){if(manual&&typeof snack==='function')snack('Paper-trade data unavailable')}finally{paperBusy=false}}
+  if(typeof render==='function'){const baseRender=render;render=function(){baseRender();renderPaperOverview();renderTradesView()}}
+  if(typeof setView==='function'){const baseSetView=setView;setView=function(id){baseSetView(id);if(id==='tradesView')setTimeout(renderResearchChart,0)}}
+  document.getElementById('refresh')?.addEventListener('click',()=>refreshPaper(true));
+  refreshPaper();setInterval(()=>refreshPaper(false),60_000);
+})();
