@@ -53,8 +53,10 @@ insert into public.shadow_model_registry(model_version,model_family,status,proba
 values
   ('walkforward-base-v1','historical base rate','baseline',false,'2025-12-31T23:59:59Z','v17-base-primary-h16',jsonb_build_object('target','Stage 3/4 to same-direction Stage 5 within 16 M15 bars','p',0.1999597828272672,'source','frozen 2026 walk-forward comparator trained through 2025')),
   ('state-twin-v16','V2 structural ensemble','historical_candidate',false,'2025-12-31T23:59:59Z','v16-state-twin-frozen-gate',jsonb_build_object('historicalAuc',0.6882589530377745,'historicalBrier',0.1464929610215947,'livePolicy','ABSTAIN pending prospective calibration')),
-  ('granite-ttm-r2-v17','IBM Granite Tiny Time Mixer R2','challenger',false,'2025-12-31T23:59:59Z','v17-ttm-r2-structural-challenger',jsonb_build_object('model','ibm-granite/granite-timeseries-ttm-r2','role','offline challenger; no product influence'))
+  ('granite-ttm-r2-v17','IBM Granite Tiny Time Mixer R2','shadow',false,'2025-12-31T23:59:59Z','v17-ttm-r2-structural-challenger',jsonb_build_object('model','ibm-granite/granite-timeseries-ttm-r2','decision','PROMOTE_TTM_TO_SHADOW','runId',31441121031,'artifactSha256','cb11dcd5495bcf72a532b3047d99530fb0ccaffd565b86d0d84c4e9671764f90','completedCampaigns',8526,'auc',0.6487028665307963,'brier',0.17075300210110453,'baseBrier',0.17897405850101145,'brierImprovement',0.008221056399906918,'role','historical gate passed; prospective score worker not yet promoted to Focus'))
 on conflict (model_version) do update set
+  status=excluded.status,
+  probability_visible=excluded.probability_visible,
   metadata=excluded.metadata,
   spec_hash=excluded.spec_hash,
   updated_at=now();
