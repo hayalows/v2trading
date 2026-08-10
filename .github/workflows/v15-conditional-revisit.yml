@@ -1,0 +1,54 @@
+name: v15-conditional-revisit
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/v15_conditional_revisit_model.py'
+      - 'scripts/v14_poi_waiting_time_study.py'
+      - 'scripts/v141_live_poi_parity.py'
+      - 'reports/v15/V15_CONDITIONAL_REVISIT_PROTOCOL.md'
+      - '.github/workflows/v15-conditional-revisit.yml'
+      - 'requirements.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  revisit-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Download public EURUSD and GBPUSD M15/M5 data
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market research-output/v14 research-output/v15
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD; do
+            curl -L --fail --retry 4 --retry-delay 2 -o ".research-data/market/${symbol}-15m.feather" "${base}/${symbol}-15m.feather?download=true"
+            curl -L --fail --retry 4 --retry-delay 2 -o ".research-data/market/${symbol}-5m.feather" "${base}/${symbol}-5m.feather?download=true"
+          done
+      - name: Regenerate exact-live Stage-6 candidates
+        run: |
+          PYTHONPATH=scripts python scripts/v141_live_poi_parity.py --data-dir .research-data/market --out research-output/v14
+      - name: Run conditional revisit model
+        run: |
+          PYTHONPATH=scripts python scripts/v15_conditional_revisit_model.py --candidates research-output/v14/v14_poi_candidates.csv --out research-output/v15
+          cat research-output/v15/v15_revisit_summary.json
+          cat research-output/v15/v15_revisit_pooled.csv
+      - name: Upload outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v15-conditional-revisit-results
+          path: research-output/v15/
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,24 @@
+name: v15-focus-ui
+
+on:
+  pull_request:
+    paths:
+      - 'web/index.html'
+      - 'web/v15.css'
+      - 'web/v15-focus.js'
+      - 'scripts/v15_validate_focus.mjs'
+      - '.github/workflows/v15-focus-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/v15_validate_focus.mjs
