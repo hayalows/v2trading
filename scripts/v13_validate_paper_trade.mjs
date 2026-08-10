@@ -6,11 +6,24 @@ const migration=fs.readFileSync('supabase/migrations/20260810_paper_trade_engine
 const paper=fs.readFileSync('web/paper-trades.js','utf8');
 const protocol=fs.readFileSync('docs/PAPER_TRADE_ENGINE_V13.md','utf8');
 
-for(const marker of [
-  'MAX_ENTRY_BARS = 8','MAX_HOLD_BARS = 48','STOP_BUFFER_ATR = 0.03','REWARD_R = 2.5','MIN_RISK_ATR = 0.08','MAX_RISK_ATR = 1.60',
-  'bars.slice(bosIdx+1,bosIdx+1+MAX_ENTRY_BARS)','entry_bar_resolved_5m?entryIdx+1:entryIdx','HISTORY_RECOVERY_HOURS = 3','market_state_history','formation_stage",6',
-  "form?.fresh!==true",'same M15 bar touched stop and target','status:\'expired\''
-]) assert.ok(engine.includes(marker),`missing engine integrity marker: ${marker}`);
+const regexes=[
+  /MAX_ENTRY_BARS\s*=\s*8/,
+  /MAX_HOLD_BARS\s*=\s*48/,
+  /STOP_BUFFER_ATR\s*=\s*0\.03/,
+  /REWARD_R\s*=\s*2\.5/,
+  /MIN_RISK_ATR\s*=\s*0\.08/,
+  /MAX_RISK_ATR\s*=\s*1\.60/,
+  /HISTORY_RECOVERY_HOURS\s*=\s*3/,
+  /slice\(bi\+1,bi\+1\+MAX_ENTRY_BARS\)/,
+  /entry_bar_resolved_5m\?ei\+1:ei/,
+  /market_state_history/,
+  /gte\("formation_stage",6\)/,
+  /form\?\.fresh!==true/,
+  /status:'expired'/,
+  /globalThis\.URL\(req\.url\)/,
+];
+for(const re of regexes)assert.match(engine,re,`missing engine integrity pattern: ${re}`);
+for(const marker of ['5m public path unavailable','SL and TP touched in same 5m bar','M15 entry touch not reproduced by 5m path'])assert.ok(engine.includes(marker),`missing ambiguity guard: ${marker}`);
 
 for(const marker of ['create table if not exists public.paper_trades','create table if not exists public.paper_trade_events','enable row level security','revoke all on public.paper_trades from anon, authenticated']) assert.ok(migration.includes(marker),`missing migration marker: ${marker}`);
 for(const marker of ['createPriceLine','createSeriesMarkers','CandlestickSeries','Entry midpoint','Stop loss','Take profit · 2.5R','Research simulation']) assert.ok(paper.includes(marker),`missing chart/journal marker: ${marker}`);
@@ -39,13 +52,13 @@ function firstFutureFill(bars,bosIdx,entry){
   const k=eligible.findIndex(b=>b.low<=entry&&entry<=b.high);
   return k<0?null:bosIdx+1+k;
 }
-const bars=[
+const testBars=[
   {low:0.9,high:1.1},
   {low:0.8,high:1.2},
   {low:1.01,high:1.05},
   {low:0.99,high:1.01},
 ];
-assert.equal(firstFutureFill(bars,1,1.0),3,'BOS candle must never count as paper entry');
+assert.equal(firstFutureFill(testBars,1,1.0),3,'BOS candle must never count as paper entry');
 const noFill=Array.from({length:10},()=>({low:1.1,high:1.2}));
 assert.equal(firstFutureFill(noFill,0,1.0),null,'no midpoint touch should remain unfilled/expire');
 
