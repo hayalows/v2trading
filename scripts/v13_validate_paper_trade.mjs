@@ -34,7 +34,7 @@ for(const marker of ['lifecycle_phase','pending_age_bars','pre_entry_target_reac
 for(const marker of ['reactivated_v14','extended_wait','long_tail_wait','outside_studied_tail','partially_mitigated','target_delivered_before_entry']) assert.ok(events.includes(marker),`missing lifecycle event marker: ${marker}`);
 for(const marker of ['createPriceLine','createSeriesMarkers','CandlestickSeries','Entry midpoint','Stop loss','Take profit · 2.5R','Research simulation']) assert.ok(paper.includes(marker),`missing chart/journal marker: ${marker}`);
 for(const marker of ['50% midpoint','0.03 ATR','2.5R','48 M15 bars']) assert.ok(protocol.includes(marker),`missing frozen protocol marker: ${marker}`);
-for(const marker of ['Replace the 8-M15-bar expiry with lifecycle tracking','82.5%','partially mitigated','Time alone does **not** set `invalidated`']) assert.ok(v14.includes(marker),`missing v1.4 evidence marker: ${marker}`);
+for(const marker of ['Replace the 8-M15-bar expiry with lifecycle tracking','exact live POI geometry','1,685','82.8%','+0.332R','partially mitigated','Time alone does **not** set `invalidated`']) assert.ok(v14.includes(marker),`missing exact-parity v1.4 evidence marker: ${marker}`);
 
 function close(a,b,eps=1e-12){return Math.abs(a-b)<=eps}
 function plan(direction,poiLow,poiHigh,sweepExtreme,atr){
@@ -69,4 +69,4 @@ assert.equal(firstFutureFill(testBars,1,1.0),3,'BOS candle must never count as p
 const late=[{low:0.8,high:1.2},...Array.from({length:12},()=>({low:1.1,high:1.2})),{low:0.99,high:1.01}];
 assert.equal(firstFutureFill(late,0,1.0),13,'a valid midpoint revisit after the old 8-bar boundary must still be found');
 
-console.log('v1.4 paper-trade validation passed: frozen risk math, future-only entry, non-expiring POI lifecycle, history recovery, ambiguity guards and research chart remain intact');
+console.log('v1.4 paper-trade validation passed: exact live POI evidence, frozen risk math, future-only entry, non-expiring lifecycle, ambiguity guards and research chart remain intact');
