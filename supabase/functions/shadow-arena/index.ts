@@ -6,7 +6,8 @@ const db=createClient(SUPABASE_URL,SERVICE_KEY,{auth:{persistSession:false}});
 const CORE=["EURUSD","GBPUSD"];
 const LANDMARKS=new Set([0,2,4,8,12,16,24]);
 const HORIZON=16;
-const BASE_P=0.1957945266233597;
+// Exact walk-forward comparator available before 2026 begins.
+const BASE_P=0.1999597828272672;
 const SPEC_HASH="v17-shadow-primary-h16-20260810";
 const CORS={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"GET, OPTIONS","Cache-Control":"no-store"};
 const reply=(x:unknown,status=200)=>new Response(JSON.stringify(x),{status,headers:{...CORS,"Content-Type":"application/json; charset=utf-8"}});
