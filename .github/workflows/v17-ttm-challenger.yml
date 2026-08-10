@@ -1,0 +1,56 @@
+name: v17-ttm-challenger
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/v17_ttm_challenger.py'
+      - 'reports/v17/V17_TTM_CHALLENGER_PROTOCOL.md'
+      - '.github/workflows/v17-ttm-challenger.yml'
+      - 'requirements.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ttm-challenger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install V2 and TTM dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install 'granite-tsfm==0.3.6' torch
+      - name: Download frozen EURUSD and GBPUSD M15 history
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD; do
+            curl -L --fail --retry 4 --retry-delay 2 \
+              -o ".research-data/market/${symbol}-15m.feather" \
+              "${base}/${symbol}-15m.feather?download=true"
+          done
+      - name: Run preregistered Granite TTM challenger
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          TOKENIZERS_PARALLELISM: 'false'
+        run: |
+          PYTHONPATH=scripts python scripts/v17_ttm_challenger.py \
+            --data-dir .research-data/market \
+            --start 2020-01-01 \
+            --out research-output/v17/ttm
+      - name: Show frozen TTM decision
+        run: cat research-output/v17/ttm/v17_ttm_summary.json
+      - name: Upload TTM challenger artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: v17-ttm-challenger
+          path: research-output/v17/ttm/
+          retention-days: 14
