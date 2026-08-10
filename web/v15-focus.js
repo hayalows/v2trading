@@ -16,6 +16,13 @@
       else if(t.status==='armed')small.textContent=`Paper plan waiting for POI · ${t.pending_age_bars??0} bars`;
     });
   }
+  function ensureResearchModelCard(){
+    const view=document.getElementById('evidenceView');if(!view||document.getElementById('v15RevisitModel'))return;
+    const gate=view.querySelector('#inferenceGate')?.closest('.card');
+    const card=document.createElement('article');card.className='card';card.id='v15RevisitModel';card.style.marginTop='12px';
+    card.innerHTML='<div class="cardLabel"><span class="material-symbols-rounded">model_training</span>Conditional POI revisit research</div><h3>Static Stage-6 model passed the 12-hour research gate.</h3><p>Walk-forward 2022–2025 testing used 1,262 out-of-sample candidates. At the preregistered 48-bar horizon, AUC was <strong>0.627</strong> and Brier score improved from <strong>0.2268</strong> for the base-rate benchmark to <strong>0.2175</strong>. Calibration improved in 3 of 4 test years.</p><div class="v15ResearchNote"><strong>Why it is not on Focus:</strong> discrimination is useful but modest, and the 96-bar model failed to improve Brier score. This remains an accepted research candidate, not a current-trade probability, win probability, or signal.</div>';
+    if(gate)gate.insertAdjacentElement('afterend',card);else view.querySelector('.stats')?.insertAdjacentElement('afterend',card);
+  }
   function statusFor(s,t){
     const stage=Number(s?.formation_stage||0);
     if(t?.status==='open')return {label:'PAPER TRADE OPEN',tone:'good',summary:'The midpoint was reached. The research engine is now tracking the frozen stop and 2.5R target.'};
@@ -60,7 +67,7 @@
     return `${lead}The next study milestone is ${next.h}h, where ${Math.round(next.r*100)}% had reached midpoint. This is a historical lifecycle base rate, not a forecast for this trade.${condition}`;
   }
   function renderFocus(){
-    annotatePairBadges();
+    annotatePairBadges();ensureResearchModelCard();
     const root=document.getElementById('focusBoard');if(!root||typeof state!=='function'||typeof info!=='function')return;
     const s=state(),i=info(),t=currentTrade(),st=statusFor(s,t),wl=watchLevel(s,t),p=i?.brief?.researchPriority?.label||'No focus';
     const age=t?.status==='armed'&&Number.isFinite(Number(t.pending_age_bars))?`${t.pending_age_bars} M15 bars waiting`:`Stage ${s?.formation_stage??'—'}/8`;
@@ -70,6 +77,6 @@
   }
   async function loadPaper(){if(loading)return;loading=true;try{const r=await fetch(PAPER_FOCUS,{cache:'no-store'});if(r.ok)fp=await r.json()}catch{}finally{loading=false;renderFocus()}}
   const oldRender=typeof render==='function'?render:null;if(oldRender){render=function(){oldRender();renderFocus()}}
-  const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='overview')renderFocus()}}
+  const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='overview')renderFocus();if(id==='evidenceView')ensureResearchModelCard()}}
   renderFocus();loadPaper();setInterval(loadPaper,60_000);
 })();
