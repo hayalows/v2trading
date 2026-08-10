@@ -8,7 +8,7 @@ const requiredHtml=['Version 1.2','Campaign intelligence','Independent prospecti
 for(const m of requiredHtml)if(!html.includes(m))throw new Error(`Missing v1.2 HTML marker: ${m}`);
 const requiredCss=['min-height:48px',':focus-visible','prefers-reduced-motion','@media(min-width:720px)','@media(min-width:1000px)','.bottom','.rail'];
 for(const m of requiredCss)if(!css.includes(m))throw new Error(`Missing v1.2 CSS/accessibility marker: ${m}`);
-const requiredJs=['lab-insights','campaign','sweeps','independentCampaigns','rawSweepOutcomes','safeToInterpret','favorable1hWilson95','counter-context','s3.tradingview.com','Campaign intelligence refreshed'];
+const requiredJs=['lab-insights','campaign','sweeps','independentCampaigns','rawSweepOutcomes','safeToInterpret','favorable1hWilson95','researchPriority','plainContext','s3.tradingview.com','Campaign intelligence refreshed'];
 for(const m of requiredJs)if(!js.includes(m))throw new Error(`Missing v1.2 intelligence marker: ${m}`);
 new vm.Script(js,{filename:'web/v12.js'});
 if((css.match(/min-(?:width|height):48px/g)||[]).length<2)throw new Error('Expected explicit 48px interaction target rules');
