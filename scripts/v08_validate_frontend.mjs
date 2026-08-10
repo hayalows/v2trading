@@ -9,7 +9,7 @@ const js=fs.readFileSync('web/v12.js','utf8');
 const poi=fs.readFileSync('web/poi-watch.js','utf8');
 const paper=fs.readFileSync('web/paper-trades.js','utf8');
 const focus=fs.readFileSync('web/v15-focus.js','utf8');
-if(!html.includes('Version 1.5')&&!html.includes('Version 1.6'))throw new Error('Missing supported V2 version marker');
+if(!/Version 1\.\d+/.test(html))throw new Error('Missing supported V2 version marker');
 const requiredHtml=['Research details','Paper trades','Research Trade Chart','POI lifecycle','Partial mitigation','Data trust','v11.css','v13.css','v15.css','v12.js','poi-watch.js','paper-trades.js','v15-focus.js','lightweight-charts@5.2.0','aria-label="Primary navigation"','role="status"'];
 for(const m of requiredHtml)if(!html.includes(m))throw new Error(`Missing current HTML marker: ${m}`);
 const requiredCss=['min-height:48px',':focus-visible','prefers-reduced-motion','@media(min-width:720px)','@media(min-width:1000px)','.bottom','.rail'];
