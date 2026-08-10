@@ -1,12 +1,9 @@
 name: v17-ttm-challenger
 
+# The preregistered study has a frozen accepted run (31441121031).
+# Keep the workflow reproducible but manual-only so unrelated PR edits do not
+# repeatedly rerun a large foundation-model experiment.
 on:
-  pull_request:
-    paths:
-      - 'scripts/v17_ttm_challenger.py'
-      - 'reports/v17/V17_TTM_CHALLENGER_PROTOCOL.md'
-      - '.github/workflows/v17-ttm-challenger.yml'
-      - 'requirements.txt'
   workflow_dispatch:
 
 permissions:
