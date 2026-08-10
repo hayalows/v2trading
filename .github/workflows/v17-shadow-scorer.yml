@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: '4,19,34,49 * * * *'
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v17-shadow-scorer.yml'
+      - 'scripts/v17_shadow_ttm_scorer.py'
+      - 'reports/v17/V17_TTM_LIVE_CALIBRATOR.json'
 
 permissions:
   contents: read
