@@ -32,7 +32,14 @@
     if(stage>=3)return {label:'WATCH STRUCTURE',tone:'',summary:stage===4?'A sweep exists. Wait for BOS before treating a POI as valid.':'A meaningful liquidity event exists. Do not anticipate the next structural step.'};
     return {label:'NO FOCUS',tone:'',summary:'There is no mature V2 formation requiring attention right now.'};
   }
-  function contextLabel(i){const x=i?.brief?.context;return x==='supportive'?'Higher timeframes support it':x==='conflicting'?'Higher timeframes conflict':x==='mixed'?'Higher timeframes are mixed':'No directional context yet'}
+  function currentContextLabel(i){const x=i?.brief?.context;return x==='supportive'?'Higher timeframes support it':x==='conflicting'?'Higher timeframes conflict':x==='mixed'?'Higher timeframes are mixed':'No directional context yet'}
+  function planContext(t){
+    if(!t||!['armed','open'].includes(t.status))return null;
+    const d=t.context?.diagnostics||{},x=d.structureContext,tr=t.context?.trends||{},labels=['d1','h4','h1','m15'].map(k=>tr[k]?`${k.toUpperCase()} ${tr[k]}`:null).filter(Boolean);
+    const title=x==='supportive'?'Plan formed with supportive HTF':x==='conflicting'?'Plan formed against HTF context':'Plan context at Stage 6';
+    const detail=`At plan creation: ${labels.length?labels.join(' · '):'HTF detail unavailable'}. Current detector is Stage ${state()?.formation_stage??'—'}/8 (${String(state()?.formation_code||'unknown').replaceAll('_',' ').toLowerCase()}) in ${state()?.regime||'unknown'} regime.`;
+    return {title,detail};
+  }
   function nextTrigger(s,t){
     const stage=Number(s?.formation_stage||0);
     if(t?.status==='open')return `Track SL ${price(t.stop_price)} and TP ${price(t.target_price)}. No new paper entry is needed.`;
@@ -69,10 +76,11 @@
   function renderFocus(){
     annotatePairBadges();ensureResearchModelCard();
     const root=document.getElementById('focusBoard');if(!root||typeof state!=='function'||typeof info!=='function')return;
-    const s=state(),i=info(),t=currentTrade(),st=statusFor(s,t),wl=watchLevel(s,t),p=i?.brief?.researchPriority?.label||'No focus';
+    const s=state(),i=info(),t=currentTrade(),st=statusFor(s,t),wl=watchLevel(s,t),p=i?.brief?.researchPriority?.label||'No focus',pc=planContext(t);
     const age=t?.status==='armed'&&Number.isFinite(Number(t.pending_age_bars))?`${t.pending_age_bars} M15 bars waiting`:`Stage ${s?.formation_stage??'—'}/8`;
+    const ctxTitle=pc?.title||currentContextLabel(i),ctxCopy=pc?.detail||`${s?.regime?`Market condition: ${s.regime}. `:''}${t?.setup_condition&&t.setup_condition!=='intact'?`Paper-plan condition: ${t.setup_condition.replaceAll('_',' ')}.`:''}`;
     root.innerHTML=`<section class="focusHero"><div class="focusTop"><div><div class="focusKicker">${safe(selected)} · What matters now</div><div class="focusStatus">${safe(st.label)}</div><div class="focusSummary">${safe(st.summary)}</div></div><span class="focusBadge ${st.tone}">${safe(p)} · ${safe(age)}</span></div><div class="focusLifecycle">${lifecycle(s,t)}</div><div class="focusActions"><button class="focusAction primary" onclick="setView('chartView')">Open chart</button><button class="focusAction" onclick="setView('tradesView')">Paper trade</button></div></section>
-    <section class="focusGrid"><article class="focusCard"><div class="label"><span class="material-symbols-rounded">my_location</span>Watch level</div><h3 class="focusLevel">${safe(wl.title)}</h3><p class="focusSubLevel">${safe(wl.sub)}</p></article><article class="focusCard"><div class="label"><span class="material-symbols-rounded">arrow_forward</span>Next trigger</div><h3>What must happen next</h3><p>${safe(nextTrigger(s,t))}</p></article><article class="focusCard"><div class="label"><span class="material-symbols-rounded">layers</span>Context</div><h3>${safe(contextLabel(i))}</h3><p>${safe(s?.regime?`Market condition: ${s.regime}. `:'')}${safe(t?.setup_condition&&t.setup_condition!=='intact'?`Paper-plan condition: ${t.setup_condition.replaceAll('_',' ')}.`:'')}</p></article></section>
+    <section class="focusGrid"><article class="focusCard"><div class="label"><span class="material-symbols-rounded">my_location</span>Watch level</div><h3 class="focusLevel">${safe(wl.title)}</h3><p class="focusSubLevel">${safe(wl.sub)}</p></article><article class="focusCard"><div class="label"><span class="material-symbols-rounded">arrow_forward</span>Next trigger</div><h3>What must happen next</h3><p>${safe(nextTrigger(s,t))}</p></article><article class="focusCard"><div class="label"><span class="material-symbols-rounded">layers</span>Context</div><h3>${safe(ctxTitle)}</h3><p>${safe(ctxCopy)}</p></article></section>
     <div class="v15ResearchNote"><strong>Research context:</strong> ${safe(researchContext(t))}</div>`;
   }
   async function loadPaper(){if(loading)return;loading=true;try{const r=await fetch(PAPER_FOCUS,{cache:'no-store'});if(r.ok)fp=await r.json()}catch{}finally{loading=false;renderFocus()}}
