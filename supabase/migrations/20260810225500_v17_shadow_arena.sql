@@ -51,7 +51,7 @@ grant select,insert,update,delete on table public.shadow_forecasts to service_ro
 
 insert into public.shadow_model_registry(model_version,model_family,status,probability_visible,training_cutoff,spec_hash,metadata)
 values
-  ('walkforward-base-v1','historical base rate','baseline',false,'2025-12-31T23:59:59Z','v17-base-primary-h16',jsonb_build_object('target','Stage 3/4 to same-direction Stage 5 within 16 M15 bars','p',0.1957945266233597)),
+  ('walkforward-base-v1','historical base rate','baseline',false,'2025-12-31T23:59:59Z','v17-base-primary-h16',jsonb_build_object('target','Stage 3/4 to same-direction Stage 5 within 16 M15 bars','p',0.1999597828272672,'source','frozen 2026 walk-forward comparator trained through 2025')),
   ('state-twin-v16','V2 structural ensemble','historical_candidate',false,'2025-12-31T23:59:59Z','v16-state-twin-frozen-gate',jsonb_build_object('historicalAuc',0.6882589530377745,'historicalBrier',0.1464929610215947,'livePolicy','ABSTAIN pending prospective calibration')),
   ('granite-ttm-r2-v17','IBM Granite Tiny Time Mixer R2','challenger',false,'2025-12-31T23:59:59Z','v17-ttm-r2-structural-challenger',jsonb_build_object('model','ibm-granite/granite-timeseries-ttm-r2','role','offline challenger; no product influence'))
 on conflict (model_version) do update set
