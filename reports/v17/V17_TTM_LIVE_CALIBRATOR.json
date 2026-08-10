@@ -1,0 +1,44 @@
+{
+  "version": "granite-ttm-r2-v17-live-calibrator-2026",
+  "model": "ibm-granite/granite-timeseries-ttm-r2",
+  "context_bars": 512,
+  "forecast_bars": 16,
+  "features": [
+    "bos_margin_atr",
+    "endpoint_move_atr",
+    "forecast_crosses_bos",
+    "forecast_dispersion_atr"
+  ],
+  "fit_through_year": 2025,
+  "training_rows": 11211,
+  "event_rate": 0.23735616804923734,
+  "imputer_median": {
+    "bos_margin_atr": -2.046357873126905,
+    "endpoint_move_atr": 0.3319613366482355,
+    "forecast_crosses_bos": 0.0,
+    "forecast_dispersion_atr": 0.248466208577156
+  },
+  "scaler_mean": {
+    "bos_margin_atr": -2.0055184430337434,
+    "endpoint_move_atr": 0.30678311430303185,
+    "forecast_crosses_bos": 0.05557042190705557,
+    "forecast_dispersion_atr": 0.31256947859582757
+  },
+  "scaler_scale": {
+    "bos_margin_atr": 1.3048620342141808,
+    "endpoint_move_atr": 1.3120436561842783,
+    "forecast_crosses_bos": 0.22909026630594198,
+    "forecast_dispersion_atr": 0.23847524636882325
+  },
+  "logistic_coef": {
+    "bos_margin_atr": 0.6344024157303441,
+    "endpoint_move_atr": -0.39571908514657983,
+    "forecast_crosses_bos": -0.010486253366346161,
+    "forecast_dispersion_atr": -0.021575192433650033
+  },
+  "logistic_intercept": -1.2419856232321633,
+  "C": 0.5,
+  "source_run": 31441121031,
+  "source_artifact_sha256": "cb11dcd5495bcf72a532b3047d99530fb0ccaffd565b86d0d84c4e9671764f90",
+  "policy": "shadow only; probability not visible in Focus"
+}

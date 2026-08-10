@@ -1,0 +1,31 @@
+name: v17-shadow-arena-ui
+
+on:
+  pull_request:
+    paths:
+      - 'web/index.html'
+      - 'web/v17.css'
+      - 'web/v17-shadow.js'
+      - 'scripts/v17_validate_shadow_arena.mjs'
+      - 'scripts/v17_shadow_ttm_scorer.py'
+      - 'reports/v17/V17_TTM_LIVE_CALIBRATOR.json'
+      - 'supabase/functions/shadow-arena/index.ts'
+      - 'supabase/functions/shadow-score-gateway/index.ts'
+      - 'supabase/migrations/20260810225500_v17_shadow_arena.sql'
+      - '.github/workflows/v17-shadow-scorer.yml'
+      - '.github/workflows/v17-shadow-arena-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Shadow Arena product boundary
+        run: node scripts/v17_validate_shadow_arena.mjs
