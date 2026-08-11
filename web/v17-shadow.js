@@ -1,6 +1,9 @@
 (()=>{
   const URL='https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/shadow-arena';
+  const SELF=document.currentScript?.src||'';
+  const ASSET_BASE=SELF&&SELF.includes('/')?SELF.slice(0,SELF.lastIndexOf('/')+1):'/';
   let arena=null,loading=false;
+  const asset=name=>`${ASSET_BASE}${name}`;
   const n=(v,d=0)=>Number.isFinite(Number(v))?Number(v).toFixed(d):'—';
   const pct=(v,d=1)=>Number.isFinite(Number(v))?`${(Number(v)*100).toFixed(d)}%`:'—';
   const safe=v=>typeof esc==='function'?esc(v):String(v??'');
@@ -37,16 +40,16 @@
   }
   async function load(){if(loading)return;loading=true;try{const r=await fetch(URL,{cache:'no-store'});if(!r.ok)throw new Error('Shadow Arena unavailable');arena=await r.json();render()}catch(e){console.warn('Shadow Arena',e)}finally{loading=false}}
   function loadV18(){
-    if(!document.querySelector('link[data-v18-council]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/v18.css';l.dataset.v18Council='1';document.head.appendChild(l)}
-    if(!document.querySelector('script[data-v18-council]')){const s=document.createElement('script');s.src='/v18-council.js';s.dataset.v18Council='1';s.defer=true;document.body.appendChild(s)}
+    if(!document.querySelector('link[data-v18-council]')){const l=document.createElement('link');l.rel='stylesheet';l.href=asset('v18.css');l.dataset.v18Council='1';document.head.appendChild(l)}
+    if(!document.querySelector('script[data-v18-council]')){const s=document.createElement('script');s.src=asset('v18-council.js');s.dataset.v18Council='1';s.defer=true;document.body.appendChild(s)}
   }
   function loadV20(){
-    if(!document.querySelector('link[data-v20-poi]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/v20.css';l.dataset.v20Poi='1';document.head.appendChild(l)}
-    if(!document.querySelector('script[data-v20-poi]')){const s=document.createElement('script');s.src='/v20-poi-learning.js';s.dataset.v20Poi='1';s.defer=true;document.body.appendChild(s)}
+    if(!document.querySelector('link[data-v20-poi]')){const l=document.createElement('link');l.rel='stylesheet';l.href=asset('v20.css');l.dataset.v20Poi='1';document.head.appendChild(l)}
+    if(!document.querySelector('script[data-v20-poi]')){const s=document.createElement('script');s.src=asset('v20-poi-learning.js');s.dataset.v20Poi='1';s.defer=true;document.body.appendChild(s)}
   }
   function loadV21(){
-    if(!document.querySelector('link[data-v21-decision]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/v21.css';l.dataset.v21Decision='1';document.head.appendChild(l)}
-    if(!document.querySelector('script[data-v21-decision]')){const s=document.createElement('script');s.src='/v21-decision.js';s.dataset.v21Decision='1';s.defer=true;document.body.appendChild(s)}
+    if(!document.querySelector('link[data-v21-decision]')){const l=document.createElement('link');l.rel='stylesheet';l.href=asset('v21.css');l.dataset.v21Decision='1';document.head.appendChild(l)}
+    if(!document.querySelector('script[data-v21-decision]')){const s=document.createElement('script');s.src=asset('v21-decision.js');s.dataset.v21Decision='1';s.defer=true;document.body.appendChild(s)}
   }
   const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='evidenceView'){render();load()}}}
   load();setInterval(load,60_000);loadV18();loadV20();loadV21();
