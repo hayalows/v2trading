@@ -4,7 +4,7 @@ const INS='https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/lab-insights?sy
 const TV={EURUSD:'FX:EURUSD',GBPUSD:'FX:GBPUSD'},NAME={EURUSD:'Euro / U.S. Dollar',GBPUSD:'British Pound / U.S. Dollar'};
 let states={},insights={},allInsights=null,selected='EURUSD',view='overview',chartLoaded='',busy=false,snackTimer=null;
 const $=id=>document.getElementById(id);
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=(v,d=0)=>Number.isFinite(Number(v))?Number(v).toFixed(d):'—';
 const px=v=>num(v,5),cap=v=>String(v??'—').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
 const fmt=t=>t?new Date(t).toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
