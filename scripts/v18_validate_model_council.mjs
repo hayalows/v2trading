@@ -21,7 +21,7 @@ for(const m of ['new Set([TTM,STUDENT])','landmark_age_bars",0','missing_models'
 for(const m of ['V2 Model Council v1.8','probabilityVisible:false','MODEL_DISAGREEMENT','resolvedBoth','unlockAt:30'])if(!council.includes(m))throw new Error(`missing Council endpoint boundary: ${m}`);
 for(const m of ['state-twin-student-v18','model-council-v18','REJECT_COUNCIL_INCREMENTAL','eligibleLandmarkAgeBars'])if(!migration.includes(m))throw new Error(`missing registry decision marker: ${m}`);
 for(const m of ['name: v18-shadow-observers','id-token: write','v18_shadow_observer_scorer.py','V18_STATE_TWIN_STUDENT.json'])if(!workflow.includes(m))throw new Error(`missing OIDC observer workflow marker: ${m}`);
-for(const m of ['/v18.css','/v18-council.js','loadV18'])if(!loader.includes(m))throw new Error(`missing v1.8 additive loader: ${m}`);
+for(const m of ["asset('v18.css')","asset('v18-council.js')",'loadV18'])if(!loader.includes(m))throw new Error(`missing v1.8 additive loader: ${m}`);
 for(const m of ['Version 1.8 · Model Council','PROBABILITY WITHHELD','Eligible age-0 records','Model Council'])if(!js.includes(m))throw new Error(`missing Council UI marker: ${m}`);
 for(const m of ['.modelCouncilResearch','.councilGrid','.councilDecisions','@media(max-width:560px)'])if(!css.includes(m))throw new Error(`missing Council CSS marker: ${m}`);
 new vm.Script(js,{filename:'web/v18-council.js'});
