@@ -1,9 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const URL = Deno.env.get("SUPABASE_URL")!;
+const SB_URL = Deno.env.get("SUPABASE_URL")!;
 const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const WEBHOOK = Deno.env.get("DISCORD_WEBHOOK_URL") ?? "";
-const db = createClient(URL, KEY, { auth: { persistSession: false } });
+const WEBHOOK = (Deno.env.get("DISCORD_WEBHOOK_URL") ?? "").trim();
+const db = createClient(SB_URL, KEY, { auth: { persistSession: false } });
 const PAIRS = ["EURUSD", "GBPUSD"];
 const ALERT_STAGES = new Set([3, 5, 6, 7, 8]);
 const CLOSED = new Set(["win", "loss", "timeout", "ambiguous", "expired", "invalid"]);
@@ -168,7 +168,7 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true, configured: true, skipped: "throttled" });
 
     const [intelRes, trades] = await Promise.all([
-      fetch(`${URL}/functions/v1/decision-intelligence`, { headers: { "Cache-Control": "no-cache" } }),
+      fetch(`${SB_URL}/functions/v1/decision-intelligence`, { headers: { "Cache-Control": "no-cache" } }),
       db.from("paper_trades").select("trade_key,symbol,direction,status,entry_price,stop_price,target_price,risk_atr,exit_price,gross_r,armed_at").in("symbol", PAIRS).order("armed_at", { ascending: false }).limit(20),
     ]);
     if (!intelRes.ok) throw new Error(`decision-intelligence ${intelRes.status}`);
