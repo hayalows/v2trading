@@ -13,7 +13,7 @@ const loader=fs.readFileSync('web/v17-shadow.js','utf8');
 const js=fs.readFileSync('web/v18-council.js','utf8');
 const css=fs.readFileSync('web/v18.css','utf8');
 for(const m of ['paired campaign bootstrap','0.15','age 0 only','Falsification rule'])if(!protocol.includes(m))throw new Error(`missing frozen v1.8 protocol marker: ${m}`);
-for(const m of ['REJECT_COUNCIL_INCREMENTAL','PROMOTE_STATE_TWIN_STUDENT_TO_SHADOW','−0.000221','0.9200'])if(!results.includes(m))throw new Error(`missing frozen v1.8 result marker: ${m}`);
+for(const m of ['REJECT_COUNCIL_INCREMENTAL','PROMOTE_STATE_TWIN_STUDENT_TO_SHADOW','-0.000221','0.9200'])if(!results.includes(m))throw new Error(`missing frozen v1.8 result marker: ${m}`);
 if(student.historical_gate!=='PASS'||student.version!=='state-twin-student-v18-through-2025'||student.eligible_landmark_age_bars?.[0]!==0)throw new Error('invalid frozen StateTwin student artifact');
 for(const m of ['BOOTSTRAP_REPS = 2000','choose_council_weight','paired_bootstrap_ci','PROMOTE_STATE_TWIN_STUDENT_TO_SHADOW','REJECT_COUNCIL_INCREMENTAL'])if(!research.includes(m))throw new Error(`missing v1.8 research marker: ${m}`);
 for(const m of ['TTM_VERSION = "granite-ttm-r2-v17"','STUDENT_VERSION = "state-twin-student-v18"','student_features','score_student','score_ttm','landmark_age_bars'])if(!observer.includes(m))throw new Error(`missing dual observer scorer marker: ${m}`);
