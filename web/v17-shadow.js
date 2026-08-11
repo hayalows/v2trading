@@ -36,6 +36,10 @@
       <div class="shadowFoot"><strong>${c.total?`${n(c.total)} immutable forecast record${Number(c.total)===1?'':'s'} collected.`:'Waiting for the next qualifying Stage-3/4 landmark.'}</strong><span>Granite TTM R2 passed its frozen standalone historical gate, but it still needs prospective scoring and must prove incremental value beyond StateTwin before it can influence Focus.</span>${latest?`<ul>${latest}</ul>`:''}</div>`;
   }
   async function load(){if(loading)return;loading=true;try{const r=await fetch(URL,{cache:'no-store'});if(!r.ok)throw new Error('Shadow Arena unavailable');arena=await r.json();render()}catch(e){console.warn('Shadow Arena',e)}finally{loading=false}}
+  function loadV18(){
+    if(!document.querySelector('link[data-v18-council]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/v18.css';l.dataset.v18Council='1';document.head.appendChild(l)}
+    if(!document.querySelector('script[data-v18-council]')){const s=document.createElement('script');s.src='/v18-council.js';s.dataset.v18Council='1';s.defer=true;document.body.appendChild(s)}
+  }
   const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='evidenceView'){render();load()}}}
-  load();setInterval(load,60_000);
+  load();setInterval(load,60_000);loadV18();
 })();

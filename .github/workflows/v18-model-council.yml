@@ -1,0 +1,53 @@
+name: v18-model-council
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  council:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Compile frozen v1.8 research
+        run: python -m py_compile scripts/v18_model_council_research.py
+      - name: Install V2 and CPU TTM dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install --index-url https://download.pytorch.org/whl/cpu 'torch==2.10.0'
+          pip install 'granite-tsfm==0.3.6'
+      - name: Download frozen EURUSD and GBPUSD M15 history
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD; do
+            curl -L --fail --retry 4 --retry-delay 2 \
+              -o ".research-data/market/${symbol}-15m.feather" \
+              "${base}/${symbol}-15m.feather?download=true"
+          done
+      - name: Run frozen Model Council protocol
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          TOKENIZERS_PARALLELISM: 'false'
+        run: |
+          PYTHONPATH=scripts python scripts/v18_model_council_research.py \
+            --data-dir .research-data/market \
+            --start 2020-01-01 \
+            --out research-output/v18/council
+      - name: Show frozen decisions
+        run: cat research-output/v18/council/v18_model_council_summary.json
+      - name: Upload Model Council artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: v18-model-council
+          path: research-output/v18/council/
+          retention-days: 14

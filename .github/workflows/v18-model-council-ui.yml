@@ -1,0 +1,37 @@
+name: v18-model-council-ui
+
+on:
+  pull_request:
+    paths:
+      - 'web/v17-shadow.js'
+      - 'web/v18.css'
+      - 'web/v18-council.js'
+      - 'scripts/v18_shadow_observer_scorer.py'
+      - 'scripts/v18_validate_model_council.mjs'
+      - 'scripts/v18_model_council_research.py'
+      - 'reports/v18/**'
+      - 'supabase/functions/shadow-score-gateway/index.ts'
+      - 'supabase/functions/model-council/index.ts'
+      - 'supabase/migrations/20260811002500_v18_model_council.sql'
+      - '.github/workflows/v17-shadow-scorer.yml'
+      - '.github/workflows/v18-model-council-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile dual shadow observer scorer
+        run: python -m py_compile scripts/v18_shadow_observer_scorer.py
+      - name: Validate Model Council product boundary
+        run: node scripts/v18_validate_model_council.mjs
