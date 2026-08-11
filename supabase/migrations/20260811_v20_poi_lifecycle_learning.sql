@@ -34,6 +34,8 @@ create table if not exists public.poi_depth_shadow (
   symbol text not null check (symbol in ('EURUSD','GBPUSD')),
   direction text not null check (direction in ('long','short')),
   depth_pct integer not null check (depth_pct between 0 and 100 and depth_pct % 5 = 0),
+  prospective boolean not null,
+  frozen_at timestamptz not null,
   eligible boolean not null,
   status text not null check (status in ('waiting','open','win','loss','timeout','ambiguous','ineligible')),
   entry_price numeric not null,
@@ -58,6 +60,8 @@ create index if not exists poi_depth_shadow_status_idx
   on public.poi_depth_shadow(status,symbol,depth_pct,updated_at desc);
 create index if not exists poi_depth_shadow_trade_idx
   on public.poi_depth_shadow(trade_key,depth_pct);
+create index if not exists poi_depth_shadow_prospective_idx
+  on public.poi_depth_shadow(prospective,depth_pct,status,updated_at desc);
 
 create table if not exists public.poi_penetration_events (
   event_key text primary key,
@@ -65,6 +69,7 @@ create table if not exists public.poi_penetration_events (
   symbol text not null check (symbol in ('EURUSD','GBPUSD')),
   direction text not null check (direction in ('long','short')),
   threshold_pct integer not null check (threshold_pct between 0 and 100),
+  prospective boolean not null,
   reached_at timestamptz not null,
   age_bars integer not null,
   observed_penetration numeric not null,
@@ -77,7 +82,7 @@ create table if not exists public.poi_penetration_events (
 create index if not exists poi_penetration_events_trade_idx
   on public.poi_penetration_events(trade_key,reached_at);
 create index if not exists poi_penetration_events_threshold_idx
-  on public.poi_penetration_events(symbol,threshold_pct,reached_at desc);
+  on public.poi_penetration_events(prospective,symbol,threshold_pct,reached_at desc);
 
 alter table public.poi_depth_shadow enable row level security;
 alter table public.poi_penetration_events enable row level security;
@@ -88,6 +93,6 @@ grant select, insert, update, delete on public.poi_depth_shadow to service_role;
 grant select, insert, update, delete on public.poi_penetration_events to service_role;
 
 comment on table public.poi_depth_shadow is
-  'Prospective research-only shadow entries across the frozen 0%-100% POI depth grid. No row can place a broker order or change the baseline midpoint paper plan.';
+  'Research-only shadow entries across the frozen 0%-100% POI depth grid. prospective=false identifies backfilled geometry that must never count toward future promotion gates.';
 comment on table public.poi_penetration_events is
-  'First observed threshold crossings for prospective POI reaction/lifecycle research.';
+  'First observed threshold crossings for POI reaction/lifecycle research. prospective=false identifies backfilled observations.';
