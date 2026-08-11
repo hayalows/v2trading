@@ -23,7 +23,7 @@ const regexes=[
   /gte\(\s*["']formation_stage["']\s*,\s*6\s*\)/,
   /c\.form\?\.fresh\s*!==\s*true/,
   /globalThis\.URL\(req\.url\)/,
-  /timeInvalidation:\s*["']None\./,
+  /timeInvalidation:\s*["']None(?:\.| for)/,
 ];
 for(const re of regexes)assert.match(engine,re,`missing engine integrity pattern: ${re}`);
 for(const marker of ['5m public path unavailable','SL and TP touched in same 5m bar','M15 entry touch not reproduced by 5m path','partially_mitigated','target_delivered_before_entry','outside_studied_tail'])assert.ok(engine.includes(marker),`missing lifecycle/ambiguity guard: ${marker}`);
