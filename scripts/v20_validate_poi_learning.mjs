@@ -41,7 +41,7 @@ for(const marker of [
 for(const state of ['untouched','grazed','partially_mitigated','midpoint_touched','deep_unfilled','distal_touched','invalidated_close_through']) assert.ok(migration.includes(`'${state}'`),`missing lifecycle state ${state}`);
 
 for(const marker of ['50% stays baseline','Alternatives learn in shadow','Backfilled observations never count toward promotion','No automatic promotion','Research watch','Max penetration']) assert.ok(ui.includes(marker),`missing v2.0 UI boundary: ${marker}`);
-for(const marker of ['/v20.css','/v20-poi-learning.js','data-v20-poi']) assert.ok(loader.includes(marker),`v2.0 additive loader missing ${marker}`);
+for(const marker of ["asset('v20.css')","asset('v20-poi-learning.js')",'data-v20-poi']) assert.ok(loader.includes(marker),`v2.0 additive loader missing ${marker}`);
 for(const marker of ['KEEP_MIDPOINT_RESEARCH_ONLY','40%','walk-forward','prospective','backfilled','no broker']) assert.ok(report.toLowerCase().includes(marker.toLowerCase()),`v2.0 report missing ${marker}`);
 
 console.log('v2.0 POI learning validation passed: midpoint baseline frozen, lifecycle semantics explicit, prospective freeze protected, backfill separated and depth shadows have zero automatic product influence');
