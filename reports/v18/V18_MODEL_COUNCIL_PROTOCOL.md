@@ -78,8 +78,9 @@ If and only if both a frozen StateTwin shadow score and a frozen TTM shadow scor
 
 - store both hidden probabilities in the immutable forecast record;
 - calculate `model_disagreement = abs(p_state_twin - p_ttm)`;
-- calculate binary entropy of the accepted historical Council probability if a Council passed;
-- expose only qualitative research state such as `LOW_DISAGREEMENT`, `MODEL_DISAGREEMENT`, or `UNCALIBRATED` until the prospective sample gate is reached;
+- freeze the qualitative disagreement rule before historical results: `MODEL_DISAGREEMENT` when absolute probability disagreement is at least 0.15, otherwise `LOW_DISAGREEMENT`; use `UNCALIBRATED` whenever either score is missing;
+- calculate binary entropy of the accepted historical Council probability if a Council passed and a deployable Council probability is later established under a separate frozen gate;
+- expose only the qualitative research state until the prospective sample gate is reached;
 - probabilities remain `visible:false` and have zero influence on Focus ranking or paper trades.
 
 No live promotion threshold will be selected in v1.8. Prospective records are evidence collection only.
