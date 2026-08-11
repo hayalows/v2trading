@@ -17,7 +17,7 @@ M5 completed-year midpoint (2022-2025):
 The pooled descriptive best depth was 40%:
 - opportunity expectancy: +0.1014R
 
-But the preregistered chronological test failed:
+But the preregistered chronological **walk-forward** test failed:
 - 2022 candidate-minus-midpoint: +0.0115R
 - 2023: -0.0417R
 - 2024: -0.0271R
