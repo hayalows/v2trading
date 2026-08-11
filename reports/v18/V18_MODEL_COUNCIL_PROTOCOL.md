@@ -55,7 +55,7 @@ These diagnostics do not alter the acceptance gate.
 
 The original StateTwin ensemble is the teacher. A compact student may use only the same causal StateTwin input family available at the forecast timestamp and must be trainable using data through 2025 only.
 
-The student architecture is fixed to a regularized logistic regression over the frozen v1.6 preprocessed StateTwin features plus the teacher probability as a training target diagnostic. It predicts the actual structural outcome, not merely the teacher score.
+The student architecture is fixed to a regularized logistic regression over the frozen v1.6 preprocessed StateTwin features. It predicts the actual structural outcome, not merely the teacher score; teacher probabilities are retained only as a fidelity diagnostic.
 
 Evaluation uses chronological 2022–2025 out-of-sample predictions on the same earliest independent campaigns.
 
@@ -72,14 +72,24 @@ A compact StateTwin student earns `shadow` status only if all are true:
 
 A pass permits prospective hidden scoring in Shadow Arena only. It does not permit Focus probability display.
 
+## Prospective model eligibility
+
+The v1.7 Granite TTM challenger and the v1.8 comparable StateTwin student are validated on **age 0 only**, the earliest independent Stage-3/4 observation in a campaign.
+
+Therefore:
+
+- TTM, the StateTwin student, and Model Council may score only Shadow Arena records with `landmark_age_bars = 0` in v1.8;
+- later landmarks at ages 2, 4, 8, 12, 16, and 24 continue to be collected as prospective structural evidence but receive no age-0 model probability;
+- a later-age probability requires a separately preregistered dynamic-age validation and cannot inherit the age-0 model by assumption.
+
 ## Prospective Council policy
 
-If and only if both a frozen StateTwin shadow score and a frozen TTM shadow score exist before a Shadow Arena outcome:
+If and only if both a frozen eligible StateTwin shadow score and a frozen eligible TTM shadow score exist before a Shadow Arena outcome:
 
 - store both hidden probabilities in the immutable forecast record;
 - calculate `model_disagreement = abs(p_state_twin - p_ttm)`;
 - freeze the qualitative disagreement rule before historical results: `MODEL_DISAGREEMENT` when absolute probability disagreement is at least 0.15, otherwise `LOW_DISAGREEMENT`; use `UNCALIBRATED` whenever either score is missing;
-- calculate binary entropy of the accepted historical Council probability if a Council passed and a deployable Council probability is later established under a separate frozen gate;
+- calculate binary entropy of the accepted historical Council probability only if a deployable Council probability is later established under a separate frozen gate;
 - expose only the qualitative research state until the prospective sample gate is reached;
 - probabilities remain `visible:false` and have zero influence on Focus ranking or paper trades.
 
