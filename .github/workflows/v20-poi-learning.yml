@@ -1,0 +1,35 @@
+name: v20-poi-learning
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/paper-trade-engine/**'
+      - 'supabase/migrations/20260811_v20_poi_lifecycle_learning.sql'
+      - 'web/v20-poi-learning.js'
+      - 'web/v20.css'
+      - 'web/v17-shadow.js'
+      - 'scripts/v20_validate_poi_learning.mjs'
+      - 'reports/v20/**'
+      - '.github/workflows/v20-poi-learning.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate v2.0 POI learning boundaries
+        run: node scripts/v20_validate_poi_learning.mjs
+      - name: Syntax check browser layer
+        run: node --check web/v20-poi-learning.js
+      - name: Syntax check edge function
+        shell: bash
+        run: |
+          cp supabase/functions/paper-trade-engine/index.ts /tmp/paper-trade-engine.mjs
+          node --check /tmp/paper-trade-engine.mjs
