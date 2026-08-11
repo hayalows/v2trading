@@ -37,7 +37,7 @@ create table if not exists public.poi_depth_shadow (
   prospective boolean not null,
   frozen_at timestamptz not null,
   eligible boolean not null,
-  status text not null check (status in ('waiting','open','win','loss','timeout','ambiguous','ineligible')),
+  status text not null check (status in ('waiting','open','win','loss','timeout','ambiguous','not_filled','ineligible')),
   entry_price numeric not null,
   stop_price numeric not null,
   target_price numeric not null,
