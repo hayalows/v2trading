@@ -31,6 +31,12 @@ async function authorize(req:Request){
   return claims;
 }
 
+function sourcePolicy(row:any){
+  const source=String(row?.feature_snapshot?.dataHealth?.structureSource??row?.feature_snapshot?.dataHealth?.structure_source??"");
+  if(row?.symbol==="EURUSD"&&source.toLowerCase().includes("canonical"))return {allowed:false,reason:"EURUSD canonical-source transition: the frozen v1.7/v1.8 scorers still reconstruct Yahoo context, so scoring is paused rather than mixing sources."};
+  return {allowed:true,reason:null};
+}
+
 async function queue(){
   const q=await db.from("shadow_forecasts").select("forecast_key,symbol,observed_at,observed_bar_at,direction,formation_stage,landmark_age_bars,horizon_bars,status,outcome,predictions,feature_snapshot,model_spec_hash").eq("status","pending").eq("landmark_age_bars",0).is("outcome",null).order("observed_at",{ascending:true}).limit(50);
   if(q.error)throw new Error(q.error.message);
@@ -39,34 +45,36 @@ async function queue(){
       [TTM]:r?.predictions?.[TTM]?.p==null,
       [STUDENT]:r?.predictions?.[STUDENT]?.p==null,
     };
-    return {...r,missing_models:missing};
-  }).filter((r:any)=>r.missing_models[TTM]||r.missing_models[STUDENT]);
+    const policy=sourcePolicy(r);
+    return {...r,missing_models:missing,source_policy:policy};
+  }).filter((r:any)=>r.source_policy.allowed&&(r.missing_models[TTM]||r.missing_models[STUDENT]));
   return rows.slice(0,12);
 }
 
 async function submit(body:any){
-  const scores=Array.isArray(body?.scores)?body.scores:[];let accepted=0,rejected=0;
+  const scores=Array.isArray(body?.scores)?body.scores:[];let accepted=0,rejected=0,sourceRejected=0;
   const acceptedByModel:Record<string,number>={[TTM]:0,[STUDENT]:0};
   for(const s of scores.slice(0,48)){
     const model=String(s?.model_version??"");
-    const p=Number(s?.p);
-    if(!ALLOWED.has(model)||!Number.isFinite(p)||p<=0||p>=1){rejected++;continue}
-    const q=await db.from("shadow_forecasts").select("forecast_key,status,outcome,landmark_age_bars,predictions,observed_at,observed_bar_at").eq("forecast_key",String(s.forecast_key)).maybeSingle();
+    const prob=Number(s?.p);
+    if(!ALLOWED.has(model)||!Number.isFinite(prob)||prob<=0||prob>=1){rejected++;continue}
+    const q=await db.from("shadow_forecasts").select("forecast_key,symbol,status,outcome,landmark_age_bars,predictions,feature_snapshot,observed_at,observed_bar_at").eq("forecast_key",String(s.forecast_key)).maybeSingle();
     if(q.error||!q.data||q.data.status!=="pending"||q.data.outcome!==null||Number(q.data.landmark_age_bars)!==0||q.data?.predictions?.[model]?.p!=null){rejected++;continue}
+    const policy=sourcePolicy(q.data);if(!policy.allowed){rejected++;sourceRejected++;continue}
     const predictions={...(q.data.predictions??{})};
-    predictions[model]={kind:"shadow",p,features:s.features??{},calibratorVersion:s.calibrator_version??null,contextLastClose:s.context_last_close??null,contextSource:s.context_source??null,contextCutoff:q.data.observed_bar_at,eligibleLandmarkAgeBars:[0],scoredAt:new Date().toISOString(),preOutcome:true,visible:false};
+    predictions[model]={kind:"shadow",p:prob,features:s.features??{},calibratorVersion:s.calibrator_version??null,contextLastClose:s.context_last_close??null,contextSource:s.context_source??null,contextCutoff:q.data.observed_bar_at,eligibleLandmarkAgeBars:[0],scoredAt:new Date().toISOString(),preOutcome:true,visible:false};
     const w=await db.from("shadow_forecasts").update({predictions,updated_at:new Date().toISOString()}).eq("forecast_key",q.data.forecast_key).eq("status","pending").eq("landmark_age_bars",0).is("outcome",null);
     if(w.error){rejected++;continue}
     accepted++;acceptedByModel[model]=(acceptedByModel[model]??0)+1;
   }
-  return {accepted,rejected,acceptedByModel};
+  return {accepted,rejected,sourceRejected,acceptedByModel};
 }
 
 Deno.serve(async(req:Request)=>{
   if(req.method==="OPTIONS")return new Response("ok",{headers:CORS});
   try{
     const claims=await authorize(req),url=new URL(req.url);
-    if(req.method==="GET"&&url.searchParams.get("score_queue")==="1")return reply({queue:await queue(),authenticatedRepository:claims.repository,eligibleLandmarkAgeBars:[0],models:[TTM,STUDENT],probabilityVisible:false});
+    if(req.method==="GET"&&url.searchParams.get("score_queue")==="1")return reply({queue:await queue(),authenticatedRepository:claims.repository,eligibleLandmarkAgeBars:[0],models:[TTM,STUDENT],probabilityVisible:false,sourcePolicy:"EURUSD canonical observations are paused until the shadow scorer uses matching canonical context."});
     if(req.method==="POST")return reply(await submit(await req.json()));
     return reply({error:"unsupported operation"},405);
   }catch(e){console.error(e);return reply({error:"unauthorized or invalid request"},401)}
