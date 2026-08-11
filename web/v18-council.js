@@ -1,5 +1,7 @@
 (()=>{
   const URL='https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/model-council';
+  const eyebrow=document.querySelector('.intro .eyebrow');if(eyebrow)eyebrow.textContent='Version 1.8 · Model Council';
+  const intro=document.querySelector('.intro p');if(intro)intro.textContent='Read EURUSD and GBPUSD as changing market states, then make competing models prove incremental value and prospective calibration before any probability can reach the live workflow.';
   let council=null,loading=false;
   const safe=v=>typeof esc==='function'?esc(v):String(v??'');
   const n=v=>Number.isFinite(Number(v))?Number(v).toLocaleString():'—';
