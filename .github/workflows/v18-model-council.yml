@@ -1,14 +1,6 @@
 name: v18-model-council
 
 on:
-  pull_request:
-    paths:
-      - 'scripts/v18_model_council_research.py'
-      - 'reports/v18/V18_MODEL_COUNCIL_PROTOCOL.md'
-      - '.github/workflows/v18-model-council.yml'
-      - 'scripts/v16_state_twin_research.py'
-      - 'scripts/v17_ttm_challenger.py'
-      - 'requirements.txt'
   workflow_dispatch:
 
 permissions:
@@ -42,7 +34,7 @@ jobs:
               -o ".research-data/market/${symbol}-15m.feather" \
               "${base}/${symbol}-15m.feather?download=true"
           done
-      - name: Run preregistered Model Council
+      - name: Run frozen Model Council protocol
         env:
           HF_HUB_DISABLE_TELEMETRY: '1'
           TOKENIZERS_PARALLELISM: 'false'
