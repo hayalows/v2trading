@@ -1,5 +1,7 @@
 # V2 v1.9 POI Penetration Lab — M5 refinement protocol
 
+**Status: frozen before M5 refinement results.**
+
 This is a secondary protocol frozen **after** the first M15-only run exposed two limitations and **before** M5 refinement results are observed.
 
 ## Why this refinement exists
