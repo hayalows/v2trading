@@ -20,17 +20,33 @@ A separate upstream market-data defect was then identified in Yahoo `EURUSD=X` i
 
 ### Canonical EURUSD M15/5m
 
-1. **Dukascopy BID ticks** are the authoritative historical intraday source.
-2. **Twelve Data EUR/USD 1m, UTC** fills the still-unpublished current Dukascopy hour.
-3. Twelve 1m is aggregated only when all expected component minutes are present:
+1. **Dukascopy BID ticks** are the preferred historical intraday source when their recent overlap agrees with the independent Twelve Data series.
+2. **Twelve Data EUR/USD 15m, UTC** is a historical failover source. It is no longer necessary to keep EURUSD online by trusting Yahoo if Dukascopy is temporarily unavailable.
+3. **Twelve Data EUR/USD 1m, UTC** supplies the current completed-minute tail and the canonical 5m path.
+4. Twelve 1m is aggregated only when all expected component minutes are present:
    - 5 rows for a completed 5m candle;
    - 15 rows for a completed M15 candle.
-4. Dukascopy wins on overlap.
-5. Provider overlap is continuously audited. Current gate:
+5. Twelve's direct 15m feed is checked against independently fetched/aggregated Twelve 1m data. In the production failover test, 11 complete overlapping M15 bars matched exactly.
+6. Dukascopy wins on overlap only while its cross-provider seam passes. Current gate:
    - at least 2 recent overlapping M15 bars;
    - maximum OHLC difference <= 2.0 pips;
    - median close difference <= 1.0 pip.
-6. Only one canonical series is exposed downstream as `EURUSD canonical structure v1`.
+7. If Dukascopy is unavailable or its seam fails, Twelve direct 15m becomes the historical base automatically while the stricter Twelve 1m-versus-15m consistency gate remains mandatory.
+8. Only one canonical series is exposed downstream as `EURUSD canonical structure v1`.
+
+The outage path was exercised during the incident: Dukascopy returned HTTP 503 for recent hourly files, while Twelve Data continued serving 1m and 15m EUR/USD. Twelve's 200-bar 15m sample had 144 unique closes, a 0.00001 minimum non-zero step, and no recurrence of the Yahoo quantization pattern.
+
+## Raw-provider resilience
+
+`dukascopy-raw-sync` stores provider-native data separately from canonical downstream bars.
+
+- normal refresh fetches recent completed hours;
+- if the raw store is below the minimum history threshold, the job self-bootstraps a longer history window;
+- each hourly fetch has a bounded timeout;
+- slow/503 hours are skipped and retried later rather than blocking the canonical state refresh;
+- diagnostic bootstrap/probe endpoints used during investigation were retired after cutover.
+
+This means a raw-provider outage does not overwrite the canonical series or silently fall back to Yahoo.
 
 ## Fail-closed gates
 
@@ -40,7 +56,7 @@ A EURUSD formation is withheld as `DATA_DEGRADED` when any of these conditions f
 - no recent M15 gaps;
 - no duplicate bars;
 - no suspicious quantization;
-- provider seam passes;
+- Twelve 1m/15m consistency gate passes;
 - canonical updater is fresh.
 
 Database triggers provide defense in depth:
@@ -54,6 +70,17 @@ Database triggers provide defense in depth:
 
 A separate canonical 5m verifier reconstructs censored same-bar cases from the canonical EURUSD 5m path.
 
+## UI cutover
+
+The browser previously fetched `market-lab?symbol=EURUSD,GBPUSD`, which meant the legacy endpoint could still return a Yahoo-derived EURUSD object directly even after the database rejected its write.
+
+The UI now fetches:
+
+- EURUSD from `eurusd-market-lab`;
+- GBPUSD from the legacy GBPUSD-only `market-lab` path.
+
+Therefore both persistence and display consume the canonical EURUSD state.
+
 ## Schedule
 
 - minute 0/5/10/...: EURUSD feed watchdog;
@@ -65,24 +92,24 @@ A separate canonical 5m verifier reconstructs censored same-bar cases from the c
 
 The legacy `market-lab` schedule now refreshes GBPUSD only.
 
-## Production validation at cutover
+## Production validation
 
-A successful canonical refresh around 18:33 UTC reported:
+A successful canonical failover-capable refresh at 18:56 UTC reported:
 
-- expected completed M15: 18:15 UTC;
-- last M15: 18:15 UTC;
+- expected completed M15: 18:30 UTC;
+- last M15: 18:30 UTC;
 - structure lag: 0;
 - recent gaps: 0;
 - duplicates: 0;
 - 68 unique closes in the latest 96 M15 bars;
 - minimum non-zero close step: approximately 0.00001 (0.1 pip);
-- provider seam: pass;
-- recent overlap bars: 8;
-- max OHLC provider difference: about 1.2 pips;
+- Twelve 1m-versus-direct-15m seam: exact match in the recent complete overlap;
+- Dukascopy-versus-Twelve recent seam: pass;
+- max OHLC cross-provider difference: about 1.2 pips;
 - median close difference: about 0.3 pips.
 
 The corrected feed still returned `NO_SETUP`, which is important: the remediation fixed market-data fidelity and safeguards; it did not loosen formation or BOS rules to manufacture trades.
 
 ## Research boundary
 
-This remains a research market-state and paper-trade system. The canonical feed is not broker execution truth and does not provide executable bid/ask, spread, latency, or slippage validation.
+This remains a research market-state and paper-trade system. The canonical feed is not broker execution truth and does not provide executable broker spread, latency, slippage, or fill validation.
