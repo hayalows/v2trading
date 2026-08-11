@@ -27,6 +27,8 @@ assert.match(engine,/const entry = \(low \+ high\) \/ 2/,'baseline paper entry m
 assert.match(engine,/REWARD_R\s*=\s*2\.5/,'2.5R target must remain frozen');
 assert.match(engine,/MIN_RISK_ATR\s*=\s*0\.08/);
 assert.match(engine,/MAX_RISK_ATR\s*=\s*1\.60/);
+assert.match(engine,/ms\(t\.armed_at\)\s*>=\s*ms\(V20_PROSPECTIVE_START\)\s*&&\s*ms\(t\.armed_at\)\s*<\s*ms\(t\.bos_time\)\s*\+\s*900000/,'prospective depth evidence must freeze before the first future M15 bar can complete');
+assert.match(engine,/s\.resolution_timeframe\s*===\s*["']5m["']\s*\?\s*entryIdx\s*\+\s*1\s*:\s*entryIdx/,'M5-resolved shadow entry bar must not be replayed from its beginning');
 assert.ok(!engine.includes('bestDepthSignal'),'no live best-depth signal may exist');
 assert.ok(!engine.includes('promoteDepthAutomatically'),'no automatic depth promotion may exist');
 
@@ -42,4 +44,4 @@ for(const marker of ['50% stays baseline','Alternatives learn in shadow','Backfi
 for(const marker of ['/v20.css','/v20-poi-learning.js','data-v20-poi']) assert.ok(loader.includes(marker),`v2.0 additive loader missing ${marker}`);
 for(const marker of ['KEEP_MIDPOINT_RESEARCH_ONLY','40%','walk-forward','prospective','backfilled','no broker']) assert.ok(report.toLowerCase().includes(marker.toLowerCase()),`v2.0 report missing ${marker}`);
 
-console.log('v2.0 POI learning validation passed: midpoint baseline frozen, lifecycle semantics explicit, backfill separated and depth shadows have zero automatic product influence');
+console.log('v2.0 POI learning validation passed: midpoint baseline frozen, lifecycle semantics explicit, prospective freeze protected, backfill separated and depth shadows have zero automatic product influence');
