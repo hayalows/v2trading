@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/v19_poi_penetration_research.py'
+      - 'scripts/v19_poi_lifecycle_postprocess.py'
       - 'reports/v19/**'
       - '.github/workflows/v19-poi-penetration.yml'
   workflow_dispatch:
@@ -22,7 +23,9 @@ jobs:
           python-version: '3.11'
           cache: pip
       - name: Compile frozen v1.9 research
-        run: python -m py_compile scripts/v19_poi_penetration_research.py
+        run: |
+          python -m py_compile scripts/v19_poi_penetration_research.py
+          python -m py_compile scripts/v19_poi_lifecycle_postprocess.py
       - name: Install research dependencies
         run: pip install -r requirements.txt
       - name: Download frozen EURUSD and GBPUSD M15 history
@@ -42,8 +45,15 @@ jobs:
             --data-dir .research-data/market \
             --start 2020-01-01 \
             --out research-output/v19/poi-penetration
-      - name: Show frozen result
-        run: cat research-output/v19/poi-penetration/v19_poi_penetration_summary.json
+      - name: Run preregistered POI lifecycle diagnostics
+        run: |
+          python scripts/v19_poi_lifecycle_postprocess.py \
+            --input research-output/v19/poi-penetration/v19_poi_depth_simulations.csv \
+            --out research-output/v19/poi-penetration
+      - name: Show frozen results
+        run: |
+          cat research-output/v19/poi-penetration/v19_poi_penetration_summary.json
+          cat research-output/v19/poi-penetration/v19_poi_lifecycle_summary.json
       - uses: actions/upload-artifact@v4
         with:
           name: v19-poi-penetration
