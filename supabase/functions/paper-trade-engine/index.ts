@@ -22,7 +22,7 @@ const MIN_RISK_ATR = 0.08;
 const MAX_RISK_ATR = 1.60;
 const HISTORY_RECOVERY_HOURS = 6;
 const PRICE_EPS = 1e-9;
-const V20_PROSPECTIVE_START = "2026-08-11T15:25:00.000Z";
+const V20_PROSPECTIVE_START = "2026-08-11T16:00:00.000Z";
 const DEPTH_PCTS = Array.from({ length: 21 }, (_, i) => i * 5);
 const PENETRATION_THRESHOLDS = [0, 10, 20, 30, 40, 45, 50, 65, 85, 100];
 
@@ -33,7 +33,7 @@ const touch = (b, p) => b.low <= p + PRICE_EPS && p <= b.high + PRICE_EPS;
 const zoneTouch = (b, lo, hi) => b.low <= hi + PRICE_EPS && b.high + PRICE_EPS >= lo;
 const floor15 = (t) => new Date(Math.floor(ms(t) / 900000) * 900000).toISOString();
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
-const isProspective = (t) => ms(t.armed_at) >= ms(V20_PROSPECTIVE_START);
+const isProspective = (t) => ms(t.armed_at) >= ms(V20_PROSPECTIVE_START) && ms(t.armed_at) < ms(t.bos_time) + 900000;
 
 function trueRanges(bars) {
   return bars.map((b, i) => i === 0 ? b.high - b.low : Math.max(b.high - b.low, Math.abs(b.high - bars[i - 1].close), Math.abs(b.low - bars[i - 1].close)));
@@ -367,8 +367,8 @@ async function evaluateShadow(s, parent, bars, m5Cache) {
   if (s.status !== "open" || !s.filled_at) return;
   const entryIdx = bars.findIndex(b => b.ts === floor15(s.filled_at));
   if (entryIdx < 0) return;
-  const lastIdx = Math.min(bars.length - 1, entryIdx + MAX_HOLD_BARS);
-  for (let i = entryIdx; i <= lastIdx; i++) {
+  const lastIdx = Math.min(bars.length - 1, entryIdx + MAX_HOLD_BARS), firstIdx = s.resolution_timeframe === "5m" ? entryIdx + 1 : entryIdx;
+  for (let i = firstIdx; i <= lastIdx; i++) {
     const h = levelHits(s.direction, bars[i], stop, target);
     if (h.stop && h.target) {
       const r = await resolve5mLevels(s.symbol, s.direction, entry, stop, target, bars[i], false, s.filled_at, m5Cache);
