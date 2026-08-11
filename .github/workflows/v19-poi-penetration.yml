@@ -1,0 +1,51 @@
+name: v19-poi-penetration
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/v19_poi_penetration_research.py'
+      - 'reports/v19/**'
+      - '.github/workflows/v19-poi-penetration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  penetration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Compile frozen v1.9 research
+        run: python -m py_compile scripts/v19_poi_penetration_research.py
+      - name: Install research dependencies
+        run: pip install -r requirements.txt
+      - name: Download frozen EURUSD and GBPUSD M15 history
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD; do
+            curl -L --fail --retry 4 --retry-delay 2 \
+              -o ".research-data/market/${symbol}-15m.feather" \
+              "${base}/${symbol}-15m.feather?download=true"
+          done
+      - name: Run preregistered POI penetration simulation
+        run: |
+          PYTHONPATH=scripts python scripts/v19_poi_penetration_research.py \
+            --data-dir .research-data/market \
+            --start 2020-01-01 \
+            --out research-output/v19/poi-penetration
+      - name: Show frozen result
+        run: cat research-output/v19/poi-penetration/v19_poi_penetration_summary.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v19-poi-penetration
+          path: research-output/v19/poi-penetration/
+          retention-days: 14
