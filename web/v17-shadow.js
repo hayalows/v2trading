@@ -51,6 +51,10 @@
     if(!document.querySelector('link[data-v21-decision]')){const l=document.createElement('link');l.rel='stylesheet';l.href=asset('v21.css');l.dataset.v21Decision='1';document.head.appendChild(l)}
     if(!document.querySelector('script[data-v21-decision]')){const s=document.createElement('script');s.src=asset('v21-decision.js');s.dataset.v21Decision='1';s.defer=true;document.body.appendChild(s)}
   }
+  function loadV22(){
+    if(!document.querySelector('link[data-v22-brief]')){const l=document.createElement('link');l.rel='stylesheet';l.href=asset('v22.css');l.dataset.v22Brief='1';document.head.appendChild(l)}
+    if(!document.querySelector('script[data-v22-brief]')){const s=document.createElement('script');s.src=asset('v22-brief.js');s.dataset.v22Brief='1';s.defer=true;document.body.appendChild(s)}
+  }
   const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='evidenceView'){render();load()}}}
-  load();setInterval(load,60_000);loadV18();loadV20();loadV21();
+  load();setInterval(load,60_000);loadV18();loadV20();loadV21();loadV22();
 })();
