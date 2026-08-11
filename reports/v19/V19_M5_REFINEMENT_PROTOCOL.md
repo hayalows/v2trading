@@ -39,44 +39,40 @@ Recompute, for every 5% depth:
 
 Then repeat the original chronological 2022-2025 static-depth-versus-midpoint comparison with M5-refined outcomes. The first-pass acceptance gate is unchanged.
 
-## Reaction-after-touch study
+## Reaction-after-penetration event study
 
-The reaction study starts at the **first M5 candle that overlaps the POI**, not at BOS.
+A first touch and a later deeper visit are different events. The live GBPUSD case first grazed the POI and later reached about 43.5% maximum penetration without touching midpoint. Therefore the historical study is indexed by **penetration thresholds reached before midpoint**, not merely by first-touch depth.
 
-For each fresh POI, calculate first-touch penetration from the POI proximal edge toward the distal edge:
+For each fresh POI and each frozen threshold:
 
-- `0-10%`
-- `10-20%`
-- `20-30%`
-- `30-40%`
-- `40-50%`
-- `50-75%`
-- `75-100%`
-- `>=100%`
+`0%, 10%, 20%, 30%, 40%, 45%`
 
-The user's current GBPUSD example (about 43.5% maximum penetration without midpoint) belongs to `40-50%`; that fact is used only for interpretation, not parameter selection.
+find the first M5 candle after BOS for which penetration reaches at least that threshold while the midpoint has not yet been touched. Each POI contributes at most one event per threshold.
 
-For touches that initially remain shallower than midpoint (`<50%`), starting **after the first-touch M5 candle** to avoid same-candle sequencing assumptions, measure:
+Starting **after the threshold-reaching M5 candle** to avoid same-candle sequencing assumptions, measure:
 
 - later midpoint touch within 1h, 2h, 4h, 8h, 24h, and 48h
 - later distal-edge touch within the same horizons
 - M15 close through the distal edge
-- whether the original midpoint-based +1R level is reached after the touch and before midpoint
-- whether the original midpoint-based +2.5R target is reached after the touch and before midpoint
+- whether the original midpoint-based +1R level is reached after the threshold event and before midpoint
+- whether the original midpoint-based +2.5R target is reached after the threshold event and before midpoint
+- the same +1R/+2.5R reaction rates within 1h, 2h, 4h, 8h, and 24h where applicable
 - maximum favorable movement beyond the POI proximal edge before midpoint, in midpoint-risk R
 - maximum favorable movement beyond the proximal edge before midpoint, in ATR
-- time from first touch to midpoint when midpoint is later reached
+- time from threshold event to midpoint when midpoint is later reached
+
+Also retain descriptive first-touch bins (`0-10`, `10-20`, `20-30`, `30-40`, `40-50`, `50-75`, `75-100`, `>=100%`) to describe how violently the initial visit entered the zone.
 
 This distinguishes three different ideas that must not be conflated:
 
-1. **POI reaction:** price reacts in the predicted direction after touching part of the zone.
+1. **POI reaction:** price reacts in the predicted direction after touching or penetrating part of the zone.
 2. **Midpoint execution:** price reaches the fixed 50% entry.
 3. **POI lifecycle/invalidation:** price traverses or closes through the zone, or a newer formation supersedes the old setup.
 
 ## Interpretation rules
 
 - A shallow touch is not automatically called invalid.
-- A later midpoint fill does not prove the shallow touch failed; price may react first and revisit later.
+- A later midpoint fill does not prove the shallow reaction failed; price may react first and revisit later.
 - Reaching the old trade's target before entry is evidence that the original order may be stale, not proof that the zone itself has no future structural information.
 - A completed close through the distal edge is treated as stronger invalidation evidence than a mere touch.
 - No `85%`, midpoint, proximal edge, or other depth is promoted to production unless chronological out-of-sample evidence survives the unchanged acceptance gate and execution ambiguity is materially reduced.
