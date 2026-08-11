@@ -5,6 +5,9 @@ const ISSUER="https://token.actions.githubusercontent.com";
 const AUDIENCE="v2-shadow-arena";
 const REPOSITORY="hayalows/v2trading";
 const WORKFLOW_REF="hayalows/v2trading/.github/workflows/v17-shadow-scorer.yml@refs/heads/main";
+const TTM="granite-ttm-r2-v17";
+const STUDENT="state-twin-student-v18";
+const ALLOWED=new Set([TTM,STUDENT]);
 const CORS={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization,content-type","Access-Control-Allow-Methods":"GET,POST,OPTIONS","Cache-Control":"no-store"};
 const reply=(x:unknown,status=200)=>new Response(JSON.stringify(x),{status,headers:{...CORS,"Content-Type":"application/json; charset=utf-8"}});
 let jwksCache:any=null,jwksAt=0;
@@ -29,31 +32,41 @@ async function authorize(req:Request){
 }
 
 async function queue(){
-  const q=await db.from("shadow_forecasts").select("forecast_key,symbol,observed_at,observed_bar_at,direction,landmark_age_bars,horizon_bars,status,outcome,predictions,feature_snapshot,model_spec_hash").eq("status","pending").eq("landmark_age_bars",0).is("outcome",null).order("observed_at",{ascending:true}).limit(50);
+  const q=await db.from("shadow_forecasts").select("forecast_key,symbol,observed_at,observed_bar_at,direction,formation_stage,landmark_age_bars,horizon_bars,status,outcome,predictions,feature_snapshot,model_spec_hash").eq("status","pending").eq("landmark_age_bars",0).is("outcome",null).order("observed_at",{ascending:true}).limit(50);
   if(q.error)throw new Error(q.error.message);
-  const rows=(q.data??[]).filter((r:any)=>r?.predictions?.["granite-ttm-r2-v17"]?.p==null);
+  const rows=(q.data??[]).map((r:any)=>{
+    const missing={
+      [TTM]:r?.predictions?.[TTM]?.p==null,
+      [STUDENT]:r?.predictions?.[STUDENT]?.p==null,
+    };
+    return {...r,missing_models:missing};
+  }).filter((r:any)=>r.missing_models[TTM]||r.missing_models[STUDENT]);
   return rows.slice(0,12);
 }
 
 async function submit(body:any){
   const scores=Array.isArray(body?.scores)?body.scores:[];let accepted=0,rejected=0;
-  for(const s of scores.slice(0,24)){
-    if(s?.model_version!=="granite-ttm-r2-v17"||!Number.isFinite(Number(s?.p))||Number(s.p)<=0||Number(s.p)>=1){rejected++;continue}
+  const acceptedByModel:Record<string,number>={[TTM]:0,[STUDENT]:0};
+  for(const s of scores.slice(0,48)){
+    const model=String(s?.model_version??"");
+    const p=Number(s?.p);
+    if(!ALLOWED.has(model)||!Number.isFinite(p)||p<=0||p>=1){rejected++;continue}
     const q=await db.from("shadow_forecasts").select("forecast_key,status,outcome,landmark_age_bars,predictions,observed_at,observed_bar_at").eq("forecast_key",String(s.forecast_key)).maybeSingle();
-    if(q.error||!q.data||q.data.status!=="pending"||q.data.outcome!==null||Number(q.data.landmark_age_bars)!==0||q.data?.predictions?.["granite-ttm-r2-v17"]?.p!=null){rejected++;continue}
+    if(q.error||!q.data||q.data.status!=="pending"||q.data.outcome!==null||Number(q.data.landmark_age_bars)!==0||q.data?.predictions?.[model]?.p!=null){rejected++;continue}
     const predictions={...(q.data.predictions??{})};
-    predictions["granite-ttm-r2-v17"]={kind:"shadow",p:Number(s.p),features:s.features??{},calibratorVersion:s.calibrator_version??null,contextLastClose:s.context_last_close??null,contextSource:s.context_source??null,contextCutoff:q.data.observed_bar_at,eligibleLandmarkAgeBars:[0],scoredAt:new Date().toISOString(),preOutcome:true,visible:false};
+    predictions[model]={kind:"shadow",p,features:s.features??{},calibratorVersion:s.calibrator_version??null,contextLastClose:s.context_last_close??null,contextSource:s.context_source??null,contextCutoff:q.data.observed_bar_at,eligibleLandmarkAgeBars:[0],scoredAt:new Date().toISOString(),preOutcome:true,visible:false};
     const w=await db.from("shadow_forecasts").update({predictions,updated_at:new Date().toISOString()}).eq("forecast_key",q.data.forecast_key).eq("status","pending").eq("landmark_age_bars",0).is("outcome",null);
-    if(w.error){rejected++;continue}accepted++;
+    if(w.error){rejected++;continue}
+    accepted++;acceptedByModel[model]=(acceptedByModel[model]??0)+1;
   }
-  return {accepted,rejected};
+  return {accepted,rejected,acceptedByModel};
 }
 
 Deno.serve(async(req:Request)=>{
   if(req.method==="OPTIONS")return new Response("ok",{headers:CORS});
   try{
     const claims=await authorize(req),url=new URL(req.url);
-    if(req.method==="GET"&&url.searchParams.get("score_queue")==="1")return reply({queue:await queue(),authenticatedRepository:claims.repository,eligibleLandmarkAgeBars:[0],probabilityVisible:false});
+    if(req.method==="GET"&&url.searchParams.get("score_queue")==="1")return reply({queue:await queue(),authenticatedRepository:claims.repository,eligibleLandmarkAgeBars:[0],models:[TTM,STUDENT],probabilityVisible:false});
     if(req.method==="POST")return reply(await submit(await req.json()));
     return reply({error:"unsupported operation"},405);
   }catch(e){console.error(e);return reply({error:"unauthorized or invalid request"},401)}
