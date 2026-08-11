@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-"""Score pending V2 Shadow Arena records with frozen Granite TTM R2.
+"""Score eligible V2 Shadow Arena records with frozen Granite TTM R2.
 
 Authentication uses a short-lived GitHub Actions OIDC JWT. The scorer never receives
 Supabase database credentials and can only submit a model score through the Edge
 Function's restricted OIDC endpoint.
+
+The v1.7 historical TTM gate was validated on the earliest independent Stage-3/4
+observation only. v1.8 therefore restricts this scorer to landmark age 0 until a
+separate dynamic-age validation exists.
 """
 
 import argparse
@@ -22,7 +26,7 @@ from tsfm_public.toolkit.get_model import get_model
 
 MODEL_PATH = "ibm-granite/granite-timeseries-ttm-r2"
 TICKERS = {"EURUSD": "EURUSD=X", "GBPUSD": "GBPUSD=X"}
-USER_AGENT = "V2-Shadow-TTM/1.0"
+USER_AGENT = "V2-Shadow-TTM/1.1"
 
 
 def get_json(url: str, token: str) -> dict[str, Any]:
@@ -70,6 +74,8 @@ def calibrate(features: dict[str, float], cfg: dict[str, Any]) -> float:
 
 
 def score_item(model: Any, item: dict[str, Any], cfg: dict[str, Any]) -> dict[str, Any] | None:
+    if int(item.get("landmark_age_bars", -1)) != 0:
+        return None
     snapshot = item.get("feature_snapshot") or {}
     market = snapshot.get("market") or {}
     direction = item.get("direction")
@@ -105,6 +111,7 @@ def score_item(model: Any, item: dict[str, Any], cfg: dict[str, Any]) -> dict[st
         "features": features,
         "context_last_close": close,
         "context_source": "Yahoo Finance public 15m chart filtered to observed_bar_at",
+        "eligible_landmark_age_bars": [0],
         "scored_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "calibrator_version": cfg["version"],
     }
@@ -138,7 +145,7 @@ def main() -> None:
         try:
             s = score_item(model, item, cfg)
             if s is None:
-                skipped.append({"forecast_key": item.get("forecast_key"), "reason": "insufficient_or_invalid_context"})
+                skipped.append({"forecast_key": item.get("forecast_key"), "reason": "ineligible_age_or_invalid_context"})
             else:
                 scores.append(s)
         except Exception as exc:
