@@ -299,21 +299,27 @@ end;
 $$;
 
 -- Keep the legacy market-lab scheduler on GBPUSD only.
-do $$
+do $legacy_job$
 declare j bigint;
 begin
   select jobid into j from cron.job where jobname='v2-market-lab-refresh-5m' limit 1;
   if j is not null then
     perform cron.alter_job(j, command := $$select net.http_get(url := 'https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/market-lab?symbol=GBPUSD');$$);
   end if;
-end $$;
+end
+$legacy_job$;
 
 -- Recreate named jobs idempotently.
-do $$ declare j bigint; begin
+do $jobs$
+declare j bigint;
+begin
   for j in select jobid from cron.job where jobname in (
     'v2-eurusd-fast-canonical','v2-eurusd-duka-raw-sync','v2-eurusd-feed-watchdog','v2-eurusd-canonical-5m-verifier'
-  ) loop perform cron.unschedule(j); end loop;
-end $$;
+  ) loop
+    perform cron.unschedule(j);
+  end loop;
+end
+$jobs$;
 
 select cron.schedule('v2-eurusd-fast-canonical','1-56/5 * * * *',
   $$select net.http_get(url := 'https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/eurusd-market-lab', timeout_milliseconds := 8000);$$);
