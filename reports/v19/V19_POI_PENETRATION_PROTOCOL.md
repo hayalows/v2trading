@@ -89,6 +89,27 @@ For every depth record:
 
 This directly measures cases where the POI works directionally without reaching the midpoint.
 
+### Target-before-entry lifecycle test
+
+This secondary test is preregistered before viewing the penetration-study result and does **not** change the primary static-depth acceptance gate.
+
+For every depth, and especially the current 50% midpoint, isolate setups where the theoretical 2.5R target is reached before the entry ever fills. Report:
+
+- number and share of valid-risk setups
+- later fill rate after the target was already delivered
+- later resolved win/loss rate if the order is left alive
+- later opportunity expectancy if the order is left alive
+- distal-edge close-through rate
+- later maximum penetration
+- time from target delivery to any later fill when identifiable from M15 data
+
+Compare two lifecycle policies on exactly those cases:
+
+1. `KEEP_WAITING`: preserve the old order and score any later fill/outcome normally.
+2. `CANCEL_ON_TARGET_DELIVERY`: cancel the original trade plan when its pre-entry 2.5R objective is delivered; subsequent contribution from that old plan is 0R.
+
+This test answers whether the **original opportunity** is stale after target delivery. It is deliberately separate from whether the same POI may remain structurally informative for a newly formed setup.
+
 ## POI-state diagnostics
 
 A POI is not treated as binary fresh/invalid solely because it was touched. Track these states separately:
@@ -106,6 +127,7 @@ For first-touch cohorts, estimate conditional probabilities of:
 - close through distal
 - same-direction +1R, +2.5R excursion before distal close-through
 - reversal against the POI
+- later midpoint win/loss outcomes after a GRAZED or SHALLOW first touch
 
 ## Primary metrics by depth
 
