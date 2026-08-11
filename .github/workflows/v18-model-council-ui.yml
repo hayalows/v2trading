@@ -1,0 +1,30 @@
+name: v18-model-council-ui
+
+on:
+  pull_request:
+    paths:
+      - 'web/v17-shadow.js'
+      - 'web/v18.css'
+      - 'web/v18-council.js'
+      - 'scripts/v17_shadow_ttm_scorer.py'
+      - 'scripts/v18_validate_model_council.mjs'
+      - 'scripts/v18_model_council_research.py'
+      - 'reports/v18/**'
+      - 'supabase/functions/shadow-score-gateway/index.ts'
+      - 'supabase/functions/model-council/index.ts'
+      - '.github/workflows/v18-model-council-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Model Council product boundary
+        run: node scripts/v18_validate_model_council.mjs
