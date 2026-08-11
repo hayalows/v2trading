@@ -1,0 +1,61 @@
+name: v19-m5-poi-refinement
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/v19_m5_poi_refinement.py'
+      - 'reports/v19/V19_M5_REFINEMENT_PROTOCOL.md'
+      - '.github/workflows/v19-m5-poi-refinement.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Compile frozen refinement
+        run: python -m py_compile scripts/v19_m5_poi_refinement.py
+      - name: Install research dependencies
+        run: pip install -r requirements.txt
+      - name: Restore frozen first-pass artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: v19-poi-penetration
+          path: research-output/v19/poi-penetration
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: hayalows/v2trading
+          run-id: 31501787388
+      - name: Download EURUSD and GBPUSD M5 history
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD; do
+            curl -L --fail --retry 4 --retry-delay 2 \
+              -o ".research-data/market/${symbol}-5m.feather" \
+              "${base}/${symbol}-5m.feather?download=true"
+          done
+      - name: Run frozen M5 refinement
+        run: |
+          PYTHONPATH=scripts python scripts/v19_m5_poi_refinement.py \
+            --data-dir .research-data/market \
+            --sim research-output/v19/poi-penetration/v19_poi_depth_simulations.csv \
+            --setups research-output/v19/poi-penetration/v19_poi_setups.csv \
+            --out research-output/v19/m5-refinement
+      - name: Show result
+        run: cat research-output/v19/m5-refinement/v19_m5_refinement_summary.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v19-m5-poi-refinement
+          path: research-output/v19/m5-refinement/
+          retention-days: 14

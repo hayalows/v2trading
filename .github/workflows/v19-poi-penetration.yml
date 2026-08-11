@@ -1,0 +1,73 @@
+name: v19-poi-penetration
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/v19_poi_penetration_research.py'
+      - 'scripts/v19_poi_lifecycle_postprocess.py'
+      - 'scripts/v19_m5_poi_refinement.py'
+      - 'reports/v19/**'
+      - '.github/workflows/v19-poi-penetration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  penetration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Compile frozen v1.9 research
+        run: |
+          python -m py_compile scripts/v19_poi_penetration_research.py
+          python -m py_compile scripts/v19_poi_lifecycle_postprocess.py
+          python -m py_compile scripts/v19_m5_poi_refinement.py
+      - name: Install research dependencies
+        run: pip install -r requirements.txt
+      - name: Download frozen EURUSD and GBPUSD M15/M5 history
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD; do
+            for tf in 15m 5m; do
+              curl -L --fail --retry 4 --retry-delay 2 \
+                -o ".research-data/market/${symbol}-${tf}.feather" \
+                "${base}/${symbol}-${tf}.feather?download=true"
+            done
+          done
+      - name: Run preregistered POI penetration simulation
+        run: |
+          PYTHONPATH=scripts python scripts/v19_poi_penetration_research.py \
+            --data-dir .research-data/market \
+            --start 2020-01-01 \
+            --out research-output/v19/poi-penetration
+      - name: Run preregistered POI lifecycle diagnostics
+        run: |
+          python scripts/v19_poi_lifecycle_postprocess.py \
+            --input research-output/v19/poi-penetration/v19_poi_depth_simulations.csv \
+            --out research-output/v19/poi-penetration
+      - name: Run frozen M5 refinement
+        run: |
+          PYTHONPATH=scripts python scripts/v19_m5_poi_refinement.py \
+            --data-dir .research-data/market \
+            --sim research-output/v19/poi-penetration/v19_poi_depth_simulations.csv \
+            --setups research-output/v19/poi-penetration/v19_poi_setups.csv \
+            --out research-output/v19/poi-penetration
+      - name: Show frozen results
+        run: |
+          cat research-output/v19/poi-penetration/v19_poi_penetration_summary.json
+          cat research-output/v19/poi-penetration/v19_poi_lifecycle_summary.json
+          cat research-output/v19/poi-penetration/v19_m5_refinement_summary.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v19-poi-penetration
+          path: research-output/v19/poi-penetration/
+          retention-days: 14
