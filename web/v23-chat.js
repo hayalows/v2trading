@@ -17,6 +17,7 @@
   function asset(id,type,file){const selector=type==='style'?`link[href$="${file}"]`:`script[src$="${file}"]`;if(document.querySelector(`[data-v2asset="${id}"]`)||document.querySelector(selector))return;const el=document.createElement(type==='style'?'link':'script');el.setAttribute('data-v2asset',id);if(type==='style'){el.rel='stylesheet';el.href=BASE+file}else{el.src=BASE+file;el.defer=true}(type==='style'?document.head:document.body).appendChild(el)}
   ensure();
   asset('v25-css','style','v25.css');asset('v25-tabs-css','style','v25-tabs.css');asset('v25-js','script','v25-unified.js');asset('v25-url-js','script','v25-url.js');
-  const later=()=>{asset('v24-css','style','v24.css');asset('v24-js','script','v24-policy.js')};
-  if('requestIdleCallback'in window)requestIdleCallback(later,{timeout:3000});else setTimeout(later,1800);
+  let laterLoaded=false;const later=()=>{if(laterLoaded)return;laterLoaded=true;asset('v24-css','style','v24.css');asset('v24-js','script','v24-policy.js')};
+  if(window.__V2_PRIMARY_V25===true){document.addEventListener('v2:view',e=>{if(['evidenceView','dataView'].includes(e.detail?.id))later()})}
+  else if('requestIdleCallback'in window)requestIdleCallback(later,{timeout:3000});else setTimeout(later,1800);
 })();

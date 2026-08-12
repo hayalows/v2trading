@@ -67,10 +67,12 @@
   }
   async function refresh(){
     if(busy)return;busy=true;
-    try{const r=await fetch(ENDPOINT,{cache:'no-store'});if(!r.ok)throw new Error('v20 paper endpoint');v20Data=await r.json();render()}
+    try{v20Data=await (globalThis.__V2DataBus?.paper?globalThis.__V2DataBus.paper('light'):fetch(ENDPOINT,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('v20 paper endpoint');return r.json()}));render()}
     catch(e){console.warn('v2.0 POI learning unavailable',e)}finally{busy=false}
   }
   document.addEventListener('click',e=>{if(e.target.closest('.pairSwitch,.pairSwitch button'))setTimeout(render,50)});
   document.getElementById('refresh')?.addEventListener('click',()=>setTimeout(refresh,250));
-  ensureMounts();refresh();setInterval(refresh,60_000);setInterval(render,5_000);
+  const primary=window.__V2_PRIMARY_V25===true;
+  if(typeof setView==='function'){const baseSetView=setView;setView=function(id){baseSetView(id);if(id==='evidenceView'&&primary)refresh()}}
+  ensureMounts();if(!primary){refresh();setInterval(refresh,60_000);setInterval(render,5_000)}else if(document.getElementById('evidenceView')?.classList.contains('active'))refresh();
 })();

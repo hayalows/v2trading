@@ -1,5 +1,6 @@
 (()=>{
   const STATE_TWIN='https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/state-twin?symbol=EURUSD,GBPUSD';
+  const PRIMARY=window.__V2_PRIMARY_V25===true;
   let twin={pairs:[]},loading=false;
   const safe=v=>typeof esc==='function'?esc(v):String(v??'');
   const n=(v,d=0)=>Number.isFinite(Number(v))?Number(v).toFixed(d):'—';
@@ -49,6 +50,6 @@
   }
   async function loadTwin(){if(loading)return;loading=true;try{const r=await fetch(STATE_TWIN,{cache:'no-store'});if(!r.ok)throw new Error('StateTwin unavailable');twin=await r.json();renderTwin()}catch(e){console.warn('StateTwin',e)}finally{loading=false}}
   const oldRender=typeof render==='function'?render:null;if(oldRender){render=function(){oldRender();renderTwin()}}
-  const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='overview')renderTwin();if(id==='evidenceView')ensureResearchCard()}}
-  loadTwin();setInterval(loadTwin,60_000);
+  const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='overview')renderTwin();if(id==='evidenceView'){ensureResearchCard();if(PRIMARY)loadTwin()}}}
+  if(!PRIMARY){loadTwin();setInterval(loadTwin,60_000)}
 })();

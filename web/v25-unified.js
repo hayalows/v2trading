@@ -24,6 +24,6 @@ function hydrateCache(){try{const c=JSON.parse(localStorage.getItem('v25:focus')
 function saveCache(states,trades){try{localStorage.setItem('v25:focus',JSON.stringify({savedAt:Date.now(),states,trades}))}catch{}}
 async function loadSnapshot(manual=false){if(busy)return;busy=true;try{const r=await fetch(FAST,{cache:'no-store'});if(!r.ok)throw new Error(`Focus ${r.status}`);const j=await r.json(),xs=Array.isArray(j.states)?j.states:[];for(const x of xs)if(x?.symbol)local[x.symbol]=x;paper={trades:Array.isArray(j.trades)?j.trades:[]};saveCache(xs,paper.trades);syncLegacy();render();if(manual&&typeof snack==='function')snack(`Focus refreshed · ${j.serverMs??'—'} ms server`) }catch(e){console.warn('V2.5 focus snapshot',e);render()}finally{busy=false}}
 async function loadMacro(){try{const r=await fetch(MACRO,{cache:'no-store'});if(r.ok){macro=await r.json();render()}}catch(e){console.warn('V2.5 macro',e)}}
-async function loadSim(){try{const r=await fetch(SIM,{cache:'force-cache'});if(r.ok){sim=await r.json();render();researchPanel()}}catch(e){console.warn('V2.5 sim',e)}}
+async function loadSim(){try{const r=await fetch(SIM,{cache:'no-store'});if(r.ok){sim=await r.json();render();researchPanel()}}catch(e){console.warn('V2.5 sim',e)}}
 document.body.classList.add('v25CompactIntro');hydrateCache();render();researchPanel();loadSnapshot();setTimeout(loadMacro,350);setTimeout(loadSim,700);setInterval(loadSnapshot,30000);setInterval(loadMacro,60000);document.getElementById('refresh')?.addEventListener('click',()=>{loadSnapshot(true);loadMacro()});
 })();

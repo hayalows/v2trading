@@ -1,5 +1,6 @@
 (()=>{
   const PAPER_FOCUS='https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/paper-trade-engine?symbol=EURUSD,GBPUSD';
+  const PRIMARY=window.__V2_PRIMARY_V25===true;
   const REVISIT={
     EURUSD:[{b:8,h:2,r:.2968},{b:24,h:6,r:.5065},{b:48,h:12,r:.6337},{b:96,h:24,r:.7241},{b:192,h:48,r:.8137}],
     GBPUSD:[{b:8,h:2,r:.3409},{b:24,h:6,r:.5909},{b:48,h:12,r:.6878},{b:96,h:24,r:.7713},{b:192,h:48,r:.8429}]
@@ -83,8 +84,8 @@
     <section class="focusGrid"><article class="focusCard"><div class="label"><span class="material-symbols-rounded">my_location</span>Watch level</div><h3 class="focusLevel">${safe(wl.title)}</h3><p class="focusSubLevel">${safe(wl.sub)}</p></article><article class="focusCard"><div class="label"><span class="material-symbols-rounded">arrow_forward</span>Next trigger</div><h3>What must happen next</h3><p>${safe(nextTrigger(s,t))}</p></article><article class="focusCard"><div class="label"><span class="material-symbols-rounded">layers</span>Context</div><h3>${safe(ctxTitle)}</h3><p>${safe(ctxCopy)}</p></article></section>
     <div class="v15ResearchNote"><strong>Research context:</strong> ${safe(researchContext(t))}</div>`;
   }
-  async function loadPaper(){if(loading)return;loading=true;try{const r=await fetch(PAPER_FOCUS,{cache:'no-store'});if(r.ok)fp=await r.json()}catch{}finally{loading=false;renderFocus()}}
+  async function loadPaper(){if(loading)return;loading=true;try{fp=await (globalThis.__V2DataBus?.paper?globalThis.__V2DataBus.paper('light'):fetch(PAPER_FOCUS,{cache:'no-store'}).then(r=>r.json()))}catch{}finally{loading=false;renderFocus()}}
   const oldRender=typeof render==='function'?render:null;if(oldRender){render=function(){oldRender();renderFocus()}}
   const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='overview')renderFocus();if(id==='evidenceView')ensureResearchModelCard()}}
-  renderFocus();loadPaper();setInterval(loadPaper,60_000);
+  renderFocus();if(!PRIMARY){loadPaper();setInterval(loadPaper,60_000)}
 })();

@@ -1,5 +1,6 @@
 (()=>{
   const PAPER='https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/paper-trade-engine?symbol=EURUSD,GBPUSD&bars=1';
+  const PRIMARY=window.__V2_PRIMARY_V25===true;
   let paperData={summary:{},trades:[],events:[],chartBars:{}},paperChart=null,paperSeries=null,paperMarkers=null,paperBusy=false;
   const pnum=(v,d=5)=>(v===null||v===undefined||v===''||!Number.isFinite(Number(v)))?'—':Number(v).toFixed(d);
   const ptime=t=>t?new Date(t).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
@@ -67,9 +68,9 @@
     }
     paperChart.timeScale().fitContent();
   }
-  async function refreshPaper(manual=false){if(paperBusy)return;paperBusy=true;try{const r=await fetch(PAPER,{cache:'no-store'});if(!r.ok)throw new Error('paper trade engine');paperData=await r.json();renderPaperOverview();renderTradesView();if(manual&&typeof snack==='function')snack('Paper-trade lifecycle refreshed')}catch(e){if(manual&&typeof snack==='function')snack('Paper-trade data unavailable')}finally{paperBusy=false}}
+  async function refreshPaper(manual=false){if(paperBusy)return;paperBusy=true;try{paperData=await (globalThis.__V2DataBus?.paper?globalThis.__V2DataBus.paper('chart',manual):fetch(PAPER,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('paper trade engine');return r.json()}));renderPaperOverview();renderTradesView();if(manual&&typeof snack==='function')snack('Paper-trade lifecycle refreshed')}catch(e){if(manual&&typeof snack==='function')snack('Paper-trade data unavailable')}finally{paperBusy=false}}
   if(typeof render==='function'){const baseRender=render;render=function(){baseRender();renderPaperOverview();renderTradesView()}}
-  if(typeof setView==='function'){const baseSetView=setView;setView=function(id){baseSetView(id);if(id==='tradesView')setTimeout(renderResearchChart,0)}}
+  if(typeof setView==='function'){const baseSetView=setView;setView=function(id){baseSetView(id);if(id==='tradesView'){if(PRIMARY)refreshPaper();setTimeout(renderResearchChart,0)}}}
   document.getElementById('refresh')?.addEventListener('click',()=>refreshPaper(true));
-  refreshPaper();setInterval(()=>refreshPaper(false),60_000);
+  if(!PRIMARY){refreshPaper();setInterval(()=>refreshPaper(false),60_000)}
 })();
