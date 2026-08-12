@@ -1,6 +1,5 @@
 (()=>{
   const PAPER='https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/paper-trade-engine?symbol=EURUSD,GBPUSD&bars=1';
-  const PRIMARY=window.__V2_PRIMARY_V25===true;
   let paperData={summary:{},trades:[],events:[],chartBars:{}},paperChart=null,paperSeries=null,paperMarkers=null,paperBusy=false;
   const pnum=(v,d=5)=>(v===null||v===undefined||v===''||!Number.isFinite(Number(v)))?'—':Number(v).toFixed(d);
   const ptime=t=>t?new Date(t).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
@@ -8,7 +7,8 @@
   const phases={fresh_wait:'Fresh wait',extended_wait:'Extended wait',long_tail_wait:'Long-tail wait',outside_studied_tail:'Outside studied tail',filled:'Filled',closed:'Closed'};
   const conditions={intact:'POI intact',partially_mitigated:'POI partially mitigated',target_delivered_before_entry:'Move extended before entry',partially_mitigated_after_target:'Mitigated after large extension'};
   function tradesFor(s=selected){return (paperData.trades||[]).filter(t=>t.symbol===s)}
-  function focusTrade(s=selected){const xs=tradesFor(s);return xs.find(t=>t.status==='open')||xs.find(t=>t.status==='armed')||xs[0]||null}
+  function activeArmed(t){return t?.status==='armed'&&t?.focus_active!==false&&t?.lifecycle_phase!=='outside_studied_tail'}
+  function focusTrade(s=selected){const xs=tradesFor(s);return xs.find(t=>t.status==='open')||xs.find(activeArmed)||null}
   function badge(t){return `<span class="paperBadge ${esc(t?.status||'')}">${esc(statuses[t?.status]||cap(t?.status||'No plan'))}</span>`}
   function level(label,value,cls=''){return `<div class="paperLevel ${cls}"><span>${esc(label)}</span><b>${esc(value)}</b></div>`}
   function lifecycleLabel(t){return phases[t?.lifecycle_phase]||cap(t?.lifecycle_phase||'fresh wait')}
@@ -18,7 +18,7 @@
     if(!t)return 'No automatic paper trade has been armed for this pair yet.';
     if(t.status==='armed'){
       const age=Number(t.pending_age_bars||0),phase=t.lifecycle_phase||'fresh_wait';
-      if(phase==='outside_studied_tail')return 'The midpoint still has not filled. The lab continues tracking it, but its age is now beyond the 48-hour waiting-time tail studied in v1.4, so no historical waiting claim is attached to it.';
+      if(phase==='outside_studied_tail')return 'The midpoint still has not filled. The lab continues tracking it in history, but it is no longer treated as the current Focus plan because it is beyond the studied waiting tail.';
       if(t.setup_condition==='partially_mitigated'||t.setup_condition==='partially_mitigated_after_target')return 'Price has interacted with the POI without reaching the midpoint. Historical proxy results were materially weaker after this kind of shallow mitigation, so the plan stays observable but is clearly downgraded rather than silently cancelled.';
       if(t.pre_entry_target_reached)return `The POI remains unfilled after ${age} completed M15 bars. Price already delivered at least 2.5R of favorable extension before entry; v1.4 records this as context, not an automatic invalidation.`;
       if(age>8)return `The old eight-bar window has passed, but v1.4 research showed that many valid midpoint revisits occurred later. The POI remains intact and the lab is still waiting rather than expiring it on time alone.`;
@@ -38,7 +38,7 @@
     return `<div class="paperNotice"><strong>${esc(lifecycleLabel(t))} · ${esc(conditionLabel(t))}</strong>${age} completed M15 bars since BOS (${waitHours(t)}h of trading bars). ${age>8?'The former eight-bar cutoff has passed; this is not treated as invalidation. ':''}${Number.isFinite(pre)?`Maximum favorable extension before entry: ${pnum(pre,2)}R. `:''}${t.first_zone_touch_at?`First shallow POI interaction: ${ptime(t.first_zone_touch_at)}. `:'POI midpoint has not been reached.'}</div>`;
   }
   function paperCard(t,compact=false){
-    if(!t)return `<article class="card"><div class="cardLabel"><span class="material-symbols-rounded">smart_toy</span>Automatic paper trade</div><h3>No paper plan armed</h3><p>The lab will create one automatically only after BOS confirms and a fresh POI passes the frozen risk rules.</p></article>`;
+    if(!t)return `<article class="card"><div class="cardLabel"><span class="material-symbols-rounded">smart_toy</span>Automatic paper trade</div><h3>No current paper plan</h3><p>The lab will create one automatically only after BOS confirms and a fresh POI passes the frozen risk rules. Older plans remain available in the journal.</p></article>`;
     const gross=t.gross_r==null?'—':`${Number(t.gross_r)>=0?'+':''}${pnum(t.gross_r,2)}R`;
     const title=`${t.symbol} ${cap(t.direction)} · ${statuses[t.status]||cap(t.status)}`;
     return `<article class="${compact?'card':'paperCurrent'}"><div class="paperTop"><div><div class="cardLabel"><span class="material-symbols-rounded">smart_toy</span>Automatic paper trade</div><h3>${esc(title)}</h3></div>${badge(t)}</div><p>${esc(paperCopy(t))}</p><div class="paperLevels">${level('POI',`${pnum(t.poi_low)} – ${pnum(t.poi_high)}`)}${level('Entry midpoint',pnum(t.entry_price),'entry')}${level('Stop loss',pnum(t.stop_price),'stop')}${level('Take profit · 2.5R',pnum(t.target_price),'target')}</div><div class="paperMeta"><span class="chip">${esc(lifecycleLabel(t))}</span><span class="chip">${esc(conditionLabel(t))}</span><span class="chip">Age ${t.pending_age_bars??'—'} bars</span><span class="chip">Risk ${pnum(t.risk_atr,2)} ATR</span><span class="chip">MFE ${t.mfe_r==null?'—':pnum(t.mfe_r,2)+'R'}</span><span class="chip">MAE ${t.mae_r==null?'—':pnum(t.mae_r,2)+'R'}</span><span class="chip">Result ${gross}</span></div>${lifecycleNotice(t)}<div class="paperNotice"><strong>Research simulation</strong>Entry, SL and TP are evaluated from public completed candles. They are not broker fills and do not include live spread or slippage.</div></article>`;
@@ -51,7 +51,7 @@
     const stats=document.getElementById('paperStats');if(stats)stats.innerHTML=stat('plans recorded',sum.total)+stat('waiting for midpoint',sum.armed)+stat('open paper trades',sum.open)+stat('wins recorded',sum.wins)+stat('losses recorded',sum.losses);
     const current=document.getElementById('paperCurrent');if(current)current.innerHTML=paperCard(focusTrade()).replace(/^<article class="paperCurrent">|<\/article>$/g,'');
     const list=document.getElementById('paperHistory');if(list)list.innerHTML=all.length?all.map(tradeRow).join(''):'<div class="paperEmpty">No paper-trade plans have been recorded yet. The engine waits for a fresh Stage-6+ POI and then arms the midpoint plan automatically.</div>';
-    const label=document.getElementById('researchChartLabel');if(label){const t=focusTrade();label.textContent=t?`${selected} · ${statuses[t.status]||cap(t.status)} · ${lifecycleLabel(t)} · entry ${pnum(t.entry_price)}`:`${selected} · no paper plan yet`}
+    const label=document.getElementById('researchChartLabel');if(label){const t=focusTrade();label.textContent=t?`${selected} · ${statuses[t.status]||cap(t.status)} · ${lifecycleLabel(t)} · entry ${pnum(t.entry_price)}`:`${selected} · no current paper plan`}
     if(typeof view!=='undefined'&&view==='tradesView')renderResearchChart();
   }
   function clearPaperChart(){if(paperChart){try{paperChart.remove()}catch{}paperChart=null;paperSeries=null;paperMarkers=null}}
@@ -68,9 +68,9 @@
     }
     paperChart.timeScale().fitContent();
   }
-  async function refreshPaper(manual=false){if(paperBusy)return;paperBusy=true;try{paperData=await (globalThis.__V2DataBus?.paper?globalThis.__V2DataBus.paper('chart',manual):fetch(PAPER,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('paper trade engine');return r.json()}));renderPaperOverview();renderTradesView();if(manual&&typeof snack==='function')snack('Paper-trade lifecycle refreshed')}catch(e){if(manual&&typeof snack==='function')snack('Paper-trade data unavailable')}finally{paperBusy=false}}
+  async function refreshPaper(manual=false){if(paperBusy)return;paperBusy=true;try{const r=await fetch(PAPER,{cache:'no-store'});if(!r.ok)throw new Error('paper trade engine');paperData=await r.json();renderPaperOverview();renderTradesView();if(manual&&typeof snack==='function')snack('Paper-trade lifecycle refreshed')}catch(e){if(manual&&typeof snack==='function')snack('Paper-trade data unavailable')}finally{paperBusy=false}}
   if(typeof render==='function'){const baseRender=render;render=function(){baseRender();renderPaperOverview();renderTradesView()}}
-  if(typeof setView==='function'){const baseSetView=setView;setView=function(id){baseSetView(id);if(id==='tradesView'){if(PRIMARY)refreshPaper();setTimeout(renderResearchChart,0)}}}
+  if(typeof setView==='function'){const baseSetView=setView;setView=function(id){baseSetView(id);if(id==='tradesView')setTimeout(renderResearchChart,0)}}
   document.getElementById('refresh')?.addEventListener('click',()=>refreshPaper(true));
-  if(!PRIMARY){refreshPaper();setInterval(()=>refreshPaper(false),60_000)}
+  refreshPaper();setInterval(()=>refreshPaper(false),60_000);
 })();
