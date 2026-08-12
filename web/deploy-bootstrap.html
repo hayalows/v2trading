@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080b10">
+<title>V2 Intelligence Lab</title>
+<style>html,body{margin:0;background:#080b10;color:#e9eef7;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.boot{min-height:100vh;display:grid;place-items:center;padding:24px}.boot span{opacity:.65;font-size:14px}</style>
+</head>
+<body>
+<div class="boot"><span>Loading V2 Intelligence Lab…</span></div>
+<script>
+(async()=>{
+  const commit='34462913a43c43e587d5f74de416177a6a6c855d';
+  const base=`https://cdn.jsdelivr.net/gh/hayalows/v2trading@${commit}/web/`;
+  try{
+    let html=await fetch(base+'index.html',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('asset '+r.status);return r.text()});
+    html=html.replaceAll('href="/','href="'+base).replaceAll('src="/','src="'+base);
+    html=html.replace('</head>',`<link rel="stylesheet" href="${base}v24.css"></head>`);
+    html=html.replace('</body>',`<script src="${base}v24-policy.js"><\/script></body>`);
+    document.open();document.write(html);document.close();
+  }catch(e){
+    console.error(e);document.body.innerHTML='<div class="boot"><span>V2 could not load the pinned interface. Refresh to retry.</span></div>';
+  }
+})();
+</script>
+</body>
+</html>
