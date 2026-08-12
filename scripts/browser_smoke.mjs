@@ -85,8 +85,15 @@ try{
   if(pairs!==2)throw new Error(`Expected exactly 2 FX pair buttons, found ${pairs}`);
   const labels=await evalJs("[...document.querySelectorAll('[data-pair]')].map(x=>x.dataset.pair).join(',')");
   if(labels!=='EURUSD,GBPUSD')throw new Error(`Unexpected pair list: ${labels}`);
+  const accountDeadline=Date.now()+20000;let accountReady=false;
+  while(Date.now()<accountDeadline){accountReady=await evalJs("!!document.querySelector('#paperAccount .portfolioBalance') && document.querySelector('#paperAccount')?.textContent.includes('$500 paper account')");if(accountReady)break;await sleep(250)}
+  if(!accountReady)throw new Error('Canonical $500 paper account did not render');
+  const balance=await evalJs("document.querySelector('#paperAccount .portfolioBalance b')?.textContent||''");
+  if(!/^\$\d+\.\d{2}$/.test(balance))throw new Error(`Paper account balance malformed: ${balance}`);
+  const journalReady=await evalJs("document.querySelectorAll('#paperHistory .tradeRow').length>0 && document.querySelectorAll('#paperHistory .pipStrip').length>0");
+  if(!journalReady)throw new Error('Paper journal did not render pip/RR metrics');
   if(exceptions.length)throw new Error(`Uncaught browser exception: ${exceptions.join(' | ')}`);
-  console.log(`browser smoke passed at ${smokeUrl}: all five views navigate and only EURUSD/GBPUSD are exposed`);
+  console.log(`browser smoke passed at ${smokeUrl}: five views, EURUSD/GBPUSD only, $500 account and pip/RR journal all render`);
 } finally {
   try{ws?.close()}catch{}
   chrome.kill('SIGKILL');
