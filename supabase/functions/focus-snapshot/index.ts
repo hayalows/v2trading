@@ -24,12 +24,16 @@ Deno.serve(async (req) => {
         .limit(30),
     ]);
     if (sq.error || tq.error) throw new Error(sq.error?.message || tq.error?.message || "snapshot query failed");
+    const trades = (tq.data ?? []).filter((t: any) =>
+      t.status === "open" ||
+      (t.status === "armed" && t.focus_active !== false && t.lifecycle_phase !== "outside_studied_tail")
+    );
     return new Response(JSON.stringify({
       ok: true,
       generatedAt: new Date().toISOString(),
       serverMs: Math.round(performance.now() - started),
       states: sq.data ?? [],
-      trades: tq.data ?? [],
+      trades,
     }), { headers: H });
   } catch (e) {
     console.error(e);
