@@ -1,0 +1,42 @@
+name: v25-m5-refinement
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/v25_download_m5.cjs'
+      - 'scripts/v25_m5_refinement.py'
+      - '.github/workflows/v25-m5-refinement.yml'
+  workflow_dispatch:
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: npm install --no-save dukascopy-node@latest
+      - run: pip install -r requirements.txt
+      - name: Download M15 detector history
+        run: |
+          node scripts/v25_download_history.cjs eurusd .research-data/eurusd-m15.json 2020-01-01 2025-12-31
+          node scripts/v25_download_history.cjs gbpusd .research-data/gbpusd-m15.json 2020-01-01 2025-12-31
+          node scripts/v25_download_history.cjs xauusd .research-data/xauusd-m15.json 2020-01-01 2025-12-31
+      - name: Download M5 execution paths
+        run: |
+          node scripts/v25_download_m5.cjs eurusd .research-data/eurusd-m5.json 2022-01-01 2025-12-31
+          node scripts/v25_download_m5.cjs gbpusd .research-data/gbpusd-m5.json 2022-01-01 2025-12-31
+          node scripts/v25_download_m5.cjs xauusd .research-data/xauusd-m5.json 2022-01-01 2025-12-31
+      - name: Run M5 refinement
+        run: PYTHONPATH=scripts python scripts/v25_m5_refinement.py --data-dir .research-data --out research-output/v25-m5
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v25-m5-refined
+          path: |
+            research-output/v25-m5/v25-m5-refined.json
+            research-output/v25-m5/v25-m5-trades.csv
+          retention-days: 14
