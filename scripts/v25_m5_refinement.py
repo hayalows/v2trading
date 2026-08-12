@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np,pandas as pd
 import v19_poi_penetration_research as v19
 
-SYMS=('EURUSD','GBPUSD','XAUUSD'); YEARS=(2022,2023,2024,2025); START=500.0; RISK_PCT=.01; DEPTH=.50
+SYMS=('EURUSD','GBPUSD'); YEARS=(2022,2023,2024,2025); START=500.0; RISK_PCT=.01; DEPTH=.50
 
 def load(path:Path):
     x=pd.DataFrame(json.loads(path.read_text()));x['date']=pd.to_datetime(x.timestamp,unit='ms',utc=True)
@@ -49,7 +49,7 @@ def main():
     for sym in SYMS:
         m15=load(a.data_dir/f'{sym.lower()}-m15.json');m5=load(a.data_dir/f'{sym.lower()}-m5.json');meta[sym]={'m15_rows':len(m15),'m5_rows':len(m5),'m5_from':str(m5.date.min()),'m5_to':str(m5.date.max())};setups=v19.detect_pois(m15,sym);setups=setups[setups.year.isin(YEARS)]
         for _,s in setups.iterrows():rows.append(simulate_m5(m15,m5,s))
-    df=pd.DataFrame(rows);result={'study':'V2.5 M5 path-refined common-engine simulation','generated_at':pd.Timestamp.utcnow().isoformat(),'protocol':{'years':'2022-2025 completed years','detector':'M15 V2 structural detector','execution_path':'Dukascopy BID M5 OHLC','entry_depth':.5,'reward_r':2.5,'horizon':'same 192-M15-bar window','start_balance_usd':500,'risk_pct':1,'costs':'excluded','residual_ambiguity':'same M5 bar can still contain entry/SL/TP ordering ambiguity'},'data':meta,'markets':{},'portfolio':summary(df)}
+    df=pd.DataFrame(rows);result={'study':'V2 FX-core M5 path-refined simulation','generated_at':pd.Timestamp.utcnow().isoformat(),'protocol':{'markets':['EURUSD','GBPUSD'],'years':'2022-2025 completed years','detector':'M15 V2 structural detector','execution_path':'Dukascopy BID M5 OHLC','entry_depth':.5,'reward_r':2.5,'horizon':'same 192-M15-bar window','start_balance_usd':500,'risk_pct':1,'costs':'excluded','residual_ambiguity':'same M5 bar can still contain entry/SL/TP ordering ambiguity'},'data':meta,'markets':{},'portfolio':summary(df)}
     for s in SYMS:result['markets'][s]=summary(df[df.symbol==s])
     (a.out/'v25-m5-refined.json').write_text(json.dumps(result,indent=2,default=str));df.to_csv(a.out/'v25-m5-trades.csv',index=False);print(json.dumps(result,indent=2,default=str))
 if __name__=='__main__':main()
