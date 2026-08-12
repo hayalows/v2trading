@@ -1,0 +1,796 @@
+{
+  "status": "post-result robustness diagnostic",
+  "reason": "first frozen run exposed policy-dependent M5 path ambiguity",
+  "common_rows_per_policy": 1715,
+  "results": {
+    "be_075": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 998,
+          "ambiguity_rate": 0.5819241982507288,
+          "mean_r": -0.3728862973760933,
+          "final_equity": 0.7226809184895965,
+          "max_drawdown": 0.9986167540620111
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 998,
+          "ambiguity_rate": 0.5819241982507288,
+          "mean_r": 0.20903790087463556,
+          "final_equity": 16406.743161115934,
+          "max_drawdown": 0.16909375782837677
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 998,
+          "ambiguity_rate": 0.5819241982507288,
+          "mean_r": 1.6638483965014577,
+          "final_equity": 826875340721663.2,
+          "max_drawdown": 0.04900995010000013
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 998,
+          "ambiguity_rate": 0.5819241982507288,
+          "mean_r": -0.7850861376103849,
+          "final_equity": 0.0005796128526973506,
+          "max_drawdown": 0.999998861878412
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 998,
+          "ambiguity_rate": 0.5819241982507288,
+          "mean_r": -0.20316193935965612,
+          "final_equity": 13.83205825979421,
+          "max_drawdown": 0.9733836218437073
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 998,
+          "ambiguity_rate": 0.5819241982507288,
+          "mean_r": 1.2516485562671662,
+          "final_equity": 786369760769.195,
+          "max_drawdown": 0.056443372116451715
+        }
+      }
+    },
+    "be_100": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": -0.28309037900874634,
+          "final_equity": 3.338879112406015,
+          "max_drawdown": 0.9938801630173234
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": 0.18746355685131194,
+          "final_equity": 11117.282843623982,
+          "max_drawdown": 0.21907271548479793
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": 1.3638483965014576,
+          "final_equity": 5013696331857.248,
+          "max_drawdown": 0.0585198505990001
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": -0.6952902192430381,
+          "final_equity": 0.0026886100106703202,
+          "max_drawdown": 0.9999946890606474
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": -0.22473628338297977,
+          "final_equity": 9.358373209012836,
+          "max_drawdown": 0.9828127399824763
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": 0.9516485562671662,
+          "final_equity": 4697763596.761825,
+          "max_drawdown": 0.09018053188400518
+        }
+      }
+    },
+    "be_125": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 653,
+          "ambiguity_rate": 0.3807580174927114,
+          "mean_r": -0.20932944606413995,
+          "final_equity": 11.706061520845152,
+          "max_drawdown": 0.9797645102088796
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 653,
+          "ambiguity_rate": 0.3807580174927114,
+          "mean_r": 0.17142857142857143,
+          "final_equity": 8291.416472133935,
+          "max_drawdown": 0.23195587607027493
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 653,
+          "ambiguity_rate": 0.3807580174927114,
+          "mean_r": 1.1233236151603498,
+          "final_equity": 83428191786.18925,
+          "max_drawdown": 0.0864827525163592
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 653,
+          "ambiguity_rate": 0.3807580174927114,
+          "mean_r": -0.6215292862984317,
+          "final_equity": 0.00945864953358766,
+          "max_drawdown": 0.9999813158792717
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 653,
+          "ambiguity_rate": 0.3807580174927114,
+          "mean_r": -0.2407712688057203,
+          "final_equity": 6.968887129296706,
+          "max_drawdown": 0.9873183304520483
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 653,
+          "ambiguity_rate": 0.3807580174927114,
+          "mean_r": 0.7111237749260583,
+          "final_equity": 77120180.23316844,
+          "max_drawdown": 0.15470751772510719
+        }
+      }
+    },
+    "be_150": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": -0.12215743440233236,
+          "final_equity": 51.44624196983819,
+          "max_drawdown": 0.9148902343613871
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": 0.17871720116618076,
+          "final_equity": 9195.87890567728,
+          "max_drawdown": 0.2652184522190768
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": 0.9309037900874636,
+          "final_equity": 3141288221.248283,
+          "max_drawdown": 0.09561792499119563
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": -0.5343572746366241,
+          "final_equity": 0.04177582844532999,
+          "max_drawdown": 0.9999174782172207
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": -0.23348263906811095,
+          "final_equity": 7.731184396768432,
+          "max_drawdown": 0.9857416674118811
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": 0.5187039498531719,
+          "final_equity": 2871889.071569463,
+          "max_drawdown": 0.21966873013930147
+        }
+      }
+    },
+    "hold_sltp": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.10816326530612246,
+          "final_equity": 2549.6289421705915,
+          "max_drawdown": 0.5498723266429899
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.23527696793002917,
+          "final_equity": 22803.660054230237,
+          "max_drawdown": 0.24750120173168225
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.5530612244897959,
+          "final_equity": 4963719.294470779,
+          "max_drawdown": 0.16237147013830305
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": -0.3040365749281693,
+          "final_equity": 2.1030441252055363,
+          "max_drawdown": 0.9960439172155962
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": -0.17692287230426257,
+          "final_equity": 19.21114688062002,
+          "max_drawdown": 0.9658471214851496
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.1408613842555042,
+          "final_equity": 4400.56761255218,
+          "max_drawdown": 0.5696275591694213
+        }
+      }
+    },
+    "p25_100_be": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": -0.3217930029154519,
+          "final_equity": 1.7623635915201223,
+          "max_drawdown": 0.9965712070028402
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": 0.1487609329446064,
+          "final_equity": 5868.045490905975,
+          "max_drawdown": 0.22789643892974545
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": 1.3251457725947522,
+          "final_equity": 2646383884152.044,
+          "max_drawdown": 0.058519850599000126
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": -0.7590873526198438,
+          "final_equity": 0.0009226080571663066,
+          "max_drawdown": 0.9999981704769179
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": -0.2885334167597855,
+          "final_equity": 3.211365906672318,
+          "max_drawdown": 0.9936734186396688
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": 0.8878514228903602,
+          "final_equity": 1612057727.9091666,
+          "max_drawdown": 0.09018053188400522
+        }
+      }
+    },
+    "p25_150_be": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": -0.14737609329446064,
+          "final_equity": 34.10991209693555,
+          "max_drawdown": 0.9412067787514783
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": 0.1534985422740525,
+          "final_equity": 6097.056055340518,
+          "max_drawdown": 0.2885351462271039
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": 0.9056851311953352,
+          "final_equity": 2082738427.4392066,
+          "max_drawdown": 0.09561792499119566
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": -0.5877185080482984,
+          "final_equity": 0.017139733610587293,
+          "max_drawdown": 0.9999660536600049
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": -0.28684387247978527,
+          "final_equity": 3.1720012736507206,
+          "max_drawdown": 0.9937686125915398
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": 0.4653427164414976,
+          "final_equity": 1178352.091881361,
+          "max_drawdown": 0.24941953437349512
+        }
+      }
+    },
+    "p33_100_be": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": -0.3341778425655977,
+          "final_equity": 1.4348951895145694,
+          "max_drawdown": 0.9971852163718588
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": 0.13637609329446063,
+          "final_equity": 4777.691894719045,
+          "max_drawdown": 0.23342437393706567
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": 1.3127609329446064,
+          "final_equity": 2154653854204.5735,
+          "max_drawdown": 0.05851985059900005
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": -0.7795024353004216,
+          "final_equity": 0.0006540915248565364,
+          "max_drawdown": 0.9999987013347462
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": -0.30894849944036334,
+          "final_equity": 2.276727594618185,
+          "max_drawdown": 0.9954952830531653
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": 0.8674363402097824,
+          "final_equity": 1142883252.7687314,
+          "max_drawdown": 0.09018053188400499
+        }
+      }
+    },
+    "p33_150_be": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": -0.15544606413994172,
+          "final_equity": 29.87937410760865,
+          "max_drawdown": 0.9478153494452698
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": 0.14542857142857143,
+          "final_equity": 5340.85864293231,
+          "max_drawdown": 0.29588177093502216
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": 0.8976151603498541,
+          "final_equity": 1824423365.996867,
+          "max_drawdown": 0.09561792499119555
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": -0.6047941027400341,
+          "final_equity": 0.012870198915617158,
+          "max_drawdown": 0.9999744881882507
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": -0.30391946717152096,
+          "final_equity": 2.3818653960973766,
+          "max_drawdown": 0.9952785732376118
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": 0.44826712174976174,
+          "final_equity": 884841.3002496181,
+          "max_drawdown": 0.2590383236713164
+        }
+      }
+    },
+    "p50_100_be": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": -0.3604956268221574,
+          "final_equity": 0.9254334557891598,
+          "max_drawdown": 0.9981709264925022
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": 0.11005830903790087,
+          "final_equity": 3081.3650733065006,
+          "max_drawdown": 0.25066995794765556
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": 1.2864431486880465,
+          "final_equity": 1389640704698.826,
+          "max_drawdown": 0.058519850599000035
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": -0.8228844859966497,
+          "final_equity": 0.00031406344317509336,
+          "max_drawdown": 0.9999993747961283
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": -0.35233055013659126,
+          "final_equity": 1.0931756189538835,
+          "max_drawdown": 0.9978238230386605
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 807,
+          "ambiguity_rate": 0.47055393586005834,
+          "mean_r": 0.8240542895135546,
+          "final_equity": 548757835.6720408,
+          "max_drawdown": 0.09018053188400521
+        }
+      }
+    },
+    "p50_150_be": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": -0.17259475218658893,
+          "final_equity": 22.517736207440215,
+          "max_drawdown": 0.9595520820575597
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": 0.1282798833819242,
+          "final_equity": 4024.9854501521195,
+          "max_drawdown": 0.3113096354055058
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": 0.880466472303207,
+          "final_equity": 1374924519.444546,
+          "max_drawdown": 0.09561792499119565
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": -0.6410797414599726,
+          "final_equity": 0.006985853159696458,
+          "max_drawdown": 0.9999861274362783
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": -0.34020510589145947,
+          "final_equity": 1.292876656342264,
+          "max_drawdown": 0.9974325950761584
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 516,
+          "ambiguity_rate": 0.3008746355685131,
+          "mean_r": 0.4119814830298233,
+          "final_equity": 480307.0794648177,
+          "max_drawdown": 0.2834818479279088
+        }
+      }
+    },
+    "timeout_192": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.10336230297631371,
+          "final_equity": 2350.661659835591,
+          "max_drawdown": 0.5339587220293582
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.23047600560022038,
+          "final_equity": 21024.113943328764,
+          "max_drawdown": 0.2475012017316823
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.5482602621599872,
+          "final_equity": 4576361.855135365,
+          "max_drawdown": 0.16237147013830405
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": -0.308837537257978,
+          "final_equity": 1.9389485827098523,
+          "max_drawdown": 0.9963526009673463
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": -0.1817238346340713,
+          "final_equity": 17.712146678219945,
+          "max_drawdown": 0.9685119895497394
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.13606042192569545,
+          "final_equity": 4057.201764438999,
+          "max_drawdown": 0.5543624203099126
+        }
+      }
+    },
+    "timeout_48": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.1004325999414453,
+          "final_equity": 2243.4242117761282,
+          "max_drawdown": 0.5602060863983316
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.227546302565352,
+          "final_equity": 20064.99151175272,
+          "max_drawdown": 0.24348604484649122
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.5453305591251187,
+          "final_equity": 4367587.715016989,
+          "max_drawdown": 0.16237147013830375
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": -0.31176724029284647,
+          "final_equity": 1.850334747212321,
+          "max_drawdown": 0.996497084940722
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": -0.18465353766893972,
+          "final_equity": 16.902666083402703,
+          "max_drawdown": 0.9698827298026241
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.13313071889082703,
+          "final_equity": 3871.779513977952,
+          "max_drawdown": 0.5795239019725433
+        }
+      }
+    },
+    "timeout_96": {
+      "gross": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.1072780538855906,
+          "final_equity": 2512.445417668965,
+          "max_drawdown": 0.5211332473560013
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.2343917565094973,
+          "final_equity": 22471.09383711169,
+          "max_drawdown": 0.24750120173168155
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.5521760130692641,
+          "final_equity": 4891328.926228379,
+          "max_drawdown": 0.1623714701383033
+        }
+      },
+      "net_cost_stress": {
+        "pessimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": -0.30492178634870115,
+          "final_equity": 2.0725645197070146,
+          "max_drawdown": 0.9961012530751451
+        },
+        "neutral": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": -0.17780808372479445,
+          "final_equity": 18.932718020722422,
+          "max_drawdown": 0.9663421021901644
+        },
+        "optimistic": {
+          "n": 1715,
+          "ambiguous": 218,
+          "ambiguity_rate": 0.1271137026239067,
+          "mean_r": 0.13997617283497235,
+          "final_equity": 4336.7897948675245,
+          "max_drawdown": 0.542088209993849
+        }
+      }
+    }
+  },
+  "neutral_gross_ranking": [
+    "hold_sltp",
+    "timeout_96",
+    "timeout_192",
+    "timeout_48",
+    "be_075",
+    "be_100",
+    "be_150",
+    "be_125",
+    "p25_150_be",
+    "p25_100_be",
+    "p33_150_be",
+    "p33_100_be",
+    "p50_150_be",
+    "p50_100_be"
+  ],
+  "neutral_net_ranking": [
+    "hold_sltp",
+    "timeout_96",
+    "timeout_192",
+    "timeout_48",
+    "be_075",
+    "be_100",
+    "be_150",
+    "be_125",
+    "p25_150_be",
+    "p25_100_be",
+    "p33_150_be",
+    "p33_100_be",
+    "p50_150_be",
+    "p50_100_be"
+  ],
+  "decision": "NO_EXIT_POLICY_PROMOTION"
+}

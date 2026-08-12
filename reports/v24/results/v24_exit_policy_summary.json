@@ -1,0 +1,1503 @@
+{
+  "protocol": "V24_EXIT_RISK_PROTOCOL",
+  "setup_counts": {
+    "EURUSD": 2801,
+    "GBPUSD": 2789
+  },
+  "rows": 31654,
+  "completed_rows": 24010,
+  "summary": {
+    "be_075": {
+      "n": 717,
+      "ambiguous_or_censored": 998,
+      "mean_net_r": 0.19557983488476477,
+      "median_net_r": -0.1556178026766413,
+      "positive_rate": 0.3584379358437936,
+      "loss_rate": 0.6415620641562064,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.3612273361227336,
+      "profit_factor": 1.3660862719706826,
+      "final_equity": 1882.0861870076906,
+      "max_drawdown": 0.3222557790304698,
+      "log_growth": 1.3255280161090386
+    },
+    "be_100": {
+      "n": 908,
+      "ambiguous_or_censored": 807,
+      "mean_net_r": 0.053719087290108436,
+      "median_net_r": -0.34400722990138044,
+      "positive_rate": 0.32709251101321585,
+      "loss_rate": 0.6729074889867841,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.32929515418502203,
+      "profit_factor": 1.0862868065651863,
+      "final_equity": 737.8864911572994,
+      "max_drawdown": 0.5396803919675607,
+      "log_growth": 0.38918190832900035
+    },
+    "be_125": {
+      "n": 1062,
+      "ambiguous_or_censored": 653,
+      "mean_net_r": -0.026088988455307917,
+      "median_net_r": -1.068494062164754,
+      "positive_rate": 0.3163841807909605,
+      "loss_rate": 0.6836158192090396,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.3182674199623352,
+      "profit_factor": 0.9620020373848062,
+      "final_equity": 336.3239162587943,
+      "max_drawdown": 0.6577231276321457,
+      "log_growth": -0.3965333663592218
+    },
+    "be_150": {
+      "n": 1199,
+      "ambiguous_or_censored": 516,
+      "mean_net_r": -0.05121133879099204,
+      "median_net_r": -1.094217300988394,
+      "positive_rate": 0.32276897414512096,
+      "loss_rate": 0.677231025854879,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.3244370308590492,
+      "profit_factor": 0.9297892596778455,
+      "final_equity": 234.85389531974997,
+      "max_drawdown": 0.7135362349702721,
+      "log_growth": -0.7556444996709462
+    },
+    "hold_sltp": {
+      "n": 1497,
+      "ambiguous_or_censored": 218,
+      "mean_net_r": -0.06548314158140424,
+      "median_net_r": -1.1377979881493632,
+      "positive_rate": 0.36138944555778224,
+      "loss_rate": 0.6386105544422178,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.3627254509018036,
+      "profit_factor": 0.9210618671519383,
+      "final_equity": 152.6544628052742,
+      "max_drawdown": 0.8531879152572303,
+      "log_growth": -1.1864311441280417
+    },
+    "p25_100_be": {
+      "n": 908,
+      "ambiguous_or_censored": 807,
+      "mean_net_r": -0.06677880229273503,
+      "median_net_r": -0.20316741566986934,
+      "positive_rate": 0.44933920704845814,
+      "loss_rate": 0.5506607929515418,
+      "zeroish_rate": 0.015418502202643172,
+      "target_rate": 0.32929515418502203,
+      "profit_factor": 0.888569999850247,
+      "final_equity": 253.2089143885052,
+      "max_drawdown": 0.6863134985611204,
+      "log_growth": -0.6803932018662883
+    },
+    "p25_150_be": {
+      "n": 1199,
+      "ambiguous_or_censored": 516,
+      "mean_net_r": -0.12738143179069455,
+      "median_net_r": -1.0957232231376635,
+      "positive_rate": 0.4070058381984987,
+      "loss_rate": 0.5929941618015012,
+      "zeroish_rate": 0.010008340283569641,
+      "target_rate": 0.3244370308590492,
+      "profit_factor": 0.8205228680239046,
+      "final_equity": 96.53887412712636,
+      "max_drawdown": 0.8350507112745208,
+      "log_growth": -1.644662330500167
+    },
+    "p33_100_be": {
+      "n": 908,
+      "ambiguous_or_censored": 807,
+      "mean_net_r": -0.10533812695924498,
+      "median_net_r": -0.16798957733406558,
+      "positive_rate": 0.4658590308370044,
+      "loss_rate": 0.5341409691629956,
+      "zeroish_rate": 0.018722466960352423,
+      "target_rate": 0.32929515418502203,
+      "profit_factor": 0.8240077499936149,
+      "final_equity": 179.51480439953596,
+      "max_drawdown": 0.7269230696520079,
+      "log_growth": -1.0243504181313634
+    },
+    "p33_150_be": {
+      "n": 1199,
+      "ambiguous_or_censored": 516,
+      "mean_net_r": -0.1517558615505994,
+      "median_net_r": -1.0957232231376635,
+      "positive_rate": 0.42285237698081735,
+      "loss_rate": 0.5771476230191827,
+      "zeroish_rate": 0.0050041701417848205,
+      "target_rate": 0.3244370308590492,
+      "profit_factor": 0.7860255969657739,
+      "final_equity": 72.5350478016638,
+      "max_drawdown": 0.8673447083518845,
+      "log_growth": -1.9305382354163956
+    },
+    "p50_100_be": {
+      "n": 908,
+      "ambiguous_or_censored": 807,
+      "mean_net_r": -0.18727669187557847,
+      "median_net_r": -0.17388700790571227,
+      "positive_rate": 0.4746696035242291,
+      "loss_rate": 0.525330396475771,
+      "zeroish_rate": 0.018722466960352423,
+      "target_rate": 0.32929515418502203,
+      "profit_factor": 0.6893871012632589,
+      "final_equity": 86.19441687917826,
+      "max_drawdown": 0.8301636114274266,
+      "log_growth": -1.7580026922332532
+    },
+    "p50_150_be": {
+      "n": 1199,
+      "ambiguous_or_censored": 516,
+      "mean_net_r": -0.20355152479039704,
+      "median_net_r": -1.0967313999336685,
+      "positive_rate": 0.4303586321934946,
+      "loss_rate": 0.5696413678065054,
+      "zeroish_rate": 0.0025020850708924102,
+      "target_rate": 0.3244370308590492,
+      "profit_factor": 0.7142255224917068,
+      "final_equity": 39.42254445080355,
+      "max_drawdown": 0.9228441310624159,
+      "log_growth": -2.540270251576148
+    },
+    "timeout_192": {
+      "n": 1497,
+      "ambiguous_or_censored": 218,
+      "mean_net_r": -0.07098324204608158,
+      "median_net_r": -1.136909942595666,
+      "positive_rate": 0.36005344021376084,
+      "loss_rate": 0.6399465597862392,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.35537742150968604,
+      "profit_factor": 0.9144706902253574,
+      "final_equity": 140.74319732672924,
+      "max_drawdown": 0.8479667243162515,
+      "log_growth": -1.267671164174455
+    },
+    "timeout_48": {
+      "n": 1497,
+      "ambiguous_or_censored": 218,
+      "mean_net_r": -0.07433958186224679,
+      "median_net_r": -1.136909942595666,
+      "positive_rate": 0.36472945891783565,
+      "loss_rate": 0.6352705410821643,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.3460253841015364,
+      "profit_factor": 0.9097646946478648,
+      "final_equity": 134.31095118749587,
+      "max_drawdown": 0.8509903475946365,
+      "log_growth": -1.3144504554959386
+    },
+    "timeout_96": {
+      "n": 1497,
+      "ambiguous_or_censored": 218,
+      "mean_net_r": -0.06649726154547382,
+      "median_net_r": -1.1372360656380698,
+      "positive_rate": 0.36138944555778224,
+      "loss_rate": 0.6386105544422178,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.35404141616566465,
+      "profit_factor": 0.9197796184177699,
+      "final_equity": 150.4420281025847,
+      "max_drawdown": 0.8451845617266032,
+      "log_growth": -1.2010302837717037
+    }
+  },
+  "yearly": {
+    "2022": {
+      "be_075": {
+        "n": 177,
+        "ambiguous_or_censored": 242,
+        "mean_net_r": 0.4057476843962067,
+        "median_net_r": -0.09143752857422105,
+        "positive_rate": 0.4067796610169492,
+        "loss_rate": 0.5932203389830508,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.4067796610169492,
+        "profit_factor": 1.8777228830921069,
+        "final_equity": 1004.0042753455543,
+        "max_drawdown": 0.12545952025293888,
+        "log_growth": 0.6971434601327215
+      },
+      "be_100": {
+        "n": 216,
+        "ambiguous_or_censored": 203,
+        "mean_net_r": 0.22373907370394625,
+        "median_net_r": -0.17976646255008094,
+        "positive_rate": 0.36574074074074076,
+        "loss_rate": 0.6342592592592593,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.36574074074074076,
+        "profit_factor": 1.3979468004109386,
+        "final_equity": 790.4632260469886,
+        "max_drawdown": 0.20271196220230855,
+        "log_growth": 0.45801103728059456
+      },
+      "be_125": {
+        "n": 251,
+        "ambiguous_or_censored": 168,
+        "mean_net_r": 0.1258150572936031,
+        "median_net_r": -0.3687963190612291,
+        "positive_rate": 0.3426294820717131,
+        "loss_rate": 0.6573705179282868,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3426294820717131,
+        "profit_factor": 1.2045173073082838,
+        "final_equity": 665.9451557767438,
+        "max_drawdown": 0.20548247921708956,
+        "log_growth": 0.2865992200437904
+      },
+      "be_150": {
+        "n": 289,
+        "ambiguous_or_censored": 130,
+        "mean_net_r": 0.06864885182147716,
+        "median_net_r": -1.0639885917482168,
+        "positive_rate": 0.3391003460207612,
+        "loss_rate": 0.6608996539792388,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3391003460207612,
+        "profit_factor": 1.1024122759386448,
+        "final_equity": 588.8318935254292,
+        "max_drawdown": 0.2614459188406775,
+        "log_growth": 0.1635326345184123
+      },
+      "hold_sltp": {
+        "n": 367,
+        "ambiguous_or_censored": 52,
+        "mean_net_r": 0.07069735824303228,
+        "median_net_r": -1.0957232231376635,
+        "positive_rate": 0.3787465940054496,
+        "loss_rate": 0.6212534059945504,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3787465940054496,
+        "profit_factor": 1.0926533492171036,
+        "final_equity": 615.7346974988459,
+        "max_drawdown": 0.2274032292380551,
+        "log_growth": 0.20820808646103037
+      },
+      "p25_100_be": {
+        "n": 216,
+        "ambiguous_or_censored": 203,
+        "mean_net_r": 0.09214214292765152,
+        "median_net_r": 0.02529192181239881,
+        "positive_rate": 0.5046296296296297,
+        "loss_rate": 0.49537037037037035,
+        "zeroish_rate": 0.009259259259259259,
+        "target_rate": 0.36574074074074076,
+        "profit_factor": 1.1703392473486012,
+        "final_equity": 598.895324802559,
+        "max_drawdown": 0.2022403620212918,
+        "log_growth": 0.18047873451045796
+      },
+      "p25_150_be": {
+        "n": 289,
+        "ambiguous_or_censored": 130,
+        "mean_net_r": -0.00403040378182114,
+        "median_net_r": -1.0639885917482168,
+        "positive_rate": 0.43944636678200694,
+        "loss_rate": 0.5605536332179931,
+        "zeroish_rate": 0.010380622837370242,
+        "target_rate": 0.3391003460207612,
+        "profit_factor": 0.9938156006727932,
+        "final_equity": 480.2350150808705,
+        "max_drawdown": 0.2649098246146652,
+        "log_growth": -0.04033249959063265
+      },
+      "p33_100_be": {
+        "n": 216,
+        "ambiguous_or_censored": 203,
+        "mean_net_r": 0.05003112507923712,
+        "median_net_r": 0.06149010933141552,
+        "positive_rate": 0.5138888888888888,
+        "loss_rate": 0.4861111111111111,
+        "zeroish_rate": 0.013888888888888888,
+        "target_rate": 0.36574074074074076,
+        "profit_factor": 1.0927160094262092,
+        "final_equity": 547.7863475494797,
+        "max_drawdown": 0.20230293065341684,
+        "log_growth": 0.09127723576960337
+      },
+      "p33_150_be": {
+        "n": 289,
+        "ambiguous_or_censored": 130,
+        "mean_net_r": -0.027287765574876614,
+        "median_net_r": -1.0639885917482168,
+        "positive_rate": 0.45674740484429066,
+        "loss_rate": 0.5432525951557093,
+        "zeroish_rate": 0.0034602076124567475,
+        "target_rate": 0.3391003460207612,
+        "profit_factor": 0.9580842590226328,
+        "final_equity": 449.7677497978238,
+        "max_drawdown": 0.2662295337885511,
+        "log_growth": -0.10587676044963326
+      },
+      "p50_100_be": {
+        "n": 216,
+        "ambiguous_or_censored": 203,
+        "mean_net_r": -0.039454787848643195,
+        "median_net_r": 0.15867262214085692,
+        "positive_rate": 0.5277777777777778,
+        "loss_rate": 0.4722222222222222,
+        "zeroish_rate": 0.013888888888888888,
+        "target_rate": 0.36574074074074076,
+        "profit_factor": 0.9269501394636384,
+        "final_equity": 452.9124952743049,
+        "max_drawdown": 0.23516950037253273,
+        "log_growth": -0.09890915876322713
+      },
+      "p50_150_be": {
+        "n": 289,
+        "ambiguous_or_censored": 130,
+        "mean_net_r": -0.07670965938511942,
+        "median_net_r": -1.0639885917482168,
+        "positive_rate": 0.4532871972318339,
+        "loss_rate": 0.5467128027681661,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3391003460207612,
+        "profit_factor": 0.8824100047983185,
+        "final_equity": 391.0962598926342,
+        "max_drawdown": 0.32056430955079956,
+        "log_growth": -0.24565437975264257
+      },
+      "timeout_192": {
+        "n": 367,
+        "ambiguous_or_censored": 52,
+        "mean_net_r": 0.056840654035942975,
+        "median_net_r": -1.0957232231376635,
+        "positive_rate": 0.3760217983651226,
+        "loss_rate": 0.6239782016348774,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.37057220708446864,
+        "profit_factor": 1.0742151736689156,
+        "final_equity": 585.494896693387,
+        "max_drawdown": 0.2537972782481716,
+        "log_growth": 0.15784936842624828
+      },
+      "timeout_48": {
+        "n": 367,
+        "ambiguous_or_censored": 52,
+        "mean_net_r": 0.059455655791206645,
+        "median_net_r": -1.0957232231376635,
+        "positive_rate": 0.3787465940054496,
+        "loss_rate": 0.6212534059945504,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3651226158038147,
+        "profit_factor": 1.0783234672771986,
+        "final_equity": 591.5038219033152,
+        "max_drawdown": 0.2367254585865194,
+        "log_growth": 0.16806004635037813
+      },
+      "timeout_96": {
+        "n": 367,
+        "ambiguous_or_censored": 52,
+        "mean_net_r": 0.05335671588967815,
+        "median_net_r": -1.0957232231376635,
+        "positive_rate": 0.37329700272479566,
+        "loss_rate": 0.6267029972752044,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.37057220708446864,
+        "profit_factor": 1.0695593242608485,
+        "final_equity": 578.0715543781726,
+        "max_drawdown": 0.2537972782481718,
+        "log_growth": 0.14508955909005913
+      }
+    },
+    "2023": {
+      "be_075": {
+        "n": 174,
+        "ambiguous_or_censored": 273,
+        "mean_net_r": 0.373262056933063,
+        "median_net_r": -0.11938460324846485,
+        "positive_rate": 0.40229885057471265,
+        "loss_rate": 0.5977011494252874,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.40804597701149425,
+        "profit_factor": 1.85888060868918,
+        "final_equity": 939.6456803892545,
+        "max_drawdown": 0.06067229858092749,
+        "log_growth": 0.6308947700276066
+      },
+      "be_100": {
+        "n": 229,
+        "ambiguous_or_censored": 218,
+        "mean_net_r": 0.19791562079337222,
+        "median_net_r": -0.16582962190843012,
+        "positive_rate": 0.36681222707423583,
+        "loss_rate": 0.6331877729257642,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.37117903930131,
+        "profit_factor": 1.357015772419373,
+        "final_equity": 766.8526283697449,
+        "max_drawdown": 0.11268204131947127,
+        "log_growth": 0.4276865441574687
+      },
+      "be_125": {
+        "n": 274,
+        "ambiguous_or_censored": 173,
+        "mean_net_r": 0.040451447150452395,
+        "median_net_r": -0.33783666861081385,
+        "positive_rate": 0.33211678832116787,
+        "loss_rate": 0.6678832116788321,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3357664233576642,
+        "profit_factor": 1.062747007914623,
+        "final_equity": 541.7538012562009,
+        "max_drawdown": 0.20133048207410617,
+        "log_growth": 0.08020355859393553
+      },
+      "be_150": {
+        "n": 304,
+        "ambiguous_or_censored": 143,
+        "mean_net_r": 0.03450456531285731,
+        "median_net_r": -1.063771544846226,
+        "positive_rate": 0.34539473684210525,
+        "loss_rate": 0.6546052631578947,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.34868421052631576,
+        "profit_factor": 1.0506304737226002,
+        "final_equity": 535.7413881491958,
+        "max_drawdown": 0.24325381450381137,
+        "log_growth": 0.06904346141909115
+      },
+      "hold_sltp": {
+        "n": 386,
+        "ambiguous_or_censored": 61,
+        "mean_net_r": -0.03313443591014875,
+        "median_net_r": -1.1483917381347242,
+        "positive_rate": 0.37305699481865284,
+        "loss_rate": 0.6269430051813472,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3756476683937824,
+        "profit_factor": 0.9594863878382511,
+        "final_equity": 417.13063729485697,
+        "max_drawdown": 0.42492711174484943,
+        "log_growth": -0.18120864680042384
+      },
+      "p25_100_be": {
+        "n": 229,
+        "ambiguous_or_censored": 218,
+        "mean_net_r": 0.05937079963026923,
+        "median_net_r": 0.04271297261446236,
+        "positive_rate": 0.5240174672489083,
+        "loss_rate": 0.4759825327510917,
+        "zeroish_rate": 0.013100436681222707,
+        "target_rate": 0.37117903930131,
+        "profit_factor": 1.1121401719143618,
+        "final_equity": 562.2808038104768,
+        "max_drawdown": 0.13089955879475348,
+        "log_growth": 0.11739327759587076
+      },
+      "p25_150_be": {
+        "n": 304,
+        "ambiguous_or_censored": 143,
+        "mean_net_r": -0.04636824516901641,
+        "median_net_r": -1.068960532798612,
+        "positive_rate": 0.4605263157894737,
+        "loss_rate": 0.5394736842105263,
+        "zeroish_rate": 0.006578947368421052,
+        "target_rate": 0.34868421052631576,
+        "profit_factor": 0.9296836125685752,
+        "final_equity": 421.76433262988553,
+        "max_drawdown": 0.28924409882292074,
+        "log_growth": -0.170161393863089
+      },
+      "p33_100_be": {
+        "n": 229,
+        "ambiguous_or_censored": 218,
+        "mean_net_r": 0.015036456858076199,
+        "median_net_r": 0.0993603527721382,
+        "positive_rate": 0.537117903930131,
+        "loss_rate": 0.462882096069869,
+        "zeroish_rate": 0.026200873362445413,
+        "target_rate": 0.37117903930131,
+        "profit_factor": 1.0284915044766103,
+        "final_equity": 508.8818267604804,
+        "max_drawdown": 0.136677454051153,
+        "log_growth": 0.017607723708617795
+      },
+      "p33_150_be": {
+        "n": 304,
+        "ambiguous_or_censored": 143,
+        "mean_net_r": -0.07224754452321604,
+        "median_net_r": -1.068960532798612,
+        "positive_rate": 0.46710526315789475,
+        "loss_rate": 0.5328947368421053,
+        "zeroish_rate": 0.003289473684210526,
+        "target_rate": 0.34868421052631576,
+        "profit_factor": 0.8902976556350578,
+        "final_equity": 390.52787424225045,
+        "max_drawdown": 0.32044330974312196,
+        "log_growth": -0.24710875078789601
+      },
+      "p50_100_be": {
+        "n": 229,
+        "ambiguous_or_censored": 218,
+        "mean_net_r": -0.07917402153283377,
+        "median_net_r": 0.2065399664616685,
+        "positive_rate": 0.537117903930131,
+        "loss_rate": 0.462882096069869,
+        "zeroish_rate": 0.017467248908296942,
+        "target_rate": 0.37117903930131,
+        "profit_factor": 0.8511092137737648,
+        "final_equity": 411.3213914858809,
+        "max_drawdown": 0.25872713362267397,
+        "log_growth": -0.19523321509045666
+      },
+      "p50_150_be": {
+        "n": 304,
+        "ambiguous_or_censored": 143,
+        "mean_net_r": -0.12724105565089008,
+        "median_net_r": -1.068960532798612,
+        "positive_rate": 0.4769736842105263,
+        "loss_rate": 0.5230263157894737,
+        "zeroish_rate": 0.003289473684210526,
+        "target_rate": 0.34868421052631576,
+        "profit_factor": 0.8070483346565315,
+        "final_equity": 331.40367844463435,
+        "max_drawdown": 0.3929975405615722,
+        "log_growth": -0.41127089377909465
+      },
+      "timeout_192": {
+        "n": 386,
+        "ambiguous_or_censored": 61,
+        "mean_net_r": -0.051316774885733704,
+        "median_net_r": -1.1483917381347242,
+        "positive_rate": 0.36787564766839376,
+        "loss_rate": 0.6321243523316062,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3626943005181347,
+        "profit_factor": 0.9374946718722763,
+        "final_equity": 389.13600125831954,
+        "max_drawdown": 0.4248748138992697,
+        "log_growth": -0.25067919827510626
+      },
+      "timeout_48": {
+        "n": 386,
+        "ambiguous_or_censored": 61,
+        "mean_net_r": -0.062152664605991566,
+        "median_net_r": -1.1483917381347242,
+        "positive_rate": 0.3756476683937824,
+        "loss_rate": 0.6243523316062176,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.344559585492228,
+        "profit_factor": 0.9237377615826773,
+        "final_equity": 373.6885231844793,
+        "max_drawdown": 0.4217004037457847,
+        "log_growth": -0.29118547370960807
+      },
+      "timeout_96": {
+        "n": 386,
+        "ambiguous_or_censored": 61,
+        "mean_net_r": -0.03670595356738131,
+        "median_net_r": -1.1483917381347242,
+        "positive_rate": 0.37305699481865284,
+        "loss_rate": 0.6269430051813472,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.35751295336787564,
+        "profit_factor": 0.9551194783913441,
+        "final_equity": 411.53466094302735,
+        "max_drawdown": 0.4300483939289083,
+        "log_growth": -0.19471485112803047
+      }
+    },
+    "2024": {
+      "be_075": {
+        "n": 173,
+        "ambiguous_or_censored": 243,
+        "mean_net_r": -0.0881292803320522,
+        "median_net_r": -0.4512053628981947,
+        "positive_rate": 0.3063583815028902,
+        "loss_rate": 0.6936416184971098,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.31213872832369943,
+        "profit_factor": 0.8712025736799772,
+        "final_equity": 421.66437863530035,
+        "max_drawdown": 0.2591725181838588,
+        "log_growth": -0.17039841210474693
+      },
+      "be_100": {
+        "n": 223,
+        "ambiguous_or_censored": 193,
+        "mean_net_r": -0.22980206466288905,
+        "median_net_r": -1.1005580974408096,
+        "positive_rate": 0.2600896860986547,
+        "loss_rate": 0.7399103139013453,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.2645739910313901,
+        "profit_factor": 0.690012762456242,
+        "final_equity": 292.9779002040538,
+        "max_drawdown": 0.4917083873612237,
+        "log_growth": -0.5345109181745328
+      },
+      "be_125": {
+        "n": 251,
+        "ambiguous_or_censored": 165,
+        "mean_net_r": -0.2610628737330739,
+        "median_net_r": -1.1290084776999436,
+        "positive_rate": 0.27091633466135456,
+        "loss_rate": 0.7290836653386454,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.2749003984063745,
+        "profit_factor": 0.6753626236107753,
+        "final_equity": 252.65681297806452,
+        "max_drawdown": 0.5722754060018886,
+        "log_growth": -0.6825760009759573
+      },
+      "be_150": {
+        "n": 285,
+        "ambiguous_or_censored": 131,
+        "mean_net_r": -0.32024277681078983,
+        "median_net_r": -1.1714278717229756,
+        "positive_rate": 0.27017543859649124,
+        "loss_rate": 0.7298245614035088,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.2736842105263158,
+        "profit_factor": 0.6303856679411395,
+        "final_equity": 194.24765825558157,
+        "max_drawdown": 0.6643750282850356,
+        "log_growth": -0.9454741645594221
+      },
+      "hold_sltp": {
+        "n": 360,
+        "ambiguous_or_censored": 56,
+        "mean_net_r": -0.3619478999610929,
+        "median_net_r": -1.2222842081782255,
+        "positive_rate": 0.30277777777777776,
+        "loss_rate": 0.6972222222222222,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3055555555555556,
+        "profit_factor": 0.6270549117426593,
+        "final_equity": 129.43705566561755,
+        "max_drawdown": 0.7854865645377707,
+        "log_growth": -1.3514133920825748
+      },
+      "p25_100_be": {
+        "n": 223,
+        "ambiguous_or_censored": 193,
+        "mean_net_r": -0.32892749802313265,
+        "median_net_r": -1.1005580974408096,
+        "positive_rate": 0.3273542600896861,
+        "loss_rate": 0.672645739910314,
+        "zeroish_rate": 0.02242152466367713,
+        "target_rate": 0.2645739910313901,
+        "profit_factor": 0.5434158487512624,
+        "final_equity": 235.93916915847484,
+        "max_drawdown": 0.5660029265726848,
+        "log_growth": -0.7510340844249044
+      },
+      "p25_150_be": {
+        "n": 285,
+        "ambiguous_or_censored": 131,
+        "mean_net_r": -0.39207986894505614,
+        "median_net_r": -1.173271615634089,
+        "positive_rate": 0.312280701754386,
+        "loss_rate": 0.6877192982456141,
+        "zeroish_rate": 0.014035087719298246,
+        "target_rate": 0.2736842105263158,
+        "profit_factor": 0.5391066200648819,
+        "final_equity": 159.0255121546187,
+        "max_drawdown": 0.7096441270177327,
+        "log_growth": -1.1455434552706611
+      },
+      "p33_100_be": {
+        "n": 223,
+        "ambiguous_or_censored": 193,
+        "mean_net_r": -0.3606476366984107,
+        "median_net_r": -1.1005580974408096,
+        "positive_rate": 0.3542600896860987,
+        "loss_rate": 0.6457399103139013,
+        "zeroish_rate": 0.013452914798206279,
+        "target_rate": 0.2645739910313901,
+        "profit_factor": 0.49910320596116886,
+        "final_equity": 220.05816739646326,
+        "max_drawdown": 0.5875257930249641,
+        "log_growth": -0.8207161897599731
+      },
+      "p33_150_be": {
+        "n": 285,
+        "ambiguous_or_censored": 131,
+        "mean_net_r": -0.41506773842802147,
+        "median_net_r": -1.173271615634089,
+        "positive_rate": 0.3368421052631579,
+        "loss_rate": 0.6631578947368421,
+        "zeroish_rate": 0.014035087719298246,
+        "target_rate": 0.2736842105263158,
+        "profit_factor": 0.5120207370080715,
+        "final_equity": 149.11539297998718,
+        "max_drawdown": 0.7228667763543092,
+        "log_growth": -1.209887642677913
+      },
+      "p50_100_be": {
+        "n": 223,
+        "ambiguous_or_censored": 193,
+        "mean_net_r": -0.42805293138337625,
+        "median_net_r": -1.1070557378052048,
+        "positive_rate": 0.36771300448430494,
+        "loss_rate": 0.6322869955156951,
+        "zeroish_rate": 0.026905829596412557,
+        "target_rate": 0.2645739910313901,
+        "profit_factor": 0.4100122305375303,
+        "final_equity": 189.64942182420873,
+        "max_drawdown": 0.633347229858183,
+        "log_growth": -0.9694308789383395
+      },
+      "p50_150_be": {
+        "n": 285,
+        "ambiguous_or_censored": 131,
+        "mean_net_r": -0.46391696107932257,
+        "median_net_r": -1.17740831791573,
+        "positive_rate": 0.35789473684210527,
+        "loss_rate": 0.6421052631578947,
+        "zeroish_rate": 0.0035087719298245615,
+        "target_rate": 0.2736842105263158,
+        "profit_factor": 0.4585064203558733,
+        "final_equity": 129.99137704400573,
+        "max_drawdown": 0.7502493575225788,
+        "log_growth": -1.3471399805972948
+      },
+      "timeout_192": {
+        "n": 360,
+        "ambiguous_or_censored": 56,
+        "mean_net_r": -0.35222567773887065,
+        "median_net_r": -1.2200455043547414,
+        "positive_rate": 0.3055555555555556,
+        "loss_rate": 0.6944444444444444,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3,
+        "profit_factor": 0.6356920227565973,
+        "final_equity": 134.0281364153246,
+        "max_drawdown": 0.777877858522019,
+        "log_growth": -1.3165583472638864
+      },
+      "timeout_48": {
+        "n": 360,
+        "ambiguous_or_censored": 56,
+        "mean_net_r": -0.3596581961246852,
+        "median_net_r": -1.2222842081782255,
+        "positive_rate": 0.3111111111111111,
+        "loss_rate": 0.6888888888888889,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.28888888888888886,
+        "profit_factor": 0.6252784847646602,
+        "final_equity": 130.64152023815646,
+        "max_drawdown": 0.790419265361068,
+        "log_growth": -1.342151012977135
+      },
+      "timeout_96": {
+        "n": 360,
+        "ambiguous_or_censored": 56,
+        "mean_net_r": -0.34465766670231346,
+        "median_net_r": -1.2200455043547414,
+        "positive_rate": 0.30833333333333335,
+        "loss_rate": 0.6916666666666667,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3,
+        "profit_factor": 0.6424073446174727,
+        "final_equity": 137.71967772513935,
+        "max_drawdown": 0.7717599411725636,
+        "log_growth": -1.2893878000276588
+      }
+    },
+    "2025": {
+      "be_075": {
+        "n": 193,
+        "ambiguous_or_censored": 240,
+        "mean_net_r": 0.09695424386186433,
+        "median_net_r": -0.18883873172318516,
+        "positive_rate": 0.32124352331606215,
+        "loss_rate": 0.6787564766839378,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.32124352331606215,
+        "profit_factor": 1.1744922665170374,
+        "final_equity": 591.402181712493,
+        "max_drawdown": 0.32225577903047053,
+        "log_growth": 0.16788819805345412
+      },
+      "be_100": {
+        "n": 240,
+        "ambiguous_or_censored": 193,
+        "mean_net_r": 0.026551977489617018,
+        "median_net_r": -0.41652972180654807,
+        "positive_rate": 0.31666666666666665,
+        "loss_rate": 0.6833333333333333,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.31666666666666665,
+        "profit_factor": 1.0420399954495378,
+        "final_equity": 519.3631468956173,
+        "max_drawdown": 0.4331088953600475,
+        "log_growth": 0.037995245065469904
+      },
+      "be_125": {
+        "n": 286,
+        "ambiguous_or_censored": 147,
+        "mean_net_r": -0.016933567595992256,
+        "median_net_r": -1.082160782548496,
+        "positive_rate": 0.3181818181818182,
+        "loss_rate": 0.6818181818181818,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3181818181818182,
+        "profit_factor": 0.9753235799190932,
+        "final_equity": 461.2074558223696,
+        "max_drawdown": 0.4250172242788646,
+        "log_growth": -0.08076014402099127
+      },
+      "be_150": {
+        "n": 321,
+        "ambiguous_or_censored": 112,
+        "mean_net_r": -0.0014395945509030979,
+        "median_net_r": -1.0941689255998033,
+        "positive_rate": 0.3333333333333333,
+        "loss_rate": 0.6666666666666666,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3333333333333333,
+        "profit_factor": 0.9979617224341837,
+        "final_equity": 479.07715872572805,
+        "max_drawdown": 0.38058352724673866,
+        "log_growth": -0.04274643104902685
+      },
+      "hold_sltp": {
+        "n": 384,
+        "ambiguous_or_censored": 49,
+        "mean_net_r": 0.04978370527280165,
+        "median_net_r": -1.1218972035521053,
+        "positive_rate": 0.3880208333333333,
+        "loss_rate": 0.6119791666666666,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3880208333333333,
+        "profit_factor": 1.0644262319455131,
+        "final_equity": 573.977907392791,
+        "max_drawdown": 0.36666404298931987,
+        "log_growth": 0.13798280829392517
+      },
+      "p25_100_be": {
+        "n": 240,
+        "ambiguous_or_censored": 193,
+        "mean_net_r": -0.08659556837645498,
+        "median_net_r": -0.3110321688288739,
+        "positive_rate": 0.44166666666666665,
+        "loss_rate": 0.5583333333333333,
+        "zeroish_rate": 0.016666666666666666,
+        "target_rate": 0.31666666666666665,
+        "profit_factor": 0.8570848021342694,
+        "final_equity": 398.3683058173125,
+        "max_drawdown": 0.4737118663488858,
+        "log_growth": -0.22723112954771274
+      },
+      "p25_150_be": {
+        "n": 321,
+        "ambiguous_or_censored": 112,
+        "mean_net_r": -0.08014592163045002,
+        "median_net_r": -1.0941689255998033,
+        "positive_rate": 0.411214953271028,
+        "loss_rate": 0.5887850467289719,
+        "zeroish_rate": 0.009345794392523364,
+        "target_rate": 0.3333333333333333,
+        "profit_factor": 0.882909873973392,
+        "final_equity": 374.64657565323984,
+        "max_drawdown": 0.43990846716564913,
+        "log_growth": -0.2886249817757848
+      },
+      "p33_100_be": {
+        "n": 240,
+        "ambiguous_or_censored": 193,
+        "mean_net_r": -0.12280278305359807,
+        "median_net_r": -0.39897783508772666,
+        "positive_rate": 0.4583333333333333,
+        "loss_rate": 0.5416666666666666,
+        "zeroish_rate": 0.020833333333333332,
+        "target_rate": 0.31666666666666665,
+        "profit_factor": 0.7974380316928591,
+        "final_equity": 365.80079547533063,
+        "max_drawdown": 0.48616070052065297,
+        "log_growth": -0.3125191878496104
+      },
+      "p33_150_be": {
+        "n": 321,
+        "ambiguous_or_censored": 112,
+        "mean_net_r": -0.1053319462959051,
+        "median_net_r": -1.0941689255998033,
+        "positive_rate": 0.42679127725856697,
+        "loss_rate": 0.573208722741433,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3333333333333333,
+        "profit_factor": 0.8460258420097985,
+        "final_equity": 346.1745116791253,
+        "max_drawdown": 0.45811832350326676,
+        "log_growth": -0.36766508150095323
+      },
+      "p50_100_be": {
+        "n": 240,
+        "ambiguous_or_censored": 193,
+        "mean_net_r": -0.19974311424252691,
+        "median_net_r": -0.8227748310846539,
+        "positive_rate": 0.4666666666666667,
+        "loss_rate": 0.5333333333333333,
+        "zeroish_rate": 0.016666666666666666,
+        "target_rate": 0.31666666666666665,
+        "profit_factor": 0.6743942040402748,
+        "final_equity": 304.9594018261589,
+        "max_drawdown": 0.5167817050072219,
+        "log_growth": -0.49442943944122875
+      },
+      "p50_150_be": {
+        "n": 321,
+        "ambiguous_or_censored": 112,
+        "mean_net_r": -0.15885224870999698,
+        "median_net_r": -1.0941689255998033,
+        "positive_rate": 0.42990654205607476,
+        "loss_rate": 0.5700934579439252,
+        "zeroish_rate": 0.003115264797507788,
+        "target_rate": 0.3333333333333333,
+        "profit_factor": 0.7691166543190088,
+        "final_equity": 292.4819925880024,
+        "max_drawdown": 0.4970539590942705,
+        "log_growth": -0.5362049974471127
+      },
+      "timeout_192": {
+        "n": 384,
+        "ambiguous_or_censored": 49,
+        "mean_net_r": 0.05074761905654016,
+        "median_net_r": -1.1218972035521053,
+        "positive_rate": 0.3880208333333333,
+        "loss_rate": 0.6119791666666666,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3854166666666667,
+        "profit_factor": 1.065755679965152,
+        "final_equity": 576.1252652018086,
+        "max_drawdown": 0.3666640429893209,
+        "log_growth": 0.1417170129382878
+      },
+      "timeout_48": {
+        "n": 384,
+        "ambiguous_or_censored": 49,
+        "mean_net_r": 0.05302421723865395,
+        "median_net_r": -1.1208094454625195,
+        "positive_rate": 0.390625,
+        "loss_rate": 0.609375,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3828125,
+        "profit_factor": 1.0691182746748367,
+        "final_equity": 581.3971483201333,
+        "max_drawdown": 0.36022097309135553,
+        "log_growth": 0.1508259848404243
+      },
+      "timeout_96": {
+        "n": 384,
+        "ambiguous_or_censored": 49,
+        "mean_net_r": 0.04978370527280165,
+        "median_net_r": -1.1218972035521053,
+        "positive_rate": 0.3880208333333333,
+        "loss_rate": 0.6119791666666666,
+        "zeroish_rate": 0.0,
+        "target_rate": 0.3854166666666667,
+        "profit_factor": 1.0644262319455131,
+        "final_equity": 573.977907392791,
+        "max_drawdown": 0.36666404298931987,
+        "log_growth": 0.13798280829392517
+      }
+    }
+  },
+  "walk_forward": [
+    {
+      "year": 2022,
+      "role": "selected",
+      "policy": "be_075",
+      "n": 177,
+      "ambiguous_or_censored": 0,
+      "mean_net_r": 0.4057476843962067,
+      "median_net_r": -0.09143752857422105,
+      "positive_rate": 0.4067796610169492,
+      "loss_rate": 0.5932203389830508,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.4067796610169492,
+      "profit_factor": 1.8777228830921069,
+      "final_equity": 1004.0042753455543,
+      "max_drawdown": 0.12545952025293888,
+      "log_growth": 0.6971434601327215
+    },
+    {
+      "year": 2022,
+      "role": "comparator",
+      "policy": "timeout_48",
+      "n": 367,
+      "ambiguous_or_censored": 0,
+      "mean_net_r": 0.059455655791206645,
+      "median_net_r": -1.0957232231376635,
+      "positive_rate": 0.3787465940054496,
+      "loss_rate": 0.6212534059945504,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.3651226158038147,
+      "profit_factor": 1.0783234672771986,
+      "final_equity": 591.5038219033152,
+      "max_drawdown": 0.2367254585865194,
+      "log_growth": 0.16806004635037813
+    },
+    {
+      "year": 2022,
+      "role": "comparator",
+      "policy": "hold_sltp",
+      "n": 367,
+      "ambiguous_or_censored": 0,
+      "mean_net_r": 0.07069735824303228,
+      "median_net_r": -1.0957232231376635,
+      "positive_rate": 0.3787465940054496,
+      "loss_rate": 0.6212534059945504,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.3787465940054496,
+      "profit_factor": 1.0926533492171036,
+      "final_equity": 615.7346974988459,
+      "max_drawdown": 0.2274032292380551,
+      "log_growth": 0.20820808646103037
+    },
+    {
+      "year": 2023,
+      "role": "selected",
+      "policy": "be_075",
+      "n": 174,
+      "ambiguous_or_censored": 0,
+      "mean_net_r": 0.373262056933063,
+      "median_net_r": -0.11938460324846485,
+      "positive_rate": 0.40229885057471265,
+      "loss_rate": 0.5977011494252874,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.40804597701149425,
+      "profit_factor": 1.85888060868918,
+      "final_equity": 939.6456803892545,
+      "max_drawdown": 0.06067229858092749,
+      "log_growth": 0.6308947700276066
+    },
+    {
+      "year": 2023,
+      "role": "comparator",
+      "policy": "timeout_48",
+      "n": 386,
+      "ambiguous_or_censored": 0,
+      "mean_net_r": -0.062152664605991566,
+      "median_net_r": -1.1483917381347242,
+      "positive_rate": 0.3756476683937824,
+      "loss_rate": 0.6243523316062176,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.344559585492228,
+      "profit_factor": 0.9237377615826773,
+      "final_equity": 373.6885231844793,
+      "max_drawdown": 0.4217004037457847,
+      "log_growth": -0.29118547370960807
+    },
+    {
+      "year": 2023,
+      "role": "comparator",
+      "policy": "hold_sltp",
+      "n": 386,
+      "ambiguous_or_censored": 0,
+      "mean_net_r": -0.03313443591014875,
+      "median_net_r": -1.1483917381347242,
+      "positive_rate": 0.37305699481865284,
+      "loss_rate": 0.6269430051813472,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.3756476683937824,
+      "profit_factor": 0.9594863878382511,
+      "final_equity": 417.13063729485697,
+      "max_drawdown": 0.42492711174484943,
+      "log_growth": -0.18120864680042384
+    },
+    {
+      "year": 2024,
+      "role": "selected",
+      "policy": "be_075",
+      "n": 173,
+      "ambiguous_or_censored": 0,
+      "mean_net_r": -0.0881292803320522,
+      "median_net_r": -0.4512053628981947,
+      "positive_rate": 0.3063583815028902,
+      "loss_rate": 0.6936416184971098,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.31213872832369943,
+      "profit_factor": 0.8712025736799772,
+      "final_equity": 421.66437863530035,
+      "max_drawdown": 0.2591725181838588,
+      "log_growth": -0.17039841210474693
+    },
+    {
+      "year": 2024,
+      "role": "comparator",
+      "policy": "timeout_48",
+      "n": 360,
+      "ambiguous_or_censored": 0,
+      "mean_net_r": -0.3596581961246852,
+      "median_net_r": -1.2222842081782255,
+      "positive_rate": 0.3111111111111111,
+      "loss_rate": 0.6888888888888889,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.28888888888888886,
+      "profit_factor": 0.6252784847646602,
+      "final_equity": 130.64152023815646,
+      "max_drawdown": 0.790419265361068,
+      "log_growth": -1.342151012977135
+    },
+    {
+      "year": 2024,
+      "role": "comparator",
+      "policy": "hold_sltp",
+      "n": 360,
+      "ambiguous_or_censored": 0,
+      "mean_net_r": -0.3619478999610929,
+      "median_net_r": -1.2222842081782255,
+      "positive_rate": 0.30277777777777776,
+      "loss_rate": 0.6972222222222222,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.3055555555555556,
+      "profit_factor": 0.6270549117426593,
+      "final_equity": 129.43705566561755,
+      "max_drawdown": 0.7854865645377707,
+      "log_growth": -1.3514133920825748
+    },
+    {
+      "year": 2025,
+      "role": "selected",
+      "policy": "be_075",
+      "n": 193,
+      "ambiguous_or_censored": 0,
+      "mean_net_r": 0.09695424386186433,
+      "median_net_r": -0.18883873172318516,
+      "positive_rate": 0.32124352331606215,
+      "loss_rate": 0.6787564766839378,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.32124352331606215,
+      "profit_factor": 1.1744922665170374,
+      "final_equity": 591.402181712493,
+      "max_drawdown": 0.32225577903047053,
+      "log_growth": 0.16788819805345412
+    },
+    {
+      "year": 2025,
+      "role": "comparator",
+      "policy": "timeout_48",
+      "n": 384,
+      "ambiguous_or_censored": 0,
+      "mean_net_r": 0.05302421723865395,
+      "median_net_r": -1.1208094454625195,
+      "positive_rate": 0.390625,
+      "loss_rate": 0.609375,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.3828125,
+      "profit_factor": 1.0691182746748367,
+      "final_equity": 581.3971483201333,
+      "max_drawdown": 0.36022097309135553,
+      "log_growth": 0.1508259848404243
+    },
+    {
+      "year": 2025,
+      "role": "comparator",
+      "policy": "hold_sltp",
+      "n": 384,
+      "ambiguous_or_censored": 0,
+      "mean_net_r": 0.04978370527280165,
+      "median_net_r": -1.1218972035521053,
+      "positive_rate": 0.3880208333333333,
+      "loss_rate": 0.6119791666666666,
+      "zeroish_rate": 0.0,
+      "target_rate": 0.3880208333333333,
+      "profit_factor": 1.0644262319455131,
+      "final_equity": 573.977907392791,
+      "max_drawdown": 0.36666404298931987,
+      "log_growth": 0.13798280829392517
+    }
+  ],
+  "risk_overlays": {
+    "0.005": {
+      "be_075": {
+        "final_equity": 988.8013956381385,
+        "max_drawdown": 0.17571613302716285,
+        "log_growth": 0.6818853997265742
+      },
+      "be_100": {
+        "final_equity": 622.5141154929528,
+        "max_drawdown": 0.31487422406184795,
+        "log_growth": 0.21915820515027418
+      },
+      "be_125": {
+        "final_equity": 422.47229203913207,
+        "max_drawdown": 0.4076717197950811,
+        "log_growth": -0.16848423474795593
+      },
+      "be_150": {
+        "final_equity": 354.99216247661934,
+        "max_drawdown": 0.4569310271184622,
+        "log_growth": -0.34251238672113604
+      },
+      "hold_sltp": {
+        "final_equity": 290.850636853026,
+        "max_drawdown": 0.6072557987293621,
+        "log_growth": -0.5417982384407728
+      },
+      "p25_100_be": {
+        "final_equity": 362.45503051222977,
+        "max_drawdown": 0.43487406741295004,
+        "log_growth": -0.32170768558213114
+      },
+      "p25_150_be": {
+        "final_equity": 226.2364570644159,
+        "max_drawdown": 0.5840495224017589,
+        "log_growth": -0.7930273759125598
+      },
+      "p33_100_be": {
+        "final_equity": 304.7204605201962,
+        "max_drawdown": 0.47304269031712104,
+        "log_growth": -0.4952132649632874
+      },
+      "p33_150_be": {
+        "final_equity": 195.7942733367001,
+        "max_drawdown": 0.6274396273710852,
+        "log_growth": -0.9375436162677991
+      },
+      "p50_100_be": {
+        "final_equity": 210.6090262875403,
+        "max_drawdown": 0.5819516146288941,
+        "log_growth": -0.8646046397759103
+      },
+      "p50_150_be": {
+        "final_equity": 143.9406009552476,
+        "max_drawdown": 0.7153894509059561,
+        "log_growth": -1.2452073773113177
+      },
+      "timeout_192": {
+        "final_equity": 279.19712774927206,
+        "max_drawdown": 0.600346063174978,
+        "log_growth": -0.582690015017864
+      },
+      "timeout_48": {
+        "final_equity": 272.5082148939816,
+        "max_drawdown": 0.6045102440698998,
+        "log_growth": -0.6069393383733546
+      },
+      "timeout_96": {
+        "final_equity": 288.69360593119967,
+        "max_drawdown": 0.5966888774735291,
+        "log_growth": -0.5492421597949
+      }
+    },
+    "0.01": {
+      "be_075": {
+        "final_equity": 1882.0861870076906,
+        "max_drawdown": 0.3222557790304698,
+        "log_growth": 1.3255280161090386
+      },
+      "be_100": {
+        "final_equity": 737.8864911572994,
+        "max_drawdown": 0.5396803919675607,
+        "log_growth": 0.38918190832900035
+      },
+      "be_125": {
+        "final_equity": 336.3239162587943,
+        "max_drawdown": 0.6577231276321457,
+        "log_growth": -0.3965333663592218
+      },
+      "be_150": {
+        "final_equity": 234.85389531974997,
+        "max_drawdown": 0.7135362349702721,
+        "log_growth": -0.7556444996709462
+      },
+      "hold_sltp": {
+        "final_equity": 152.6544628052742,
+        "max_drawdown": 0.8531879152572303,
+        "log_growth": -1.1864311441280417
+      },
+      "p25_100_be": {
+        "final_equity": 253.2089143885052,
+        "max_drawdown": 0.6863134985611204,
+        "log_growth": -0.6803932018662883
+      },
+      "p25_150_be": {
+        "final_equity": 96.53887412712636,
+        "max_drawdown": 0.8350507112745208,
+        "log_growth": -1.644662330500167
+      },
+      "p33_100_be": {
+        "final_equity": 179.51480439953596,
+        "max_drawdown": 0.7269230696520079,
+        "log_growth": -1.0243504181313634
+      },
+      "p33_150_be": {
+        "final_equity": 72.5350478016638,
+        "max_drawdown": 0.8673447083518845,
+        "log_growth": -1.9305382354163956
+      },
+      "p50_100_be": {
+        "final_equity": 86.19441687917826,
+        "max_drawdown": 0.8301636114274266,
+        "log_growth": -1.7580026922332532
+      },
+      "p50_150_be": {
+        "final_equity": 39.42254445080355,
+        "max_drawdown": 0.9228441310624159,
+        "log_growth": -2.540270251576148
+      },
+      "timeout_192": {
+        "final_equity": 140.74319732672924,
+        "max_drawdown": 0.8479667243162515,
+        "log_growth": -1.267671164174455
+      },
+      "timeout_48": {
+        "final_equity": 134.31095118749587,
+        "max_drawdown": 0.8509903475946365,
+        "log_growth": -1.3144504554959386
+      },
+      "timeout_96": {
+        "final_equity": 150.4420281025847,
+        "max_drawdown": 0.8451845617266032,
+        "log_growth": -1.2010302837717037
+      }
+    },
+    "0.015": {
+      "be_075": {
+        "final_equity": 3449.4179957512506,
+        "max_drawdown": 0.4441392300830807,
+        "log_growth": 1.9313527004885989
+      },
+      "be_100": {
+        "final_equity": 833.0859447277898,
+        "max_drawdown": 0.6966688389970762,
+        "log_growth": 0.5105287133658077
+      },
+      "be_125": {
+        "final_equity": 252.3821755648784,
+        "max_drawdown": 0.8070244089861935,
+        "log_growth": -0.6836635900393303
+      },
+      "be_150": {
+        "final_equity": 144.85816949026736,
+        "max_drawdown": 0.8532061570657011,
+        "log_growth": -1.2388529761405696
+      },
+      "hold_sltp": {
+        "final_equity": 72.34057103795777,
+        "max_drawdown": 0.9478553995074988,
+        "log_growth": -1.9332229781229573
+      },
+      "p25_100_be": {
+        "final_equity": 170.48891581606992,
+        "max_drawdown": 0.8289775424536453,
+        "log_growth": -1.0759378136882765
+      },
+      "p25_150_be": {
+        "final_equity": 38.857492912292315,
+        "max_drawdown": 0.9376291655715345,
+        "log_growth": -2.554707172449856
+      },
+      "p33_100_be": {
+        "final_equity": 102.23118911291195,
+        "max_drawdown": 0.8608395828694801,
+        "log_growth": -1.5873712899796286
+      },
+      "p33_150_be": {
+        "final_equity": 25.425018287831307,
+        "max_drawdown": 0.9548551105821549,
+        "log_growth": -2.97887443720243
+      },
+      "p50_100_be": {
+        "final_equity": 34.27179969886436,
+        "max_drawdown": 0.9329540479961788,
+        "log_growth": -2.68028524862817
+      },
+      "p50_150_be": {
+        "final_equity": 10.271487528340694,
+        "max_drawdown": 0.9800780803428317,
+        "log_growth": -3.885236242872887
+      },
+      "timeout_192": {
+        "final_equity": 64.09245619583606,
+        "max_drawdown": 0.945043753568693,
+        "log_growth": -2.0542814294738303
+      },
+      "timeout_48": {
+        "final_equity": 59.90131161469492,
+        "max_drawdown": 0.9466071873996817,
+        "log_growth": -2.1219096968010396
+      },
+      "timeout_96": {
+        "final_equity": 70.8037859791398,
+        "max_drawdown": 0.9435353996321332,
+        "log_growth": -1.9546956248705756
+      }
+    },
+    "0.02": {
+      "be_075": {
+        "final_equity": 6089.807648998705,
+        "max_drawdown": 0.5452465985676339,
+        "log_growth": 2.499763677053664
+      },
+      "be_100": {
+        "final_equity": 896.2669699184027,
+        "max_drawdown": 0.8039403202346166,
+        "log_growth": 0.5836302276704374
+      },
+      "be_125": {
+        "final_equity": 178.6066299164122,
+        "max_drawdown": 0.8938332060514083,
+        "log_growth": -1.0294223090763281
+      },
+      "be_150": {
+        "final_equity": 83.34401505220426,
+        "max_drawdown": 0.9269152390594149,
+        "log_growth": -1.7916312968160437
+      },
+      "hold_sltp": {
+        "final_equity": 30.971075114317035,
+        "max_drawdown": 0.9824083696222958,
+        "log_growth": -2.781554390337749
+      },
+      "p25_100_be": {
+        "final_equity": 110.64996529887645,
+        "max_drawdown": 0.9084168164718643,
+        "log_growth": -1.5082363455367813
+      },
+      "p25_150_be": {
+        "final_equity": 14.755563250849427,
+        "max_drawdown": 0.977510402102684,
+        "log_growth": -3.5229879171978022
+      },
+      "p33_100_be": {
+        "final_equity": 56.281231611896054,
+        "max_drawdown": 0.9302647888735721,
+        "log_growth": -2.1842469827641295
+      },
+      "p33_150_be": {
+        "final_equity": 8.432931783245705,
+        "max_drawdown": 0.9853152633548449,
+        "log_growth": -4.082463607125337
+      },
+      "p50_100_be": {
+        "final_equity": 13.23753230731518,
+        "max_drawdown": 0.9742837119739571,
+        "log_growth": -3.6315519469072615
+      },
+      "p50_150_be": {
+        "final_equity": 2.545784072995449,
+        "max_drawdown": 0.9951009943651072,
+        "log_growth": -5.280169412176008
+      },
+      "timeout_192": {
+        "final_equity": 26.3823028026273,
+        "max_drawdown": 0.9811299450132374,
+        "log_growth": -2.94191466143919
+      },
+      "timeout_48": {
+        "final_equity": 24.188091353226298,
+        "max_drawdown": 0.9818119338049869,
+        "log_growth": -3.028747679218855
+      },
+      "timeout_96": {
+        "final_equity": 30.11377167930872,
+        "max_drawdown": 0.9804394679965985,
+        "log_growth": -2.809625500428654
+      }
+    }
+  },
+  "boundaries": [
+    "Public OHLC/M5 structural proxy only.",
+    "No broker bid/ask execution truth.",
+    "M5 same-candle unresolved ordering remains ambiguous.",
+    "Partial exits receive an extra friction stress but exact broker costs are unknown."
+  ]
+}
