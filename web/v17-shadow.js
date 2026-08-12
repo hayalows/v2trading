@@ -24,7 +24,7 @@
   }
   function render(){
     const card=ensure();if(!card)return;
-    if(!arena){card.innerHTML='<div class="cardLabel"><span class="material-symbols-rounded">visibility</span>Prospective Shadow Arena</div><h3>Loading pre-outcome calibration records…</h3>';return}
+    if(!arena){card.innerHTML='<div class="cardLabel"><span class="material-symbols-rounded">visibility</span>Prospective Shadow Arena</div><h3>Research loads after Focus is ready.</h3>';return}
     const c=arena.counts||{},cal=arena.calibration||{},models=arena.models||[];
     const modelHtml=models.map(m=>`<div class="shadowModel"><div><b>${safe(m.model_family)}</b><span>${safe(m.model_version)}</span></div><small>${safe(statusCopy(m))}</small></div>`).join('');
     const latest=(arena.latest||[]).slice(0,4).map(x=>`<li><b>${safe(x.symbol)} ${safe(x.direction)}</b> · age ${safe(x.landmark_age_bars)} · ${safe(x.status)}${x.outcome===1?' · BOS reached':x.outcome===0?' · no BOS in horizon':''}</li>`).join('');
@@ -60,5 +60,8 @@
     if(!document.querySelector('script[data-v23-chat]')){const s=document.createElement('script');s.src=asset('v23-chat.js');s.dataset.v23Chat='1';s.defer=true;document.body.appendChild(s)}
   }
   const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='evidenceView'){render();load()}}}
-  load();setInterval(load,60_000);loadV18();loadV20();loadV21();loadV22();loadV23();
+  loadV23();
+  const loadResearch=()=>{load();loadV18();loadV20();loadV21();loadV22()};
+  if('requestIdleCallback'in window)requestIdleCallback(loadResearch,{timeout:2500});else setTimeout(loadResearch,1500);
+  setInterval(load,60_000);
 })();
