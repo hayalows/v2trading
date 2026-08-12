@@ -1,11 +1,17 @@
 name: v19-poi-penetration
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/v26_conditional_poi_depth.py'
+      - '.github/workflows/v19-poi-penetration.yml'
   pull_request:
     paths:
       - 'scripts/v19_poi_penetration_research.py'
       - 'scripts/v19_poi_lifecycle_postprocess.py'
       - 'scripts/v19_m5_poi_refinement.py'
+      - 'scripts/v26_conditional_poi_depth.py'
       - 'reports/v19/**'
       - '.github/workflows/v19-poi-penetration.yml'
   workflow_dispatch:
@@ -23,11 +29,12 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
-      - name: Compile frozen v1.9 research
+      - name: Compile frozen v1.9 and conditional v2.6 research
         run: |
           python -m py_compile scripts/v19_poi_penetration_research.py
           python -m py_compile scripts/v19_poi_lifecycle_postprocess.py
           python -m py_compile scripts/v19_m5_poi_refinement.py
+          python -m py_compile scripts/v26_conditional_poi_depth.py
       - name: Install research dependencies
         run: pip install -r requirements.txt
       - name: Download frozen EURUSD and GBPUSD M15/M5 history
@@ -61,11 +68,17 @@ jobs:
             --sim research-output/v19/poi-penetration/v19_poi_depth_simulations.csv \
             --setups research-output/v19/poi-penetration/v19_poi_setups.csv \
             --out research-output/v19/poi-penetration
-      - name: Show frozen results
+      - name: Run chronological conditional-depth challenger
+        run: |
+          python scripts/v26_conditional_poi_depth.py \
+            --input research-output/v19/poi-penetration/v19_m5_refined_depth_rows.csv \
+            --out research-output/v19/poi-penetration
+      - name: Show frozen and conditional results
         run: |
           cat research-output/v19/poi-penetration/v19_poi_penetration_summary.json
           cat research-output/v19/poi-penetration/v19_poi_lifecycle_summary.json
           cat research-output/v19/poi-penetration/v19_m5_refinement_summary.json
+          cat research-output/v19/poi-penetration/v26_conditional_poi_depth_summary.json
       - uses: actions/upload-artifact@v4
         with:
           name: v19-poi-penetration
