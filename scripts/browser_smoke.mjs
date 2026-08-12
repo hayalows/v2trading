@@ -29,6 +29,11 @@ async function pageTarget(timeout=15000){
   }
   throw new Error('Timed out waiting for Chrome page target');
 }
+async function removeProfile(path){
+  for(let i=0;i<6;i++){
+    try{rmSync(path,{recursive:true,force:true,maxRetries:3,retryDelay:100});return}catch(e){if(i===5)console.warn('profile cleanup skipped',e?.code||e);else await sleep(200)}
+  }
+}
 
 const root=process.cwd();
 const smokeUrl=process.env.SMOKE_URL||'http://127.0.0.1:4173/web/index.html';
@@ -86,5 +91,6 @@ try{
   try{ws?.close()}catch{}
   chrome.kill('SIGKILL');
   server?.kill('SIGKILL');
-  rmSync(profile,{recursive:true,force:true});
+  await sleep(300);
+  await removeProfile(profile);
 }
