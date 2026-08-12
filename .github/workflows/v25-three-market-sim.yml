@@ -1,0 +1,40 @@
+name: v25-three-market-sim
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/v25_download_history.cjs'
+      - 'scripts/v25_three_market_simulation.py'
+      - '.github/workflows/v25-three-market-sim.yml'
+  workflow_dispatch:
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: npm install --no-save dukascopy-node@latest
+      - run: pip install -r requirements.txt
+      - name: Download EURUSD M15
+        run: node scripts/v25_download_history.cjs eurusd .research-data/eurusd-m15.json 2020-01-01 2026-08-12
+      - name: Download GBPUSD M15
+        run: node scripts/v25_download_history.cjs gbpusd .research-data/gbpusd-m15.json 2020-01-01 2026-08-12
+      - name: Download XAUUSD M15
+        run: node scripts/v25_download_history.cjs xauusd .research-data/xauusd-m15.json 2020-01-01 2026-08-12
+      - name: Run common V2 midpoint/account simulation
+        run: PYTHONPATH=scripts python scripts/v25_three_market_simulation.py --data-dir .research-data --out research-output/v25
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v25-three-market-sim
+          path: |
+            research-output/v25/v25-sim.json
+            research-output/v25/v25-midpoint-trades.csv
+          retention-days: 14
