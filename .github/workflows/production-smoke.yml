@@ -1,6 +1,6 @@
 name: production-smoke
 
-# Verifies the deployed Vercel + CDN path, including the canonical paper account and pip/RR journal.
+# Verifies deployed Vercel + CDN path, $500 account, pip/RR journal and BID/ASK execution evidence.
 on:
   push:
     branches: [main]
