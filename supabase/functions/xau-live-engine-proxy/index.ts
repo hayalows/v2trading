@@ -1,0 +1,4 @@
+const SB=Deno.env.get("SUPABASE_URL")!;
+const H={"Access-Control-Allow-Origin":"*","Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"};
+Deno.serve(async req=>{if(req.method==="OPTIONS")return new Response("ok",{headers:H});if(req.method!=="GET")return new Response(JSON.stringify({error:"GET only"}),{status:405,headers:H});try{const r=await fetch(`${SB}/functions/v1/xau-minute-sync`,{headers:{"Cache-Control":"no-cache"},signal:AbortSignal.timeout(30000)});const text=await r.text();return new Response(text,{status:r.status,headers:H})}catch(e){return new Response(JSON.stringify({error:e instanceof Error?e.message:String(e)}),{status:500,headers:H})}});
+// This proxy intentionally never writes market_states. xau-state-engine is the sole canonical XAU state owner.
