@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080b10">
-<meta name="description" content="V2 Intelligence Lab — prospective EURUSD, GBPUSD and XAUUSD market-state research, Shadow Arena calibration, POI lifecycle tracking and automatic paper trades.">
+<meta name="description" content="V2 Intelligence Lab — prospective EURUSD and GBPUSD market-state research, StateTwin intelligence, Shadow Arena calibration, POI lifecycle tracking and automatic paper trades.">
 <title>V2 Intelligence Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,9 +14,8 @@
 <link rel="stylesheet" href="/web/v11.css">
 <link rel="stylesheet" href="/web/v13.css">
 <link rel="stylesheet" href="/web/v15.css">
-<link rel="stylesheet" href="/web/v23.css">
-<link rel="stylesheet" href="/web/v25.css">
-<link rel="stylesheet" href="/web/v25-tabs.css">
+<link rel="stylesheet" href="/web/v16.css">
+<link rel="stylesheet" href="/web/v17.css">
 </head>
 <body>
 <div class="shell">
@@ -36,7 +35,7 @@
       <div class="topActions"><div class="market"><span class="dot" id="marketDot"></span><span id="marketText">Checking</span></div><button class="iconBtn" id="refresh" aria-label="Refresh"><span class="material-symbols-rounded">refresh</span></button></div>
     </header>
     <div class="wrap">
-      <section class="intro"><div class="eyebrow">Version 2.5 · Three-market intelligence</div><h1>Know what matters now.</h1><p>Read EURUSD, GBPUSD and Gold through one market-state workflow, then make every serious model prove itself prospectively before its probability can reach the live workflow.</p></section>
+      <section class="intro"><div class="eyebrow">FX Core · EURUSD + GBPUSD</div><h1>Know what matters now.</h1><p>Read EURUSD and GBPUSD as changing market states, track POI and paper-trade lifecycles, and keep model evidence separate from the live research workflow.</p></section>
       <section class="pairSwitch" id="pairSwitch" aria-label="Choose FX pair"></section>
 
       <section class="view active" id="overview">
@@ -111,14 +110,12 @@
 </div>
 <nav class="bottom" aria-label="Primary navigation"><button class="navBtn active" data-view="overview"><span class="material-symbols-rounded">my_location</span><span>Focus</span></button><button class="navBtn" data-view="chartView"><span class="material-symbols-rounded">candlestick_chart</span><span>Chart</span></button><button class="navBtn" data-view="tradesView"><span class="material-symbols-rounded">query_stats</span><span>Trades</span></button><button class="navBtn" data-view="evidenceView"><span class="material-symbols-rounded">science</span><span>Research</span></button><button class="navBtn" data-view="dataView"><span class="material-symbols-rounded">verified_user</span><span>Data</span></button></nav>
 <div class="snack" id="snack" role="status" aria-live="polite"></div>
-<script>window.__V2_PRIMARY_V25=true;</script>
-<script src="/web/v2-data-bus.js"></script>
 <script src="/web/v12.js"></script>
 <script src="/web/poi-watch.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<script src="/web/paper-trades.js"></script>
 <script src="/web/v15-focus.js"></script>
-<script src="/web/v25-unified.js"></script>
-<script src="/web/v25-url.js"></script>
-<script src="/web/v23-chat.js"></script>
-<script src="/web/v25-lazy.js"></script>
+<script src="/web/v16-state-twin.js"></script>
+<script src="/web/v17-shadow.js"></script>
 </body>
 </html>
