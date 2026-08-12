@@ -1,6 +1,6 @@
 name: production-smoke
 
-# Verifies deployed Vercel + CDN path, $500 account, pip/RR journal and BID/ASK execution evidence.
+# Verifies the live Vercel + CDN path at a 390x844 mobile viewport, including touch targets, plain-language UI, paper account and execution evidence.
 on:
   push:
     branches: [main]
@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Click through live production UI
+      - name: Click through live production mobile UI
         env:
           SMOKE_URL: https://v2trading.vercel.app
         run: node scripts/browser_smoke.mjs
