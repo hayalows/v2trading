@@ -37,6 +37,7 @@
     <div class="wrap">
       <section class="intro"><div class="eyebrow">FX Core · EURUSD + GBPUSD</div><h1>Know what matters now.</h1><p>Read EURUSD and GBPUSD as changing market states, track POI and paper-trade lifecycles, and keep model evidence separate from the live research workflow.</p></section>
       <section class="pairSwitch" id="pairSwitch" aria-label="Choose FX pair"></section>
+      <section class="portfolioStrip" id="paperAccount" aria-live="polite"><div class="portfolioLoading">Loading $500 paper account…</div></section>
 
       <section class="view active" id="overview">
         <div class="focusBoard" id="focusBoard" aria-live="polite"></div>
@@ -80,7 +81,7 @@
           <article class="card"><div class="cardLabel"><span class="material-symbols-rounded">rule</span>Frozen geometry</div><h3>POI midpoint → sweep stop → 2.5R</h3><p>Entry is the 50% POI midpoint. SL stays beyond the sweep extreme with a 0.03 ATR buffer. TP stays fixed at 2.5R. Elapsed time changes lifecycle state but does not automatically cancel an untouched POI.</p><div class="paperNotice"><strong>Research boundary</strong>Public completed candles are not broker bid/ask execution. Same-bar ambiguity is resolved with public 5-minute data when possible, otherwise it stays ambiguous.</div></article>
         </div>
         <div class="researchChartShell"><div class="researchChartHead"><div><b>Research Trade Chart</b><span>POI, entry, stop and target from the paper engine</span></div><span id="researchChartLabel">Loading</span></div><div class="researchChart" id="researchChart"></div><div class="chartLegend"><span><i class="legendDot legendPoi"></i>POI</span><span><i class="legendDot legendEntry"></i>Entry</span><span><i class="legendDot legendStop"></i>SL</span><span><i class="legendDot legendTarget"></i>TP</span></div></div>
-        <section class="section"><div class="sectionHead"><h2>Journal</h2><p>Every plan, POI interaction, entry and outcome is retained.</p></div><div class="tradeList" id="paperHistory"></div></section>
+        <section class="section"><div class="sectionHead"><h2>Journal</h2><p>Every plan, POI interaction, entry and outcome is retained. Pips are indicative research pips from the stored public-price geometry.</p></div><div class="tradeList" id="paperHistory"></div></section>
       </section>
 
       <section class="view" id="evidenceView">
@@ -102,6 +103,8 @@
           <details><summary><span>POI lifecycle</span><span class="material-symbols-rounded">expand_more</span></summary><p>Fresh wait covers the first 8 M15 bars, extended wait bars 9–48, long-tail wait bars 49–192, and older plans remain tracked as outside the studied tail. Time alone is not invalidation.</p></details>
           <details><summary><span>Partial mitigation</span><span class="material-symbols-rounded">expand_more</span></summary><p>Price touches part of the POI without reaching the midpoint. Historical proxy outcomes were materially weaker after this pattern.</p></details>
           <details><summary><span>Automatic paper trade</span><span class="material-symbols-rounded">expand_more</span></summary><p>A simulated research trade created from the lab's frozen POI midpoint rule, with automatic SL, TP and outcome tracking.</p></details>
+          <details><summary><span>Paper account</span><span class="material-symbols-rounded">expand_more</span></summary><p>The simulated account starts at $500. One percent of the realized paper balance is frozen as risk when an entry is recorded. Only canonical numeric R outcomes change realized balance; ambiguous outcomes change nothing.</p></details>
+          <details><summary><span>Pip</span><span class="material-symbols-rounded">expand_more</span></summary><p>For EURUSD and GBPUSD, V2 reports one indicative research pip as 0.0001 in price. These are not broker fill pips and exclude spread/slippage.</p></details>
           <details><summary><span>Execution truth</span><span class="material-symbols-rounded">expand_more</span></summary><p>No broker-specific bid/ask or tick feed is connected. Spread, slippage and exact executable fill sequence remain unknown.</p></details>
         </div></article></section>
       </section>
