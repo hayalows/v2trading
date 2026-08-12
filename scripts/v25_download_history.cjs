@@ -1,3 +1,4 @@
+// V2.5 common-protocol historical downloader.
 const fs = require('fs');
 const path = require('path');
 const { getHistoricalRates } = require('dukascopy-node');
