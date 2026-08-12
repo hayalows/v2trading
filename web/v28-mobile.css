@@ -1,0 +1,66 @@
+/* V2 v2.8 — mobile-first refinement. Desktop remains unchanged. */
+@media (max-width:719px){
+  :root{--mobile-bg:#080b10;--mobile-surface:#111720;--mobile-surface-2:#171e28;--mobile-line:#303946;--mobile-text:#f5f7fa;--mobile-muted:#b7c0cb;--mobile-accent:#b8d2ff;--mobile-good:#9be2b7;--mobile-warn:#f6cf83;--mobile-bad:#ffc0b8}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding-top:76px}
+  body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,"Segoe UI",sans-serif;font-size:16px;line-height:1.5;background:var(--mobile-bg);color:var(--mobile-text);overflow-x:hidden}
+  button,summary,a,[role="button"]{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  button,.btn,.focusAction,.pairBtn,.navBtn,.iconBtn,summary{min-height:48px}
+  button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var(--mobile-accent);outline-offset:3px}
+  .material-symbols-rounded{font-size:24px}
+
+  .main{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+  .topbar{height:64px;padding:0 16px;background:rgba(8,11,16,.96);border-bottom-color:var(--mobile-line);backdrop-filter:blur(20px)}
+  .logo{width:38px;height:38px;border-radius:12px;font-size:15px}
+  .brand{gap:9px}.brand b{font-size:15px;line-height:1.2}.brand span{font-size:12px;line-height:1.2;color:var(--mobile-muted);margin-top:3px}
+  .market{height:40px;padding:0 10px;font-size:12px;max-width:112px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .iconBtn{width:48px;height:48px}
+
+  .wrap{padding:16px 16px 28px}
+  .intro{padding:4px 0 12px;margin:0}.intro .eyebrow{font-size:12px;letter-spacing:.04em;text-transform:none;font-weight:700}.intro h1{font-size:30px;line-height:1.08;letter-spacing:-.025em;margin:5px 0 7px}.intro p{font-size:15px;line-height:1.5;color:var(--mobile-muted);max-width:36ch}
+
+  .pairSwitch{margin:0 0 12px;padding:4px;border-radius:16px;gap:4px;background:var(--mobile-surface)}
+  .pairBtn{min-height:58px;border-radius:13px;padding:9px 11px}.pairBtn strong{font-size:15px}.pairBtn small{font-size:12px;line-height:1.25;color:var(--mobile-muted)}.pairPrice{font-size:15px;font-variant-numeric:tabular-nums}.pairBtn.active{background:#263142}
+
+  .portfolioStrip{margin:0 0 14px;padding:14px;border-radius:20px;gap:10px;border-color:var(--mobile-line);background:var(--mobile-surface)}
+  .portfolioTop{align-items:center;gap:10px}.portfolioTitle{min-width:0}.portfolioTitle b{font-size:14px;line-height:1.25}.portfolioTitle span{font-size:12px;line-height:1.3;color:var(--mobile-muted)}
+  .portfolioBalance{flex:0 0 auto}.portfolioBalance b{font-size:25px;line-height:1.05}.portfolioBalance span{font-size:12px;line-height:1.25}
+  .portfolioGrid,.portfolioPath{display:none}
+  .portfolioStrip.mobileExpanded .portfolioGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .portfolioStrip.mobileExpanded .portfolioPath{display:grid;grid-template-columns:1fr;gap:8px}
+  .portfolioMetric{padding:12px;border-radius:13px}.portfolioMetric span,.portfolioMetric small{font-size:12px;line-height:1.35}.portfolioMetric b{font-size:15px;line-height:1.3}
+  .portfolioPath p{font-size:13px;line-height:1.5;color:var(--mobile-muted)}.portfolioSpark{width:100%;height:48px}
+  .mobileAccountToggle{width:100%;min-height:48px;border:0;border-top:1px solid var(--mobile-line);margin:2px 0 -4px;padding:8px 2px 0;background:transparent;color:var(--mobile-accent);display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:700;cursor:pointer}
+
+  .focusBoard{gap:12px;margin:0 0 14px}.focusHero{padding:18px;border-radius:22px;border-color:var(--mobile-line);background:linear-gradient(180deg,#141b25,#0e141c);box-shadow:none}
+  .focusTop{display:block}.focusKicker{font-size:12px;letter-spacing:.04em;text-transform:none;color:var(--mobile-muted)}.focusStatus{font-size:34px;line-height:1.06;letter-spacing:-.03em;margin:7px 0 9px}.focusSummary{font-size:16px;line-height:1.5;color:#d7dde5;max-width:32ch}.focusBadge{display:inline-flex;margin-top:12px;padding:7px 10px;font-size:12px;line-height:1.3;white-space:normal}
+  .focusLifecycle{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:18px}.focusStep{padding-top:10px;font-size:12px;line-height:1.25}.focusStep b{font-size:12px;line-height:1.25;margin-bottom:3px}.focusStep span{font-size:11px}
+  .focusActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}.focusAction{min-height:50px;border-radius:14px;padding:0 12px;font-size:14px}
+  .focusGrid{grid-template-columns:1fr;gap:10px}.focusCard{padding:16px;border-radius:18px;border-color:var(--mobile-line)}
+  .focusGrid .focusCard:nth-child(3){order:1}.focusGrid .focusCard:nth-child(1){order:2}.focusGrid .focusCard:nth-child(4){order:3}.focusGrid .focusCard:nth-child(2){order:4}
+  .focusCard .label{font-size:12px;letter-spacing:.03em;text-transform:none}.focusCard h3{font-size:20px;line-height:1.25;margin:8px 0 5px}.focusCard p{font-size:15px;line-height:1.5;color:var(--mobile-muted)}.focusLevel{font-size:27px!important;line-height:1.15!important}
+  #focusBoard>.v15ResearchNote{display:none}
+
+  .researchDisclosure{margin:12px 0 20px;border-radius:18px;border-color:var(--mobile-line)}.researchDisclosure>summary{padding:12px 14px;min-height:56px;font-size:15px}.researchDisclosure>summary small{font-size:12px;line-height:1.35;color:var(--mobile-muted)}.researchInner{padding:10px}
+  .researchDisclosure .overviewGrid{gap:10px}.hero{padding:16px;border-radius:20px}.hero h2{font-size:24px}.heroCopy{font-size:15px;line-height:1.5}.whyRow{font-size:14px;line-height:1.5}
+  .statusGrid,.metrics,.trends,.stats{grid-template-columns:1fr 1fr;gap:8px}.statusTile,.metric,.trend,.stat{padding:12px;border-radius:15px}.statusTile span,.statusTile small,.metricHead,.trendTop,.metric p,.trend p,.stat span{font-size:12px;line-height:1.4}.statusTile b,.metric b,.trendDir{font-size:15px}.stat b{font-size:22px}
+  .card{padding:16px;border-radius:18px;border-color:var(--mobile-line)}.cardLabel{font-size:12px;letter-spacing:.03em;text-transform:none}.card h3{font-size:20px;line-height:1.25}.card p{font-size:15px;line-height:1.5;color:var(--mobile-muted)}.chip{font-size:12px;line-height:1.3;padding:7px 9px}
+  .section{margin-top:18px}.sectionHead{margin-bottom:10px}.sectionHead h2{font-size:24px;line-height:1.2}.sectionHead p{font-size:14px;line-height:1.45;color:var(--mobile-muted)}
+
+  .chartShell,.researchChartShell{border-radius:18px;border-color:var(--mobile-line)}.chartBar,.researchChartHead{padding:12px;align-items:flex-start;flex-wrap:wrap}.chartBar b,.researchChartHead b{font-size:15px;line-height:1.35}.chartBar span,.researchChartHead span{font-size:12px;line-height:1.35}.chart{height:min(62vh,520px);min-height:360px}.researchChart{height:min(58vh,500px);min-height:350px}.chartLegend{font-size:12px;gap:12px;padding:11px 12px}
+
+  .tradeStats{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;padding:0 0 4px;overscroll-behavior-inline:contain}.tradeStat{min-width:142px;padding:13px;scroll-snap-align:start;border-radius:16px}.tradeStat b{font-size:22px}.tradeStat span{font-size:12px;line-height:1.35}
+  .paperWorkspace{gap:10px}.paperCurrent{padding:16px;border-radius:20px}.paperCurrent h3{font-size:22px;line-height:1.25}.paperCurrent p{font-size:15px;line-height:1.5}.paperBadge{font-size:12px;line-height:1.3;padding:7px 9px}.paperLevels{grid-template-columns:1fr 1fr;gap:8px}.paperLevel{padding:11px}.paperLevel span{font-size:12px}.paperLevel b{font-size:15px}.paperNotice{font-size:13px;line-height:1.5;padding:12px}.pipStrip{gap:7px}.pipChip{font-size:12px;padding:7px 9px}.pipChip b{font-size:12px}.tradeRow{padding:14px;border-radius:17px}.tradeRowHead b{font-size:15px}.tradeRowHead small{font-size:12px;line-height:1.35}.tradeMini{grid-template-columns:1fr 1fr;gap:7px}.tradeMini div{padding:10px}.tradeMini span{font-size:12px}.tradeMini b{font-size:13px;line-height:1.3}.executionEvidence strong{font-size:13px}.executionEvidence p{font-size:13px!important;line-height:1.5!important}
+
+  .evidenceCard,.trustCard{padding:15px;border-radius:17px;border-color:var(--mobile-line)}.evidenceHead b,.trustCard h3{font-size:16px}.evidenceBadge,.trustStatus{font-size:12px}.ev span{font-size:12px}.ev b{font-size:14px}.trustCard p{font-size:14px;line-height:1.5}.glossary summary{font-size:15px;min-height:54px}.glossary p{font-size:14px;line-height:1.55}.detail span{font-size:12px}.detail b{font-size:13px}.event{grid-template-columns:76px 1fr}.event time{font-size:12px}.event div{font-size:14px;line-height:1.45}
+
+  .bottom{height:calc(78px + env(safe-area-inset-bottom));padding:4px 4px calc(4px + env(safe-area-inset-bottom));grid-template-columns:repeat(5,1fr);background:rgba(17,23,32,.98);border-top-color:var(--mobile-line);backdrop-filter:blur(20px)}
+  .navBtn{min-width:0;min-height:56px;border-radius:14px;gap:2px;padding:4px 1px;color:var(--mobile-muted)}.navBtn .material-symbols-rounded{width:44px;height:29px;font-size:23px}.navBtn span:last-child{font-size:11.5px;line-height:1.15;font-weight:700}.navBtn.active{color:var(--mobile-text)}.navBtn.active .material-symbols-rounded{background:#2a3545}
+  .snack{bottom:calc(88px + env(safe-area-inset-bottom));font-size:14px;line-height:1.4;padding:12px 14px}
+
+  /* Avoid accidental horizontal scrolling when text is enlarged. */
+  .focusCard,.card,.paperCurrent,.tradeRow,.trustCard,.metric,.trend,.statusTile,.portfolioMetric{min-width:0;overflow-wrap:anywhere}.paperLevels,.tradeMini,.detailGrid{min-width:0}
+}
+
+@media (max-width:370px){
+  .wrap{padding-left:12px;padding-right:12px}.brand span{display:none}.market{max-width:92px}.intro h1{font-size:28px}.focusStatus{font-size:31px}.focusLifecycle{gap:3px}.focusStep b{font-size:11px}.focusStep span{font-size:10.5px}.navBtn span:last-child{font-size:11px}.paperLevels,.statusGrid,.metrics,.trends,.stats{grid-template-columns:1fr}
+}
