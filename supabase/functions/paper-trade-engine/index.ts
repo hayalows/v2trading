@@ -101,9 +101,7 @@ async function cached5m(symbol, cache) {
 }
 
 async function eventOnce(tradeKey, type, at, price = null, payload = {}) {
-  const old = await db.from("paper_trade_events").select("id").eq("trade_key", tradeKey).eq("event_type", type).limit(1).maybeSingle();
-  if (old.data) return;
-  const w = await db.from("paper_trade_events").insert({ trade_key: tradeKey, event_at: at, event_type: type, price, payload });
+  const w = await db.from("paper_trade_events").upsert({ trade_key: tradeKey, event_at: at, event_type: type, price, payload }, { onConflict: "trade_key,event_type", ignoreDuplicates: true });
   if (w.error) throw new Error(`event ${type}: ${w.error.message}`);
 }
 
@@ -147,7 +145,7 @@ async function armCandidate(c, bars) {
     poi_lifecycle_state: "untouched", max_poi_penetration: 0, focus_active: valid,
     context: { formation_stage: c.stage, formation_code: c.code, market_session: c.session, regime: c.regime, trends: c.trends, diagnostics: c.diagnostics, recovered_from_history: c.recovered, recovered_as_of: c.recovered ? c.sourceAt : null, entry_rule: "baseline: first future completed M15 bar after BOS touching 50% POI midpoint; no time-only invalidation", v20_poi_learning: true, invalid_reason: valid ? null : `risk_atr ${riskAtr.toFixed(3)} outside ${MIN_RISK_ATR}-${MAX_RISK_ATR}` },
   };
-  const w = await db.from("paper_trades").insert(row);
+  const w = await db.from("paper_trades").upsert(row, { onConflict: "trade_key", ignoreDuplicates: true });
   if (w.error) throw new Error(`arm ${tradeKey}: ${w.error.message}`);
   await eventOnce(tradeKey, valid ? "armed" : "invalid", now, valid ? entry : null, { entry, stop, target, riskAtr, poiLow: low, poiHigh: high, recoveredFromHistory: c.recovered });
 }
@@ -330,7 +328,7 @@ async function ensureDepthShadows(t) {
     rows.push({ shadow_key: `${t.trade_key}:${depthPct}`, trade_key: t.trade_key, symbol: t.symbol, direction: t.direction, depth_pct: depthPct, prospective, frozen_at: frozenAt, eligible, status: eligible ? "waiting" : "ineligible", entry_price: entry, stop_price: stop, target_price: target, risk_distance: risk, risk_atr: riskAtr, updated_at: frozenAt });
   }
   if (!rows.length) return;
-  const w = await db.from("poi_depth_shadow").insert(rows);
+  const w = await db.from("poi_depth_shadow").upsert(rows, { onConflict: "trade_key,depth_pct", ignoreDuplicates: true });
   if (w.error) throw new Error(`depth freeze ${t.trade_key}: ${w.error.message}`);
 }
 

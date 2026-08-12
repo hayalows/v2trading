@@ -5,6 +5,7 @@ const engine=fs.readFileSync('supabase/functions/paper-trade-engine/index.ts','u
 const migration=fs.readFileSync('supabase/migrations/20260810_paper_trade_engine.sql','utf8');
 const lifecycle=fs.readFileSync('supabase/migrations/20260810_poi_lifecycle_wait.sql','utf8');
 const events=fs.readFileSync('supabase/migrations/20260810_poi_lifecycle_events.sql','utf8');
+const raceMigration=fs.readFileSync('supabase/migrations/20260812160000_race_safe_paper_events_and_function_guards.sql','utf8');
 const paper=fs.readFileSync('web/paper-trades.js','utf8');
 const protocol=fs.readFileSync('docs/PAPER_TRADE_ENGINE_V13.md','utf8');
 const v14=fs.readFileSync('reports/v14/V14_POI_WAITING_TIME_RESULTS.md','utf8');
@@ -24,10 +25,14 @@ const regexes=[
   /c\.form\?\.fresh\s*!==\s*true/,
   /globalThis\.URL\(req\.url\)/,
   /timeInvalidation:\s*["']None(?:\.| for)/,
+  /paper_trade_events"\)\.upsert\(/,
+  /paper_trades"\)\.upsert\(/,
+  /poi_depth_shadow"\)\.upsert\(/,
 ];
 for(const re of regexes)assert.match(engine,re,`missing engine integrity pattern: ${re}`);
 for(const marker of ['5m public path unavailable','SL and TP touched in same 5m bar','M15 entry touch not reproduced by 5m path','partially_mitigated','target_delivered_before_entry','outside_studied_tail'])assert.ok(engine.includes(marker),`missing lifecycle/ambiguity guard: ${marker}`);
 assert.ok(!/status\s*:\s*["']expired["']/.test(engine),'v1.4 must not create a new time-only expired state');
+for(const marker of ['paper_trade_events_trade_key_event_type_key','v2_eurusd_feed_watchdog','revoke all on function'])assert.ok(raceMigration.includes(marker),`missing race/security hardening marker: ${marker}`);
 
 for(const marker of ['create table if not exists public.paper_trades','create table if not exists public.paper_trade_events','enable row level security','revoke all on public.paper_trades from anon, authenticated']) assert.ok(migration.includes(marker),`missing migration marker: ${marker}`);
 for(const marker of ['lifecycle_phase','pending_age_bars','pre_entry_target_reached','research_tail_bars']) assert.ok(lifecycle.includes(marker),`missing v1.4 lifecycle schema marker: ${marker}`);

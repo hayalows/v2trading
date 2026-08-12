@@ -1,12 +1,13 @@
 (()=>{
 const FAST='https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/focus-snapshot';
 const MACRO='https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/macro-context';
-const SIM='/v25-sim.json';
+const SELF=document.currentScript?.src||'',ASSET_BASE=SELF&&SELF.includes('/')?SELF.slice(0,SELF.lastIndexOf('/')+1):'/';
+const SIM=`${ASSET_BASE}v25-sim.json`;
 const SYMS=['EURUSD','GBPUSD','XAUUSD'],NAMES={EURUSD:'Euro / U.S. Dollar',GBPUSD:'British Pound / U.S. Dollar',XAUUSD:'Gold / U.S. Dollar'};
 const requested=String(new URLSearchParams(location.search).get('market')||'').toUpperCase();
 const stored=(()=>{try{return String(localStorage.getItem('v25:lastPick')||'').toUpperCase()}catch{return''}})();
 let pick=SYMS.includes(requested)?requested:(SYMS.includes(stored)?stored:'EURUSD'),local={},paper={trades:[]},macro=null,sim=null,busy=false;
-const safe=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[m])),cap=v=>String(v??'—').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase()),num=(v,d=2)=>Number.isFinite(Number(v))?Number(v).toFixed(d):'—',money=v=>Number.isFinite(Number(v))?`$${Number(v).toFixed(2)}`:'—';
+const safe=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])),cap=v=>String(v??'—').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase()),num=(v,d=2)=>Number.isFinite(Number(v))?Number(v).toFixed(d):'—',money=v=>Number.isFinite(Number(v))?`$${Number(v).toFixed(2)}`:'—';
 const state=s=>local[s]||{},hasState=s=>!!state(s)?.symbol,trade=s=>(paper.trades||[]).filter(x=>x.symbol===s).find(x=>x.status==='open')||(paper.trades||[]).filter(x=>x.symbol===s).find(x=>x.status==='armed')||null,diag=s=>state(s).details?.diagnostics||{};
 function px(s,v){return Number.isFinite(Number(v))?Number(v).toFixed(s==='XAUUSD'?2:5):'—'}
 function action(s){if(!hasState(s))return['LOADING','hold'];const x=state(s),t=trade(s),z=Number(x.formation_stage||0);if(t?.status==='open')return['TRACK PAPER TRADE','good'];if(t?.status==='armed')return['WAIT FOR POI','warn'];if(z>=6)return[s==='XAUUSD'?'REVIEW POI':'POI READY','warn'];if(z===5)return['WAIT FOR POI','hold'];if(z===4)return['WAIT FOR BOS','hold'];if(z===3)return['WATCH SWEEP','hold'];if(z===1)return['WATCH LIQUIDITY',''];return['NO SETUP','']}

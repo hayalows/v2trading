@@ -5,7 +5,7 @@ const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const db = createClient(SB, KEY, { auth: { persistSession: false } });
 const H = {
   "Content-Type": "application/json; charset=utf-8",
-  "Cache-Control": "public, max-age=5, s-maxage=10, stale-while-revalidate=50",
+  "Cache-Control": "public, max-age=0, s-maxage=5, stale-while-revalidate=15",
   "Access-Control-Allow-Origin": "*",
 };
 const SYMS = ["EURUSD", "GBPUSD", "XAUUSD"];

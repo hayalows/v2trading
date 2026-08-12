@@ -10,7 +10,7 @@ const scorer=fs.readFileSync(dual?'scripts/v18_shadow_observer_scorer.py':'scrip
 const calibrator=fs.readFileSync('reports/v17/V17_TTM_LIVE_CALIBRATOR.json','utf8');
 const workflow=fs.readFileSync('.github/workflows/v17-shadow-scorer.yml','utf8');
 const migration=fs.readFileSync('supabase/migrations/20260810225500_v17_shadow_arena.sql','utf8');
-for(const m of ['Version 1.7 · Shadow Arena','/v17.css','/v17-shadow.js','evidenceView'])if(!html.includes(m))throw new Error(`missing v1.7 HTML marker: ${m}`);
+for(const m of ['Version 2.5 · Three-market intelligence','/web/v17.css','/web/v17-shadow.js','evidenceView'])if(!html.includes(m))throw new Error(`missing current HTML marker: ${m}`);
 for(const m of ['Prospective Shadow Arena','probabilities stay hidden','Base Brier','prospective scoring','incremental value beyond StateTwin','ABSTAIN'])if(!js.toLowerCase().includes(m.toLowerCase()))throw new Error(`missing Shadow Arena UI behavior: ${m}`);
 for(const m of ['.shadowArenaResearch','.shadowGrid','.shadowModels','@media(max-width:560px)'])if(!css.includes(m))throw new Error(`missing Shadow Arena CSS: ${m}`);
 for(const m of ['LANDMARKS','resolvePending','observedBeforeOutcome','bosReference','horizon_elapsed','walkforward-base-v1','state-twin-v16','granite-ttm-r2-v17'])if(!edge.includes(m))throw new Error(`missing Shadow Arena engine marker: ${m}`);
