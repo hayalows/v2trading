@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080b10">
-<meta name="description" content="V2 Intelligence Lab — prospective EURUSD and GBPUSD market-state research, StateTwin intelligence, Shadow Arena calibration, POI lifecycle tracking and automatic paper trades.">
+<meta name="description" content="V2 Intelligence Lab — prospective EURUSD and GBPUSD market-state research, POI lifecycle tracking and automatic paper trades.">
 <title>V2 Intelligence Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="/web/v16.css">
 <link rel="stylesheet" href="/web/v17.css">
 <link rel="stylesheet" href="/web/v28-mobile.css">
+<link rel="stylesheet" href="/web/v29-mobile-ux.css">
 </head>
 <body>
 <div class="shell">
@@ -106,8 +107,8 @@
           <details><summary><span>Automatic paper trade</span><span class="material-symbols-rounded">expand_more</span></summary><p>A simulated research trade created from the lab's frozen POI midpoint rule, with automatic SL, TP and outcome tracking.</p></details>
           <details><summary><span>Paper account</span><span class="material-symbols-rounded">expand_more</span></summary><p>The simulated account starts at $500. One percent of the realized paper balance is frozen as risk when an entry is recorded. Only canonical numeric R outcomes change realized balance; ambiguous outcomes change nothing.</p></details>
           <details><summary><span>Pip</span><span class="material-symbols-rounded">expand_more</span></summary><p>For EURUSD and GBPUSD, V2 reports one indicative research pip as 0.0001 in price. These are not broker fill pips.</p></details>
-          <details><summary><span>Execution evidence</span><span class="material-symbols-rounded">expand_more</span></summary><p>V2 now stores public Dukascopy BID/ASK tick-derived microstructure and audits paper entries independently. Exact ticks are preferred; BID/ASK one-minute bars are a fallback. This evidence is shadow-only and never changes the canonical account automatically.</p></details>
-          <details><summary><span>Execution truth</span><span class="material-symbols-rounded">expand_more</span></summary><p>No broker-specific execution feed is connected. Public Dukascopy BID/ASK data improves path and spread evidence, but broker-specific spread, slippage, queue position and executable fill truth remain unknown.</p></details>
+          <details><summary><span>Execution evidence</span><span class="material-symbols-rounded">expand_more</span></summary><p>V2 stores a separate public BID/ASK price path to check paper entries. This is an advanced research check and never changes the paper account automatically.</p></details>
+          <details><summary><span>Execution truth</span><span class="material-symbols-rounded">expand_more</span></summary><p>No broker-specific execution feed is connected. Public BID/ASK data improves the check, but broker-specific spread, slippage and exact fills remain unknown.</p></details>
         </div></article></section>
       </section>
     </div>
@@ -124,5 +125,7 @@
 <script src="/web/v16-state-twin.js"></script>
 <script src="/web/v17-shadow.js"></script>
 <script src="/web/v28-mobile.js"></script>
+<script src="/web/v29-mobile-ux.js"></script>
+<script src="/web/v29-market-context.js"></script>
 </body>
 </html>
