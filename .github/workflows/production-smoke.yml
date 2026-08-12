@@ -1,0 +1,21 @@
+name: production-smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/production-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  live-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Click through live production UI
+        env:
+          SMOKE_URL: https://v2trading.vercel.app
+        run: node scripts/browser_smoke.mjs
