@@ -52,4 +52,5 @@
   const oldRender=typeof render==='function'?render:null;if(oldRender){render=function(){oldRender();renderTwin()}}
   const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='overview')renderTwin();if(id==='evidenceView'){ensureResearchCard();if(PRIMARY)loadTwin()}}}
   if(!PRIMARY){loadTwin();setInterval(loadTwin,60_000)}
+  else if(document.getElementById('evidenceView')?.classList.contains('active')){ensureResearchCard();loadTwin()}
 })();
