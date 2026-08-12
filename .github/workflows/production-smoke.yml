@@ -1,6 +1,6 @@
 name: production-smoke
 
-# Verifies the deployed Vercel + CDN path, not only the local repository shell.
+# Verifies the deployed Vercel + CDN path, including the canonical paper account and pip/RR journal.
 on:
   push:
     branches: [main]
