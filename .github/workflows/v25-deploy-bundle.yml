@@ -1,0 +1,24 @@
+name: v25-deploy-bundle
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/v25-deploy-bundle.yml'
+  workflow_dispatch:
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate key frontend scripts
+        run: |
+          node --check web/v17-shadow.js
+          node --check web/v23-chat.js
+          node --check web/v25-unified.js
+          node --check web/v25-url.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v25-web-bundle
+          path: web/
+          retention-days: 2
