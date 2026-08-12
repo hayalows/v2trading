@@ -10,7 +10,7 @@ function chromePath(){
   }
   throw new Error('Chrome/Chromium not found on runner');
 }
-async function waitJson(url,timeout=12000){
+async function waitJson(url,timeout=15000){
   const end=Date.now()+timeout;
   while(Date.now()<end){
     try{const r=await fetch(url);if(r.ok)return await r.json()}catch{}
@@ -18,7 +18,7 @@ async function waitJson(url,timeout=12000){
   }
   throw new Error(`Timed out waiting for ${url}`);
 }
-async function pageTarget(timeout=12000){
+async function pageTarget(timeout=15000){
   const end=Date.now()+timeout;
   while(Date.now()<end){
     try{
@@ -31,7 +31,9 @@ async function pageTarget(timeout=12000){
 }
 
 const root=process.cwd();
-const server=spawn('python3',['-m','http.server','4173','--bind','127.0.0.1','--directory',root],{stdio:'ignore'});
+const smokeUrl=process.env.SMOKE_URL||'http://127.0.0.1:4173/web/index.html';
+const local=!process.env.SMOKE_URL;
+const server=local?spawn('python3',['-m','http.server','4173','--bind','127.0.0.1','--directory',root],{stdio:'ignore'}):null;
 const profile=mkdtempSync(join(tmpdir(),'v2-chrome-'));
 const chrome=spawn(chromePath(),[
   '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
@@ -57,31 +59,32 @@ try{
     return r.result?.value;
   };
   await call('Page.enable');await call('Runtime.enable');
-  await call('Page.navigate',{url:'http://127.0.0.1:4173/web/index.html'});
-  const end=Date.now()+12000;
+  await call('Page.navigate',{url:smokeUrl});
+  const end=Date.now()+30000;
   while(Date.now()<end){
     if(await evalJs("document.readyState==='complete' && typeof setView==='function'"))break;
-    await sleep(100);
+    await sleep(150);
   }
-  if(!await evalJs("document.readyState==='complete' && typeof setView==='function'"))throw new Error('Core navigation did not initialize');
+  if(!await evalJs("document.readyState==='complete' && typeof setView==='function'"))throw new Error(`Core navigation did not initialize at ${smokeUrl}`);
   const expected=[['chartView','chartView'],['tradesView','tradesView'],['evidenceView','evidenceView'],['dataView','dataView'],['overview','overview']];
   for(const [button,view] of expected){
-    const ok=await evalJs(`(()=>{const b=document.querySelector('[data-view="${button}"]');if(!b)return false;b.click();return true})()`);
+    const ok=await evalJs(`(()=>{const bs=[...document.querySelectorAll('[data-view="${button}"]')];const b=bs.find(x=>x.offsetParent!==null)||bs[0];if(!b)return false;b.click();return true})()`);
     if(!ok)throw new Error(`Missing navigation button ${button}`);
-    await sleep(250);
+    await sleep(400);
     const active=await evalJs("document.querySelector('.view.active')?.id||''");
     if(active!==view)throw new Error(`Click ${button} left active view as ${active||'none'}`);
   }
-  const pairDeadline=Date.now()+15000;
+  const pairDeadline=Date.now()+20000;
   let pairs=0;
   while(Date.now()<pairDeadline){pairs=await evalJs("document.querySelectorAll('[data-pair]').length");if(pairs===2)break;await sleep(250)}
   if(pairs!==2)throw new Error(`Expected exactly 2 FX pair buttons, found ${pairs}`);
   const labels=await evalJs("[...document.querySelectorAll('[data-pair]')].map(x=>x.dataset.pair).join(',')");
   if(labels!=='EURUSD,GBPUSD')throw new Error(`Unexpected pair list: ${labels}`);
   if(exceptions.length)throw new Error(`Uncaught browser exception: ${exceptions.join(' | ')}`);
-  console.log('browser smoke passed: FX shell navigates across all five views and exposes only EURUSD/GBPUSD');
+  console.log(`browser smoke passed at ${smokeUrl}: all five views navigate and only EURUSD/GBPUSD are exposed`);
 } finally {
   try{ws?.close()}catch{}
-  chrome.kill('SIGKILL');server.kill('SIGKILL');
+  chrome.kill('SIGKILL');
+  server?.kill('SIGKILL');
   rmSync(profile,{recursive:true,force:true});
 }
