@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/v24_exit_policy_research.py'
+      - 'scripts/v24_ambiguity_sensitivity.py'
       - 'reports/v24/V24_EXIT_RISK_PROTOCOL.md'
       - '.github/workflows/v24-exit-risk.yml'
   workflow_dispatch:
@@ -22,8 +23,10 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
-      - name: Compile frozen v2.4 research
-        run: python -m py_compile scripts/v24_exit_policy_research.py
+      - name: Compile v2.4 research
+        run: |
+          python -m py_compile scripts/v24_exit_policy_research.py
+          python -m py_compile scripts/v24_ambiguity_sensitivity.py
       - name: Install research dependencies
         run: pip install -r requirements.txt
       - name: Download EURUSD and GBPUSD M15/M5 history
@@ -45,22 +48,32 @@ jobs:
             --data-dir .research-data/market \
             --start 2020-01-01 \
             --out research-output/v24
-      - name: Show result
-        run: cat research-output/v24/V24_EXIT_POLICY_RESULTS.md
+      - name: Run post-result ambiguity robustness diagnostic
+        run: |
+          python scripts/v24_ambiguity_sensitivity.py \
+            --input research-output/v24/v24_exit_policy_rows.csv \
+            --out research-output/v24
+      - name: Show results
+        run: |
+          cat research-output/v24/V24_EXIT_POLICY_RESULTS.md
+          cat research-output/v24/V24_EXIT_POLICY_ROBUSTNESS.md
       - uses: actions/upload-artifact@v4
         with:
           name: v24-exit-risk
           path: research-output/v24/
           retention-days: 14
-      - name: Publish frozen results to repository
+      - name: Publish research reports to repository
         shell: bash
         run: |
           mkdir -p reports/v24/results
           cp research-output/v24/V24_EXIT_POLICY_RESULTS.md reports/v24/results/V24_EXIT_POLICY_RESULTS.md
+          cp research-output/v24/V24_EXIT_POLICY_ROBUSTNESS.md reports/v24/results/V24_EXIT_POLICY_ROBUSTNESS.md
           cp research-output/v24/v24_exit_policy_summary.json reports/v24/results/v24_exit_policy_summary.json
+          cp research-output/v24/v24_ambiguity_sensitivity.json reports/v24/results/v24_ambiguity_sensitivity.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add reports/v24/results
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'research: publish frozen v2.4 exit policy results'
-          git push
+          git commit -m 'research: publish v2.4 exit policy results'
+          git pull --rebase origin main
+          git push origin HEAD:main
