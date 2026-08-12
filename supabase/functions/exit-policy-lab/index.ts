@@ -19,10 +19,10 @@ function sim(t:any,bars:any[],mark:number|null,name:string,cfg:any){
   const e=num(t.entry_price),sl=num(t.stop_price),tp=num(t.target_price),risk=num(t.risk_distance);
   if(e==null||sl==null||tp==null||risk==null||risk<=0)return null;
   const dir=String(t.direction),triggerR=num(cfg.trigger),partial=num(cfg.partial)??0,trigger=triggerR==null?null:level(dir,e,risk,triggerR);
-  let active=false,realized=0,remaining=1,status="open",gross:null|number=null,exitAt:any=null,exitPrice:any=null,amb:any=null,lastAt:any=null;
+  let active=false,realized=0,remaining=1,status="open",gross:null|number=null,exitAt:any=null,exitPrice:any=null,amb:any=null,lastAt:any=null,barsHeld=0;
   const usable=bars.filter(b=>new Date(b.ts).getTime()>=new Date(t.entry_at).getTime());
   for(let i=0;i<usable.length;i++){
-    const b=usable[i],lo=Number(b.low),hi=Number(b.high);lastAt=b.ts;
+    const b=usable[i],lo=Number(b.low),hi=Number(b.high);lastAt=b.ts;barsHeld=i+1;
     const hitOrig=dir==="long"?lo<=sl:hi>=sl,hitBe=dir==="long"?lo<=e:hi>=e,hitTp=dir==="long"?hi>=tp:lo<=tp;
     const hitTrig=trigger!=null&&!active&&(dir==="long"?hi>=trigger:lo<=trigger);
     if(!active){
@@ -35,11 +35,13 @@ function sim(t:any,bars:any[],mark:number|null,name:string,cfg:any){
       if(hitBe){gross=realized;status=partial>0?"partial_then_be":"breakeven";exitAt=b.ts;exitPrice=e;break}
       if(hitTp){gross=realized+remaining*REWARD_R;status=partial>0?"partial_then_target":"target_after_be";exitAt=b.ts;exitPrice=tp;break}
     }
-    if(cfg.timeout&&i+1>=Number(cfg.timeout)){const close=Number(b.close),raw=rNow(dir,e,risk,close);gross=realized+remaining*Math.max(-1,Math.min(REWARD_R,raw));status="timeout";exitAt=b.ts;exitPrice=close;break}
+    // Canonical paper engine checks the bar at entry-array-index + MAX_HOLD_BARS.
+    // Because completed-bar feeds can contain gaps, count observed bars rather than wall-clock minutes.
+    if(cfg.timeout&&i>=Number(cfg.timeout)){const close=Number(b.close),raw=rNow(dir,e,risk,close);gross=realized+remaining*Math.max(-1,Math.min(REWARD_R,raw));status="timeout";exitAt=b.ts;exitPrice=close;break}
   }
   const currentBase=mark!=null?rNow(dir,e,risk,mark):null;
   const current=status==="open"&&currentBase!=null?realized+remaining*currentBase:gross;
-  return {status,gross,current,active,realized,remaining,exitAt,exitPrice,amb,lastAt,barsHeld:usable.length,triggerR,partial};
+  return {status,gross,current,active,realized,remaining,exitAt,exitPrice,amb,lastAt,barsHeld,triggerR,partial};
 }
 function portfolio(rows:any[],policy:string,prospectiveOnly=false){
   const x=rows.filter(r=>r.policy===policy&&(!prospectiveOnly||r.prospective));let realized=START_EQUITY,equity=START_EQUITY,closed=0,open=0;
