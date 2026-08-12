@@ -18,6 +18,17 @@ async function waitJson(url,timeout=12000){
   }
   throw new Error(`Timed out waiting for ${url}`);
 }
+async function pageTarget(timeout=12000){
+  const end=Date.now()+timeout;
+  while(Date.now()<end){
+    try{
+      const r=await fetch('http://127.0.0.1:9222/json/list');
+      if(r.ok){const xs=await r.json();const p=xs.find(x=>x.type==='page'&&x.webSocketDebuggerUrl);if(p)return p}
+    }catch{}
+    await sleep(150);
+  }
+  throw new Error('Timed out waiting for Chrome page target');
+}
 
 const root=process.cwd();
 const server=spawn('python3',['-m','http.server','4173','--bind','127.0.0.1','--directory',root],{stdio:'ignore'});
@@ -29,19 +40,20 @@ const chrome=spawn(chromePath(),[
 
 let ws;
 try{
-  const version=await waitJson('http://127.0.0.1:9222/json/version');
-  ws=new WebSocket(version.webSocketDebuggerUrl);
+  await waitJson('http://127.0.0.1:9222/json/version');
+  const target=await pageTarget();
+  ws=new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve,reject)=>{ws.addEventListener('open',resolve,{once:true});ws.addEventListener('error',reject,{once:true})});
   let seq=0;const waiting=new Map();const exceptions=[];
   ws.addEventListener('message',e=>{
     const m=JSON.parse(e.data);
     if(m.id&&waiting.has(m.id)){const {resolve,reject}=waiting.get(m.id);waiting.delete(m.id);m.error?reject(new Error(m.error.message)):resolve(m.result);return}
-    if(m.method==='Runtime.exceptionThrown')exceptions.push(m.params?.exceptionDetails?.text||'Uncaught exception');
+    if(m.method==='Runtime.exceptionThrown')exceptions.push(m.params?.exceptionDetails?.exception?.description||m.params?.exceptionDetails?.text||'Uncaught exception');
   });
   const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq;waiting.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}))});
   const evalJs=async expression=>{
     const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});
-    if(r.exceptionDetails)throw new Error(r.exceptionDetails.text||'Runtime evaluation failed');
+    if(r.exceptionDetails)throw new Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text||'Runtime evaluation failed');
     return r.result?.value;
   };
   await call('Page.enable');await call('Runtime.enable');
@@ -56,7 +68,7 @@ try{
   for(const [button,view] of expected){
     const ok=await evalJs(`(()=>{const b=document.querySelector('[data-view="${button}"]');if(!b)return false;b.click();return true})()`);
     if(!ok)throw new Error(`Missing navigation button ${button}`);
-    await sleep(180);
+    await sleep(250);
     const active=await evalJs("document.querySelector('.view.active')?.id||''");
     if(active!==view)throw new Error(`Click ${button} left active view as ${active||'none'}`);
   }
