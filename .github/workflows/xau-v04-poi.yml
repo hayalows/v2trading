@@ -1,0 +1,43 @@
+name: xau-v04-poi
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/xau_download_history.cjs'
+      - 'scripts/xau_v1_poi_research.py'
+      - '.github/workflows/xau-v04-poi.yml'
+  workflow_dispatch:
+
+jobs:
+  xau-poi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install Dukascopy downloader
+        run: npm install --no-save dukascopy-node@latest
+      - name: Install V2 research dependencies
+        run: pip install -r requirements.txt
+      - name: Download XAUUSD M15 history
+        run: node scripts/xau_download_history.cjs .research-data/xauusd-m15.json 2020-01-01 2026-08-12
+      - name: Run frozen XAU POI walk-forward
+        run: PYTHONPATH=scripts python scripts/xau_v1_poi_research.py --json .research-data/xauusd-m15.json --out research-output/xau-v04 --start 2020-01-01
+      - name: Show research result
+        run: cat research-output/xau-v04/XAU_V04_POI_RESULT.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xau-v04-poi
+          path: |
+            research-output/xau-v04/XAU_V04_POI_RESULT.md
+            research-output/xau-v04/XAU_V04_POI_SUMMARY.json
+            research-output/xau-v04/poi/v19_depth_table_completed_2022_2025.csv
+            research-output/xau-v04/poi/v19_walkforward_yearly.csv
+          retention-days: 14
