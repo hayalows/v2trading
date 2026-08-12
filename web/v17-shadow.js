@@ -1,9 +1,8 @@
 (()=>{
   const URL='https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/shadow-arena';
-  const PRIMARY=window.__V2_PRIMARY_V25===true;
   const SELF=document.currentScript?.src||'';
   const ASSET_BASE=SELF&&SELF.includes('/')?SELF.slice(0,SELF.lastIndexOf('/')+1):'/';
-  let arena=null,loading=false;
+  let arena=null,loading=false,researchLoaded=false;
   const asset=name=>`${ASSET_BASE}${name}`;
   const n=(v,d=0)=>Number.isFinite(Number(v))?Number(v).toFixed(d):'—';
   const pct=(v,d=1)=>Number.isFinite(Number(v))?`${(Number(v)*100).toFixed(d)}%`:'—';
@@ -37,31 +36,21 @@
         <div><span>Base Brier</span><b>${n(cal.baselineBrier,4)}</b><small>Frozen ${pct(cal.baselineProbability)} walk-forward comparator</small></div>
       </div>
       <div class="shadowModels">${modelHtml}</div>
-      <div class="shadowFoot"><strong>${c.total?`${n(c.total)} immutable forecast record${Number(c.total)===1?'':'s'} collected.`:'Waiting for the next qualifying Stage-3/4 landmark.'}</strong><span>Granite TTM R2 passed its frozen standalone historical gate, but it still needs prospective scoring and must prove incremental value beyond StateTwin before it can influence Focus.</span>${latest?`<ul>${latest}</ul>`:''}</div>`;
+      <div class="shadowFoot"><strong>${c.total?`${n(c.total)} immutable forecast record${Number(c.total)===1?'':'s'} collected.`:'Waiting for the next qualifying Stage-3/4 landmark.'}</strong><span>Granite TTM R2 remains research-only and must prove incremental value beyond StateTwin before it can influence Focus.</span>${latest?`<ul>${latest}</ul>`:''}</div>`;
   }
   async function load(){if(loading)return;loading=true;try{const r=await fetch(URL,{cache:'no-store'});if(!r.ok)throw new Error('Shadow Arena unavailable');arena=await r.json();render()}catch(e){console.warn('Shadow Arena',e)}finally{loading=false}}
-  function loadV18(){
-    if(!document.querySelector('link[data-v18-council]')){const l=document.createElement('link');l.rel='stylesheet';l.href=asset('v18.css');l.dataset.v18Council='1';document.head.appendChild(l)}
-    if(!document.querySelector('script[data-v18-council]')){const s=document.createElement('script');s.src=asset('v18-council.js');s.dataset.v18Council='1';s.defer=true;document.body.appendChild(s)}
-  }
-  function loadV20(){
-    if(!document.querySelector('link[data-v20-poi]')){const l=document.createElement('link');l.rel='stylesheet';l.href=asset('v20.css');l.dataset.v20Poi='1';document.head.appendChild(l)}
-    if(!document.querySelector('script[data-v20-poi]')){const s=document.createElement('script');s.src=asset('v20-poi-learning.js');s.dataset.v20Poi='1';s.defer=true;document.body.appendChild(s)}
-  }
-  function loadV21(){
-    if(!document.querySelector('link[data-v21-decision]')){const l=document.createElement('link');l.rel='stylesheet';l.href=asset('v21.css');l.dataset.v21Decision='1';document.head.appendChild(l)}
-    if(!document.querySelector('script[data-v21-decision]')){const s=document.createElement('script');s.src=asset('v21-decision.js');s.dataset.v21Decision='1';s.defer=true;document.body.appendChild(s)}
-  }
-  function loadV22(){
-    if(!document.querySelector('link[data-v22-brief]')){const l=document.createElement('link');l.rel='stylesheet';l.href=asset('v22.css');l.dataset.v22Brief='1';document.head.appendChild(l)}
-    if(!document.querySelector('script[data-v22-brief]')){const s=document.createElement('script');s.src=asset('v22-brief.js');s.dataset.v22Brief='1';s.defer=true;document.body.appendChild(s)}
-  }
+  function addStyle(file,key){if(document.querySelector(`link[data-${key}]`)||document.querySelector(`link[href$="${file}"]`))return;const l=document.createElement('link');l.rel='stylesheet';l.href=asset(file);l.dataset[key]='1';document.head.appendChild(l)}
+  function addScript(file,key){if(document.querySelector(`script[data-${key}]`)||document.querySelector(`script[src$="${file}"]`))return;const s=document.createElement('script');s.src=asset(file);s.dataset[key]='1';s.defer=true;document.body.appendChild(s)}
+  function loadV18(){addStyle('v18.css','v18Council');addScript('v18-council.js','v18Council')}
+  function loadV20(){addStyle('v20.css','v20Poi');addScript('v20-poi-learning.js','v20Poi')}
+  function loadV21(){addStyle('v21.css','v21Decision');addScript('v21-decision.js','v21Decision')}
+  function loadV22(){addStyle('v22.css','v22Brief');addScript('v22-brief.js','v22Brief')}
   function loadV23(){
     if(!document.querySelector('link[data-v23-chat]')&&!document.querySelector('link[href$="v23.css"]')){const l=document.createElement('link');l.rel='stylesheet';l.href=asset('v23.css');l.dataset.v23Chat='1';document.head.appendChild(l)}
     if(!document.querySelector('script[data-v23-chat]')&&!document.querySelector('script[src$="v23-chat.js"]')){const s=document.createElement('script');s.src=asset('v23-chat.js');s.dataset.v23Chat='1';s.defer=true;document.body.appendChild(s)}
   }
-  const loadResearch=()=>{load();loadV18();loadV20();loadV21();loadV22()};
-  const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='evidenceView'){render();if(PRIMARY)loadResearch();else load()}}}
-  if(!PRIMARY){loadV23();if('requestIdleCallback'in window)requestIdleCallback(loadResearch,{timeout:2500});else setTimeout(loadResearch,1500);setInterval(load,60_000)}
-  else if(document.getElementById('evidenceView')?.classList.contains('active')){render();loadResearch()}
+  function loadResearch(){if(researchLoaded){load();return}researchLoaded=true;render();load();loadV18();loadV20();loadV21();loadV22()}
+  const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='evidenceView')loadResearch()}}
+  loadV23();
+  if(document.getElementById('evidenceView')?.classList.contains('active'))loadResearch();
 })();
