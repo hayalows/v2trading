@@ -4,100 +4,10 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-function chromePath(){
-  for(const name of ['google-chrome','google-chrome-stable','chromium','chromium-browser']){
-    try{return execFileSync('which',[name],{encoding:'utf8'}).trim()}catch{}
-  }
-  throw new Error('Chrome/Chromium not found on runner');
-}
-async function waitJson(url,timeout=15000){
-  const end=Date.now()+timeout;
-  while(Date.now()<end){
-    try{const r=await fetch(url);if(r.ok)return await r.json()}catch{}
-    await sleep(150);
-  }
-  throw new Error(`Timed out waiting for ${url}`);
-}
-async function pageTarget(timeout=15000){
-  const end=Date.now()+timeout;
-  while(Date.now()<end){
-    try{
-      const r=await fetch('http://127.0.0.1:9222/json/list');
-      if(r.ok){const xs=await r.json();const p=xs.find(x=>x.type==='page'&&x.webSocketDebuggerUrl);if(p)return p}
-    }catch{}
-    await sleep(150);
-  }
-  throw new Error('Timed out waiting for Chrome page target');
-}
-async function removeProfile(path){
-  for(let i=0;i<6;i++){
-    try{rmSync(path,{recursive:true,force:true,maxRetries:3,retryDelay:100});return}catch(e){if(i===5)console.warn('profile cleanup skipped',e?.code||e);else await sleep(200)}
-  }
-}
-
-const root=process.cwd();
-const smokeUrl=process.env.SMOKE_URL||'http://127.0.0.1:4173/web/index.html';
-const local=!process.env.SMOKE_URL;
-const server=local?spawn('python3',['-m','http.server','4173','--bind','127.0.0.1','--directory',root],{stdio:'ignore'}):null;
-const profile=mkdtempSync(join(tmpdir(),'v2-chrome-'));
-const chrome=spawn(chromePath(),[
-  '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
-  '--remote-debugging-port=9222',`--user-data-dir=${profile}`,'about:blank'
-],{stdio:'ignore'});
-
+function chromePath(){for(const name of ['google-chrome','google-chrome-stable','chromium','chromium-browser']){try{return execFileSync('which',[name],{encoding:'utf8'}).trim()}catch{}}throw new Error('Chrome/Chromium not found on runner')}
+async function waitJson(url,timeout=15000){const end=Date.now()+timeout;while(Date.now()<end){try{const r=await fetch(url);if(r.ok)return await r.json()}catch{}await sleep(150)}throw new Error(`Timed out waiting for ${url}`)}
+async function pageTarget(timeout=15000){const end=Date.now()+timeout;while(Date.now()<end){try{const r=await fetch('http://127.0.0.1:9222/json/list');if(r.ok){const xs=await r.json();const p=xs.find(x=>x.type==='page'&&x.webSocketDebuggerUrl);if(p)return p}}catch{}await sleep(150)}throw new Error('Timed out waiting for Chrome page target')}
+async function removeProfile(path){for(let i=0;i<6;i++){try{rmSync(path,{recursive:true,force:true,maxRetries:3,retryDelay:100});return}catch(e){if(i===5)console.warn('profile cleanup skipped',e?.code||e);else await sleep(200)}}}
+const root=process.cwd(),smokeUrl=process.env.SMOKE_URL||'http://127.0.0.1:4173/web/index.html',local=!process.env.SMOKE_URL,server=local?spawn('python3',['-m','http.server','4173','--bind','127.0.0.1','--directory',root],{stdio:'ignore'}):null,profile=mkdtempSync(join(tmpdir(),'v2-chrome-')),chrome=spawn(chromePath(),['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--remote-debugging-port=9222',`--user-data-dir=${profile}`,'about:blank'],{stdio:'ignore'});
 let ws;
-try{
-  await waitJson('http://127.0.0.1:9222/json/version');
-  const target=await pageTarget();
-  ws=new WebSocket(target.webSocketDebuggerUrl);
-  await new Promise((resolve,reject)=>{ws.addEventListener('open',resolve,{once:true});ws.addEventListener('error',reject,{once:true})});
-  let seq=0;const waiting=new Map();const exceptions=[];
-  ws.addEventListener('message',e=>{
-    const m=JSON.parse(e.data);
-    if(m.id&&waiting.has(m.id)){const {resolve,reject}=waiting.get(m.id);waiting.delete(m.id);m.error?reject(new Error(m.error.message)):resolve(m.result);return}
-    if(m.method==='Runtime.exceptionThrown')exceptions.push(m.params?.exceptionDetails?.exception?.description||m.params?.exceptionDetails?.text||'Uncaught exception');
-  });
-  const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq;waiting.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}))});
-  const evalJs=async expression=>{
-    const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});
-    if(r.exceptionDetails)throw new Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text||'Runtime evaluation failed');
-    return r.result?.value;
-  };
-  await call('Page.enable');await call('Runtime.enable');
-  await call('Page.navigate',{url:smokeUrl});
-  const end=Date.now()+30000;
-  while(Date.now()<end){
-    if(await evalJs("document.readyState==='complete' && typeof setView==='function'"))break;
-    await sleep(150);
-  }
-  if(!await evalJs("document.readyState==='complete' && typeof setView==='function'"))throw new Error(`Core navigation did not initialize at ${smokeUrl}`);
-  const expected=[['chartView','chartView'],['tradesView','tradesView'],['evidenceView','evidenceView'],['dataView','dataView'],['overview','overview']];
-  for(const [button,view] of expected){
-    const ok=await evalJs(`(()=>{const bs=[...document.querySelectorAll('[data-view="${button}"]')];const b=bs.find(x=>x.offsetParent!==null)||bs[0];if(!b)return false;b.click();return true})()`);
-    if(!ok)throw new Error(`Missing navigation button ${button}`);
-    await sleep(400);
-    const active=await evalJs("document.querySelector('.view.active')?.id||''");
-    if(active!==view)throw new Error(`Click ${button} left active view as ${active||'none'}`);
-  }
-  const pairDeadline=Date.now()+20000;
-  let pairs=0;
-  while(Date.now()<pairDeadline){pairs=await evalJs("document.querySelectorAll('[data-pair]').length");if(pairs===2)break;await sleep(250)}
-  if(pairs!==2)throw new Error(`Expected exactly 2 FX pair buttons, found ${pairs}`);
-  const labels=await evalJs("[...document.querySelectorAll('[data-pair]')].map(x=>x.dataset.pair).join(',')");
-  if(labels!=='EURUSD,GBPUSD')throw new Error(`Unexpected pair list: ${labels}`);
-  const accountDeadline=Date.now()+20000;let accountReady=false;
-  while(Date.now()<accountDeadline){accountReady=await evalJs("!!document.querySelector('#paperAccount .portfolioBalance') && document.querySelector('#paperAccount')?.textContent.includes('$500 paper account')");if(accountReady)break;await sleep(250)}
-  if(!accountReady)throw new Error('Canonical $500 paper account did not render');
-  const balance=await evalJs("document.querySelector('#paperAccount .portfolioBalance b')?.textContent||''");
-  if(!/^\$\d+\.\d{2}$/.test(balance))throw new Error(`Paper account balance malformed: ${balance}`);
-  const journalReady=await evalJs("document.querySelectorAll('#paperHistory .tradeRow').length>0 && document.querySelectorAll('#paperHistory .pipStrip').length>0");
-  if(!journalReady)throw new Error('Paper journal did not render pip/RR metrics');
-  if(exceptions.length)throw new Error(`Uncaught browser exception: ${exceptions.join(' | ')}`);
-  console.log(`browser smoke passed at ${smokeUrl}: five views, EURUSD/GBPUSD only, $500 account and pip/RR journal all render`);
-} finally {
-  try{ws?.close()}catch{}
-  chrome.kill('SIGKILL');
-  server?.kill('SIGKILL');
-  await sleep(300);
-  await removeProfile(profile);
-}
+try{await waitJson('http://127.0.0.1:9222/json/version');const target=await pageTarget();ws=new WebSocket(target.webSocketDebuggerUrl);await new Promise((resolve,reject)=>{ws.addEventListener('open',resolve,{once:true});ws.addEventListener('error',reject,{once:true})});let seq=0;const waiting=new Map(),exceptions=[];ws.addEventListener('message',e=>{const m=JSON.parse(e.data);if(m.id&&waiting.has(m.id)){const{resolve,reject}=waiting.get(m.id);waiting.delete(m.id);m.error?reject(new Error(m.error.message)):resolve(m.result);return}if(m.method==='Runtime.exceptionThrown')exceptions.push(m.params?.exceptionDetails?.exception?.description||m.params?.exceptionDetails?.text||'Uncaught exception')});const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq;waiting.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}))}),evalJs=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw new Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text||'Runtime evaluation failed');return r.result?.value};await call('Page.enable');await call('Runtime.enable');await call('Page.navigate',{url:smokeUrl});const end=Date.now()+30000;while(Date.now()<end){if(await evalJs("document.readyState==='complete' && typeof setView==='function'"))break;await sleep(150)}if(!await evalJs("document.readyState==='complete' && typeof setView==='function'"))throw new Error(`Core navigation did not initialize at ${smokeUrl}`);const expected=[['chartView','chartView'],['tradesView','tradesView'],['evidenceView','evidenceView'],['dataView','dataView'],['overview','overview']];for(const[button,view]of expected){const ok=await evalJs(`(()=>{const bs=[...document.querySelectorAll('[data-view="${button}"]')];const b=bs.find(x=>x.offsetParent!==null)||bs[0];if(!b)return false;b.click();return true})()`);if(!ok)throw new Error(`Missing navigation button ${button}`);await sleep(400);const active=await evalJs("document.querySelector('.view.active')?.id||''");if(active!==view)throw new Error(`Click ${button} left active view as ${active||'none'}`)}const pairDeadline=Date.now()+20000;let pairs=0;while(Date.now()<pairDeadline){pairs=await evalJs("document.querySelectorAll('[data-pair]').length");if(pairs===2)break;await sleep(250)}if(pairs!==2)throw new Error(`Expected exactly 2 FX pair buttons, found ${pairs}`);const labels=await evalJs("[...document.querySelectorAll('[data-pair]')].map(x=>x.dataset.pair).join(',')");if(labels!=='EURUSD,GBPUSD')throw new Error(`Unexpected pair list: ${labels}`);const accountDeadline=Date.now()+20000;let accountReady=false;while(Date.now()<accountDeadline){accountReady=await evalJs("!!document.querySelector('#paperAccount .portfolioBalance') && document.querySelector('#paperAccount')?.textContent.includes('$500 paper account')");if(accountReady)break;await sleep(250)}if(!accountReady)throw new Error('Canonical $500 paper account did not render');const balance=await evalJs("document.querySelector('#paperAccount .portfolioBalance b')?.textContent||''");if(!/^\$\d+\.\d{2}$/.test(balance))throw new Error(`Paper account balance malformed: ${balance}`);const journalReady=await evalJs("document.querySelectorAll('#paperHistory .tradeRow').length>0 && document.querySelectorAll('#paperHistory .pipStrip').length>0");if(!journalReady)throw new Error('Paper journal did not render pip/RR metrics');const execDeadline=Date.now()+20000;let executionReady=false;while(Date.now()<execDeadline){executionReady=await evalJs("document.querySelector('#v27ExecutionQuality')?.textContent.includes('BID/ASK microstructure') && document.querySelectorAll('#paperHistory [data-v27-exec]').length>0 && document.querySelector('#paperAccount [data-v27-account]')");if(executionReady)break;await sleep(250)}if(!executionReady)throw new Error('BID/ASK execution evidence did not render');if(exceptions.length)throw new Error(`Uncaught browser exception: ${exceptions.join(' | ')}`);console.log(`browser smoke passed at ${smokeUrl}: five views, FX-only, $500 account, pip/RR and BID/ASK execution evidence render`)}finally{try{ws?.close()}catch{}chrome.kill('SIGKILL');server?.kill('SIGKILL');await sleep(300);await removeProfile(profile)}
