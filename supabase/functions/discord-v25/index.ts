@@ -1,22 +1,238 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-const SB=Deno.env.get("SUPABASE_URL")!,KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,WH=(Deno.env.get("DISCORD_WEBHOOK_URL")??"").trim();
-const db=createClient(SB,KEY,{auth:{persistSession:false}}),SYMS=["EURUSD","GBPUSD","XAUUSD"],H={"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"};
-const J=(x:any,s=200)=>new Response(JSON.stringify(x),{status:s,headers:H}),n=(x:any,d=2)=>Number.isFinite(Number(x))?Number(x).toFixed(d):"—",cap=(x:any)=>String(x??"—").replaceAll("_"," ").replace(/\b\w/g,c=>c.toUpperCase());
-function hookOk(){try{const u=new URL(WH);return u.protocol==="https:"&&u.hostname==="discord.com"&&u.pathname.startsWith("/api/webhooks/")}catch{return false}}
-const px=(s:string,x:any)=>Number.isFinite(Number(x))?Number(x).toFixed(s==="XAUUSD"?2:5):"—";
-function currentTrade(rows:any[],s:string){return rows.find(t=>t.symbol===s&&t.status==="open")??rows.find(t=>t.symbol===s&&t.status==="armed")??rows.find(t=>t.symbol===s)??null}
-function currentR(s:any,t:any){if(!t||t.status!=="open")return null;const e=Number(t.entry_price),r=Number(t.risk_distance),m=Number(s.reference_price);if(!Number.isFinite(e)||!Number.isFinite(r)||r<=0||!Number.isFinite(m))return null;return t.direction==="long"?(m-e)/r:(e-m)/r}
-function action(s:any,t:any){const z=Number(s.formation_stage??0);if(t?.status==="open")return"TRACK PAPER TRADE";if(t?.status==="armed")return"WAIT FOR POI";if(z>=6)return s.symbol==="XAUUSD"?"REVIEW POI":"POI READY";if(z===5)return"WAIT FOR POI";if(z===4)return"WAIT FOR BOS";if(z===3)return"WATCH SWEEP";if(z===1)return"WATCH LIQUIDITY";return"NO SETUP"}
-function next(s:any,t:any){const z=Number(s.formation_stage??0);if(t?.status==="open")return`Track frozen SL ${px(s.symbol,t.stop_price)} and TP ${px(s.symbol,t.target_price)}.`;if(t?.status==="armed")return`Wait for midpoint ${px(s.symbol,t.entry_price)}. No entry is counted before price reaches it.`;if(z>=6)return s.symbol==="XAUUSD"?"Review the gold POI in shadow; XAU paper-entry authority is still locked.":"Watch the frozen POI/midpoint without changing the geometry.";if(z===5)return"BOS confirmed. Wait for a fresh POI.";if(z===4)return"Wait for a completed same-direction BOS. Intrabar movement does not count.";if(z===3)return"Watch whether the sweep converts into BOS.";if(z===1)return"Watch the nearby liquidity; wait for a clean sweep.";return"No action. Wait for the next clean liquidity event."}
-function why(s:any,t:any){const z=Number(s.formation_stage??0),d=s.details?.diagnostics??{},dir=String(s.formation_direction??"").toLowerCase();if(t?.status==="open")return`The ${String(t.direction).toUpperCase()} paper trade is already active, so the job is tracking frozen risk rather than chasing a new idea.`;if(z===4&&d.structureContext==="conflicting")return`A ${dir||"new"} sweep exists, but higher-timeframe structure leans the other way. BOS is still missing.`;if(z===4)return"A liquidity sweep exists, but structure has not broken yet. The sweep alone is not enough.";if(z>=6)return s.symbol==="XAUUSD"?"Gold reached a mature structural checkpoint, but XAU still needs its own prospective validation.":"The structural sequence matured into a fresh POI under the frozen paper rules.";return s.research_summary??`${cap(s.regime)} market; no mature setup requires attention.`}
-async function read(k:string){const q=await db.from("discord_alert_state").select("snapshot").eq("state_key",k).maybeSingle();if(q.error)throw Error(q.error.message);return q.data?.snapshot??null}
-async function save(k:string,s:any,sent=false){const row:any={state_key:k,snapshot:s,updated_at:new Date().toISOString()};if(sent)row.last_sent_at=new Date().toISOString();const q=await db.from("discord_alert_state").upsert(row,{onConflict:"state_key"});if(q.error)throw Error(q.error.message)}
-async function log(symbol:string|null,type:string,payload:any,id:any){const q=await db.from("discord_alert_log").insert({symbol,event_type:type,discord_message_id:id??null,payload,sent_at:new Date().toISOString()});if(q.error)console.error("log",q.error.message)}
-function fields(s:any,t:any,macro:any){const d=s.details?.diagnostics??{},h=s.data_health??{},m=macro?.pairs?.[s.symbol]||(s.symbol==="XAUUSD"?macro?.pairs?.EURUSD:null),rel=m?.nextRelease,mins=Number(m?.minutesToNext),event=rel&&Number.isFinite(mins)?`${rel.title} · ${mins<60?`${Math.max(0,Math.round(mins))}m`:`${Math.max(0,Math.floor(mins/60))}h ${Math.max(0,Math.round(mins%60))}m`}`:"No high-impact event in the immediate V2 window",r=currentR(s,t);const out=[{name:"V2 says",value:action(s,t),inline:true},{name:"Reference",value:`${s.symbol==="XAUUSD"?"$":""}${px(s.symbol,s.reference_price)} · ${cap(s.market_session)}`,inline:true},{name:"What to watch next",value:next(s,t),inline:false},{name:"D1 / H4 / H1 / M15",value:`${cap(s.d1_trend)} / ${cap(s.h4_trend)} / ${cap(s.h1_trend)} / ${cap(s.m15_trend)}`,inline:false},{name:"Context",value:`HTF ${cap(d.structureContext??"neutral")} · ${cap(s.regime)} · Stage ${s.formation_stage??"—"}/8`,inline:false},{name:"Event risk",value:event,inline:false}];if(t?.status==="open")out.splice(2,0,{name:"Paper trade",value:`${String(t.direction).toUpperCase()} · ${r==null?"—":`${r>=0?"+":""}${n(r)}R`} now · Entry ${px(s.symbol,t.entry_price)} · SL ${px(s.symbol,t.stop_price)} · TP ${px(s.symbol,t.target_price)}`,inline:false});out.push({name:"Open in V2",value:`[Open ${s.symbol} focus](https://v2trading.vercel.app/?market=${s.symbol})`,inline:false},{name:"Data",value:`${h.structureStatus??"current state"} · indicative research feed, not broker execution`,inline:false});return out}
-async function chart(s:any,t:any){try{const q=await db.from("market_bars").select("ts,close").eq("symbol",s.symbol).eq("timeframe","15m").order("ts",{ascending:false}).limit(60);if(q.error||!q.data?.length)return null;const seen=new Map<string,number>();for(const r of q.data)if(!seen.has(r.ts))seen.set(r.ts,Number(r.close));const rows=[...seen.entries()].sort((a,b)=>+new Date(a[0])-+new Date(b[0])).slice(-32),labels=rows.map(x=>new Date(x[0]).toISOString().slice(11,16)),closes=rows.map(x=>x[1]),ds:any[]=[{label:s.symbol,data:closes,borderWidth:2,pointRadius:0,tension:.12}];const constant=(label:string,v:any)=>{if(Number.isFinite(Number(v)))ds.push({label,data:rows.map(()=>Number(v)),borderWidth:1,pointRadius:0,borderDash:[5,4]})};if(t){constant("Entry",t.entry_price);constant("SL",t.stop_price);constant("TP",t.target_price)}else{constant("POI low",s.poi_low);constant("POI high",s.poi_high)}const cfg={type:"line",data:{labels,datasets:ds},options:{responsive:false,plugins:{legend:{display:true,labels:{boxWidth:10}}},scales:{x:{display:true,ticks:{maxTicksLimit:8}},y:{display:true}}}};const r=await fetch("https://quickchart.io/chart",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({version:"4",width:700,height:360,format:"png",backgroundColor:"#0b0e13",chart:cfg}),signal:AbortSignal.timeout(12000)});if(!r.ok)return null;return new Blob([await r.arrayBuffer()],{type:"image/png"})}catch(e){console.warn("chart",e);return null}}
-async function post(title:string,desc:string,fs:any[],img:Blob|null){const u=new URL(WH);u.searchParams.set("wait","true");const embed:any={title,description:desc,url:`https://v2trading.vercel.app`,fields:fs,footer:{text:"V2.5 research pulse · paper/shadow state, not broker execution"},timestamp:new Date().toISOString()};let r;if(img){embed.image={url:"attachment://v2-market.png"};const fd=new FormData();fd.append("payload_json",JSON.stringify({username:"V2 Market Brief",allowed_mentions:{parse:[]},embeds:[embed]}));fd.append("files[0]",img,"v2-market.png");r=await fetch(u,{method:"POST",body:fd})}else r=await fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:"V2 Market Brief",allowed_mentions:{parse:[]},embeds:[embed]})});const tx=await r.text();if(!r.ok)throw Error(`Discord ${r.status}: ${tx.slice(0,220)}`);try{return JSON.parse(tx)}catch{return{id:null}}}
-const fav=[.5,1,1.5,2],adv=[-.5,-.75];
-Deno.serve(async req=>{if(req.method!=="GET")return J({error:"GET only"},405);try{if(!hookOk())return J({configured:false},503);const [sq,tq,mr]=await Promise.all([db.from("market_states").select("*").in("symbol",SYMS),db.from("paper_trades").select("trade_key,symbol,direction,status,armed_at,entry_at,exit_at,entry_price,stop_price,target_price,risk_distance,gross_r,mfe_r,mae_r,updated_at").in("symbol",["EURUSD","GBPUSD"]).order("armed_at",{ascending:false}).limit(40),fetch(`${SB}/functions/v1/macro-context`,{headers:{"Cache-Control":"no-cache"}})]);if(sq.error||tq.error)throw Error(sq.error?.message||tq.error?.message);const states=sq.data??[],trades=tq.data??[],macro=mr.ok?await mr.json():null,sent:any[]=[];let system=await read("pulse:v25:system");if(!system){const fs=states.map(s=>({name:s.symbol,value:`${action(s,currentTrade(trades,s.symbol))} · ${s.symbol==="XAUUSD"?"$":""}${px(s.symbol,s.reference_price)} · Stage ${s.formation_stage}/8`,inline:false}));const msg=await post("V2.5 · Unified market pulse is live","EURUSD, GBPUSD and XAUUSD now use the same plain-language alert hierarchy. Messages are sent only when the engine meaningfully changes state.",fs,null);await log(null,"v25_live",{title:"V2.5 unified pulse"},msg?.id);await save("pulse:v25:system",{connectedAt:new Date().toISOString()},true);sent.push({type:"v25_live",messageId:msg?.id})}
-for(const s of states){const t=currentTrade(trades,s.symbol),key=`pulse:v25:${s.symbol}`,old=await read(key),r=currentR(s,t),h=s.data_health??{},now:any={action:action(s,t),stage:Number(s.formation_stage??0),direction:s.formation_direction??null,tradeKey:t?.trade_key??null,tradeStatus:t?.status??null,health:h.structureStatus??null,fav:old?.tradeKey===t?.trade_key?old?.fav??null:null,adv:old?.tradeKey===t?.trade_key?old?.adv??null:null},events:any[]=[];if(old){if((old.action!==now.action||old.stage!==now.stage||old.direction!==now.direction)&&now.action!=="NO SETUP")events.push({type:"decision_change",title:`${s.symbol} · ${now.action}`,desc:why(s,t),chart:now.stage>=3});if(old.tradeKey!==now.tradeKey||old.tradeStatus!==now.tradeStatus){if(t)events.unshift({type:`paper_${t.status}`,title:`${s.symbol} · ${t.status==="open"?"PAPER TRADE OPEN":t.status==="armed"?"WAIT FOR POI":`PAPER ${String(t.status).toUpperCase()}`}`,desc:t.status==="open"?`The ${String(t.direction).toUpperCase()} paper entry is now being tracked with frozen risk.`:`The ${String(t.direction).toUpperCase()} paper state changed to ${String(t.status).toUpperCase()}.`,chart:true})}if(old.health!==now.health&&(String(now.health).includes("stale")||String(old.health).includes("stale")))events.push({type:String(now.health).includes("stale")?"data_stale":"data_restored",title:`${s.symbol} · ${String(now.health).includes("stale")?"DATA PAUSE":"DATA RESTORED"}`,desc:String(now.health).includes("stale")?"V2 is withholding new structural interpretation until completed candles catch up.":"Completed candles are current again; normal research monitoring resumed.",chart:false})}if(t?.status==="open"&&r!=null){const best=Math.max(r,Number(t.mfe_r??-99)),worst=Math.min(r,-Math.abs(Number(t.mae_r??0))),fc=fav.filter(x=>best>=x).at(-1),ac=adv.filter(x=>worst<=x).at(-1);if(fc!=null&&(now.fav==null||fc>now.fav)){events.push({type:`r_plus_${fc}`,title:`${s.symbol} · PAPER +${n(fc,1)}R MILESTONE`,desc:`The ${String(t.direction).toUpperCase()} paper path reached at least +${n(fc,1)}R. Frozen SL/TP remain unchanged.`,chart:true});now.fav=fc}if(ac!=null&&(now.adv==null||ac<now.adv)){events.push({type:`r_minus_${Math.abs(ac)}`,title:`${s.symbol} · PAPER ${n(ac,2)}R MILESTONE`,desc:`The paper path moved at least ${n(Math.abs(ac),2)}R against entry. Frozen risk remains unchanged.`,chart:true});now.adv=ac}}
-for(const e of events.slice(0,2)){const fs=fields(s,t,macro),img=e.chart?await chart(s,t):null,msg=await post(e.title,e.desc,fs,img);await log(s.symbol,e.type,{title:e.title,description:e.desc,fields:fs,chart:!!img},msg?.id);sent.push({symbol:s.symbol,type:e.type,messageId:msg?.id??null,chart:!!img})}await save(key,now,events.length>0)}
-const mm=macro?.pairs?.EURUSD,rel=mm?.nextRelease,mins=Number(mm?.minutesToNext),mk="pulse:v25:macro",mo=await read(mk)??{},mn:any={releaseId:rel?.id??null,h4:mo?.releaseId===rel?.id?mo.h4:false,h1:mo?.releaseId===rel?.id?mo.h1:false,m15:mo?.releaseId===rel?.id?mo.m15:false};if(rel?.id&&rel.impact===3&&Number.isFinite(mins)&&mins>-30){let title=null,desc=null,type=null;if(mins<=15&&!mn.m15){type="macro_15m";title=`USD EVENT · ${rel.title} IN 15 MIN`;desc="EURUSD, GBPUSD and gold may all reprice around this window. V2 treats it as volatility risk, not a directional oracle.";mn.m15=true}else if(mins<=60&&!mn.h1){type="macro_1h";title=`USD EVENT · ${rel.title} WITHIN 1 HOUR`;desc="V2 will keep existing paper geometry frozen and separate event-window behaviour from ordinary-session evidence.";mn.h1=true}else if(mins<=240&&!mn.h4){type="macro_4h";title=`USD EVENT · ${rel.title} APPROACHING`;desc="High-impact USD risk is inside four hours. This affects all three V2 markets and is shown once instead of three duplicate alerts.";mn.h4=true}if(title){const fs=[{name:"V2 says",value:"EXPECT VOLATILITY · DO NOT INFER DIRECTION FROM THE EVENT CLOCK",inline:false},{name:"Applies to",value:"EURUSD · GBPUSD · XAUUSD",inline:false},{name:"Open V2",value:"[Open market focus](https://v2trading.vercel.app/)",inline:false}],msg=await post(title,desc!,fs,null);await log(null,type!,{title,description:desc,fields:fs},msg?.id);sent.push({type,messageId:msg?.id})}}await save(mk,mn,sent.some(x=>String(x.type).startsWith("macro_")));return J({ok:true,generatedAt:new Date().toISOString(),sent})}catch(e){console.error(e);return J({error:e instanceof Error?e.message:String(e)},500)}});
+
+const SB = Deno.env.get("SUPABASE_URL")!;
+const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const WH = (Deno.env.get("DISCORD_WEBHOOK_URL") ?? "").trim();
+const db = createClient(SB, KEY, { auth: { persistSession: false } });
+const SYMS = ["EURUSD", "GBPUSD", "XAUUSD"];
+const H = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" };
+const fav = [0.5, 1, 1.5, 2];
+const adv = [-0.5, -0.75];
+
+const J = (x: any, s = 200) => new Response(JSON.stringify(x), { status: s, headers: H });
+const n = (x: any, d = 2) => Number.isFinite(Number(x)) ? Number(x).toFixed(d) : "—";
+const cap = (x: any) => String(x ?? "—").replaceAll("_", " ").replace(/\b\w/g, c => c.toUpperCase());
+const px = (s: string, x: any) => Number.isFinite(Number(x)) ? Number(x).toFixed(s === "XAUUSD" ? 2 : 5) : "—";
+
+function hookOk() {
+  try {
+    const u = new URL(WH);
+    return u.protocol === "https:" && u.hostname === "discord.com" && u.pathname.startsWith("/api/webhooks/");
+  } catch { return false; }
+}
+
+function actionableTrade(t: any) {
+  if (!t) return false;
+  if (t.status === "open") return true;
+  if (t.status !== "armed") return false;
+  return t.focus_active !== false && t.lifecycle_phase !== "outside_studied_tail";
+}
+
+function currentTrade(rows: any[], symbol: string) {
+  return rows.find(t => t.symbol === symbol && t.status === "open") ??
+    rows.find(t => t.symbol === symbol && actionableTrade(t)) ?? null;
+}
+
+function currentR(s: any, t: any) {
+  if (!t || t.status !== "open") return null;
+  const e = Number(t.entry_price), r = Number(t.risk_distance), m = Number(s.reference_price);
+  if (!Number.isFinite(e) || !Number.isFinite(r) || r <= 0 || !Number.isFinite(m)) return null;
+  return t.direction === "long" ? (m - e) / r : (e - m) / r;
+}
+
+function action(s: any, t: any) {
+  const z = Number(s.formation_stage ?? 0);
+  if (t?.status === "open") return "TRACK PAPER TRADE";
+  if (t?.status === "armed") return "WAIT FOR POI";
+  if (z >= 6) return s.symbol === "XAUUSD" ? "REVIEW POI" : "POI READY";
+  if (z === 5) return "WAIT FOR POI";
+  if (z === 4) return "WAIT FOR BOS";
+  if (z === 3) return "WATCH SWEEP";
+  if (z === 1) return "WATCH LIQUIDITY";
+  return "NO SETUP";
+}
+
+function next(s: any, t: any) {
+  const z = Number(s.formation_stage ?? 0);
+  if (t?.status === "open") return `Track frozen SL ${px(s.symbol, t.stop_price)} and TP ${px(s.symbol, t.target_price)}.`;
+  if (t?.status === "armed") return `Wait for midpoint ${px(s.symbol, t.entry_price)}. No entry is counted before price reaches it.`;
+  if (z >= 6) return s.symbol === "XAUUSD" ? "Review the gold POI in shadow; XAU paper-entry authority is still locked." : "Watch the frozen POI/midpoint without changing the geometry.";
+  if (z === 5) return "BOS confirmed. Wait for a fresh POI.";
+  if (z === 4) return "Wait for a completed same-direction BOS. Intrabar movement does not count.";
+  if (z === 3) return "Watch whether the sweep converts into BOS.";
+  if (z === 1) return "Watch the nearby liquidity; wait for a clean sweep.";
+  return "No action. Wait for the next clean liquidity event.";
+}
+
+function why(s: any, t: any) {
+  const z = Number(s.formation_stage ?? 0), d = s.details?.diagnostics ?? {}, dir = String(s.formation_direction ?? "").toLowerCase();
+  if (t?.status === "open") return `The ${String(t.direction).toUpperCase()} paper trade is already active, so the job is tracking frozen risk rather than chasing a new idea.`;
+  if (z === 4 && d.structureContext === "conflicting") return `A ${dir || "new"} sweep exists, but higher-timeframe structure leans the other way. BOS is still missing.`;
+  if (z === 4) return "A liquidity sweep exists, but structure has not broken yet. The sweep alone is not enough.";
+  if (z >= 6) return s.symbol === "XAUUSD" ? "Gold reached a mature structural checkpoint, but XAU still needs its own prospective validation." : "The structural sequence matured into a fresh POI under the frozen paper rules.";
+  return s.research_summary ?? `${cap(s.regime)} market; no mature setup requires attention.`;
+}
+
+async function read(k: string) {
+  const q = await db.from("discord_alert_state").select("snapshot").eq("state_key", k).maybeSingle();
+  if (q.error) throw Error(q.error.message);
+  return q.data?.snapshot ?? null;
+}
+
+async function save(k: string, s: any, sent = false) {
+  const row: any = { state_key: k, snapshot: s, updated_at: new Date().toISOString() };
+  if (sent) row.last_sent_at = new Date().toISOString();
+  const q = await db.from("discord_alert_state").upsert(row, { onConflict: "state_key" });
+  if (q.error) throw Error(q.error.message);
+}
+
+async function log(symbol: string | null, type: string, payload: any, id: any) {
+  const q = await db.from("discord_alert_log").insert({ symbol, event_type: type, discord_message_id: id ?? null, payload, sent_at: new Date().toISOString() });
+  if (q.error) console.error("log", q.error.message);
+}
+
+function fields(s: any, t: any, macro: any) {
+  const d = s.details?.diagnostics ?? {}, h = s.data_health ?? {};
+  const m = macro?.pairs?.[s.symbol] || (s.symbol === "XAUUSD" ? macro?.pairs?.EURUSD : null);
+  const rel = m?.nextRelease, mins = Number(m?.minutesToNext);
+  const event = rel && Number.isFinite(mins)
+    ? `${rel.title} · ${mins < 60 ? `${Math.max(0, Math.round(mins))}m` : `${Math.max(0, Math.floor(mins / 60))}h ${Math.max(0, Math.round(mins % 60))}m`}`
+    : "No high-impact event in the immediate V2 window";
+  const r = currentR(s, t);
+  const out: any[] = [
+    { name: "V2 says", value: action(s, t), inline: true },
+    { name: "Reference", value: `${s.symbol === "XAUUSD" ? "$" : ""}${px(s.symbol, s.reference_price)} · ${cap(s.market_session)}`, inline: true },
+    { name: "What to watch next", value: next(s, t), inline: false },
+    { name: "D1 / H4 / H1 / M15", value: `${cap(s.d1_trend)} / ${cap(s.h4_trend)} / ${cap(s.h1_trend)} / ${cap(s.m15_trend)}`, inline: false },
+    { name: "Context", value: `HTF ${cap(d.structureContext ?? "neutral")} · ${cap(s.regime)} · Stage ${s.formation_stage ?? "—"}/8`, inline: false },
+    { name: "Event risk", value: event, inline: false },
+  ];
+  if (t?.status === "open") out.splice(2, 0, { name: "Paper trade", value: `${String(t.direction).toUpperCase()} · ${r == null ? "—" : `${r >= 0 ? "+" : ""}${n(r)}R`} now · Entry ${px(s.symbol, t.entry_price)} · SL ${px(s.symbol, t.stop_price)} · TP ${px(s.symbol, t.target_price)}`, inline: false });
+  out.push(
+    { name: "Open in V2", value: `[Open ${s.symbol} focus](https://v2trading.vercel.app/?market=${s.symbol})`, inline: false },
+    { name: "Data", value: `${h.structureStatus ?? "current state"} · indicative research feed, not broker execution`, inline: false },
+  );
+  return out;
+}
+
+async function chart(s: any, t: any) {
+  try {
+    const q = await db.from("market_bars").select("ts,close").eq("symbol", s.symbol).eq("timeframe", "15m").order("ts", { ascending: false }).limit(60);
+    if (q.error || !q.data?.length) return null;
+    const seen = new Map<string, number>();
+    for (const r of q.data) if (!seen.has(r.ts)) seen.set(r.ts, Number(r.close));
+    const rows = [...seen.entries()].sort((a, b) => +new Date(a[0]) - +new Date(b[0])).slice(-32);
+    const labels = rows.map(x => new Date(x[0]).toISOString().slice(11, 16));
+    const closes = rows.map(x => x[1]);
+    const ds: any[] = [{ label: s.symbol, data: closes, borderWidth: 2, pointRadius: 0, tension: .12 }];
+    const constant = (label: string, v: any) => { if (Number.isFinite(Number(v))) ds.push({ label, data: rows.map(() => Number(v)), borderWidth: 1, pointRadius: 0, borderDash: [5, 4] }); };
+    if (t) { constant("Entry", t.entry_price); constant("SL", t.stop_price); constant("TP", t.target_price); }
+    else { constant("POI low", s.poi_low); constant("POI high", s.poi_high); }
+    const cfg = { type: "line", data: { labels, datasets: ds }, options: { responsive: false, plugins: { legend: { display: true, labels: { boxWidth: 10 } } }, scales: { x: { display: true, ticks: { maxTicksLimit: 8 } }, y: { display: true } } } };
+    const r = await fetch("https://quickchart.io/chart", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ version: "4", width: 700, height: 360, format: "png", backgroundColor: "#0b0e13", chart: cfg }), signal: AbortSignal.timeout(12000) });
+    if (!r.ok) return null;
+    return new Blob([await r.arrayBuffer()], { type: "image/png" });
+  } catch (e) { console.warn("chart", e); return null; }
+}
+
+async function post(title: string, desc: string, fs: any[], img: Blob | null) {
+  const u = new URL(WH); u.searchParams.set("wait", "true");
+  const embed: any = { title, description: desc, url: "https://v2trading.vercel.app", fields: fs, footer: { text: "V2.5 research pulse · paper/shadow state, not broker execution" }, timestamp: new Date().toISOString() };
+  let r: Response;
+  if (img) {
+    embed.image = { url: "attachment://v2-market.png" };
+    const fd = new FormData();
+    fd.append("payload_json", JSON.stringify({ username: "V2 Market Brief", allowed_mentions: { parse: [] }, embeds: [embed] }));
+    fd.append("files[0]", img, "v2-market.png");
+    r = await fetch(u, { method: "POST", body: fd });
+  } else {
+    r = await fetch(u, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "V2 Market Brief", allowed_mentions: { parse: [] }, embeds: [embed] }) });
+  }
+  const tx = await r.text();
+  if (!r.ok) throw Error(`Discord ${r.status}: ${tx.slice(0, 220)}`);
+  try { return JSON.parse(tx); } catch { return { id: null }; }
+}
+
+Deno.serve(async req => {
+  if (req.method !== "GET") return J({ error: "GET only" }, 405);
+  try {
+    if (!hookOk()) return J({ configured: false }, 503);
+    const [sq, tq, mr] = await Promise.all([
+      db.from("market_states").select("*").in("symbol", SYMS),
+      db.from("paper_trades").select("trade_key,symbol,direction,status,armed_at,entry_at,exit_at,entry_price,stop_price,target_price,risk_distance,gross_r,mfe_r,mae_r,lifecycle_phase,focus_active,updated_at").in("symbol", ["EURUSD", "GBPUSD"]).order("armed_at", { ascending: false }).limit(40),
+      fetch(`${SB}/functions/v1/macro-context`, { headers: { "Cache-Control": "no-cache" } }),
+    ]);
+    if (sq.error || tq.error) throw Error(sq.error?.message || tq.error?.message);
+    const states = sq.data ?? [], trades = tq.data ?? [], macro = mr.ok ? await mr.json() : null, sent: any[] = [];
+
+    let system = await read("pulse:v25:system");
+    if (!system) {
+      const fs = states.map(s => ({ name: s.symbol, value: `${action(s, currentTrade(trades, s.symbol))} · ${s.symbol === "XAUUSD" ? "$" : ""}${px(s.symbol, s.reference_price)} · Stage ${s.formation_stage}/8`, inline: false }));
+      const msg = await post("V2.5 · Unified market pulse is live", "EURUSD, GBPUSD and XAUUSD now use the same plain-language alert hierarchy. Messages are sent only when the engine meaningfully changes state.", fs, null);
+      await log(null, "v25_live", { title: "V2.5 unified pulse" }, msg?.id);
+      await save("pulse:v25:system", { connectedAt: new Date().toISOString() }, true);
+      sent.push({ type: "v25_live", messageId: msg?.id });
+    }
+
+    for (const s of states) {
+      const t = currentTrade(trades, s.symbol), key = `pulse:v25:${s.symbol}`, old = await read(key), r = currentR(s, t), h = s.data_health ?? {};
+      const now: any = {
+        action: action(s, t), stage: Number(s.formation_stage ?? 0), direction: s.formation_direction ?? null,
+        tradeKey: t?.trade_key ?? null, tradeStatus: t?.status ?? null, health: h.structureStatus ?? null,
+        fav: old?.tradeKey === t?.trade_key ? old?.fav ?? null : null,
+        adv: old?.tradeKey === t?.trade_key ? old?.adv ?? null : null,
+      };
+      const events: any[] = [];
+      if (old) {
+        if ((old.action !== now.action || old.stage !== now.stage || old.direction !== now.direction) && now.action !== "NO SETUP")
+          events.push({ type: "decision_change", title: `${s.symbol} · ${now.action}`, desc: why(s, t), chart: now.stage >= 3 });
+        if (old.tradeKey !== now.tradeKey || old.tradeStatus !== now.tradeStatus) {
+          if (t) events.unshift({
+            type: `paper_${t.status}`,
+            title: `${s.symbol} · ${t.status === "open" ? "PAPER TRADE OPEN" : t.status === "armed" ? "WAIT FOR POI" : `PAPER ${String(t.status).toUpperCase()}`}`,
+            desc: t.status === "open" ? `The ${String(t.direction).toUpperCase()} paper entry is now being tracked with frozen risk.` : `The ${String(t.direction).toUpperCase()} paper state changed to ${String(t.status).toUpperCase()}.`,
+            chart: true,
+          });
+        }
+        if (old.health !== now.health && (String(now.health).includes("stale") || String(old.health).includes("stale")))
+          events.push({ type: String(now.health).includes("stale") ? "data_stale" : "data_restored", title: `${s.symbol} · ${String(now.health).includes("stale") ? "DATA PAUSE" : "DATA RESTORED"}`, desc: String(now.health).includes("stale") ? "V2 is withholding new structural interpretation until completed candles catch up." : "Completed candles are current again; normal research monitoring resumed.", chart: false });
+      }
+      if (t?.status === "open" && r != null) {
+        const best = Math.max(r, Number(t.mfe_r ?? -99)), worst = Math.min(r, -Math.abs(Number(t.mae_r ?? 0)));
+        const fc = fav.filter(x => best >= x).at(-1), ac = adv.filter(x => worst <= x).at(-1);
+        if (fc != null && (now.fav == null || fc > now.fav)) { events.push({ type: `r_plus_${fc}`, title: `${s.symbol} · PAPER +${n(fc, 1)}R MILESTONE`, desc: `The ${String(t.direction).toUpperCase()} paper path reached at least +${n(fc, 1)}R. Frozen SL/TP remain unchanged.`, chart: true }); now.fav = fc; }
+        if (ac != null && (now.adv == null || ac < now.adv)) { events.push({ type: `r_minus_${Math.abs(ac)}`, title: `${s.symbol} · PAPER ${n(ac, 2)}R MILESTONE`, desc: `The paper path moved at least ${n(Math.abs(ac), 2)}R against entry. Frozen risk remains unchanged.`, chart: true }); now.adv = ac; }
+      }
+      for (const e of events.slice(0, 2)) {
+        const fs = fields(s, t, macro), img = e.chart ? await chart(s, t) : null, msg = await post(e.title, e.desc, fs, img);
+        await log(s.symbol, e.type, { title: e.title, description: e.desc, fields: fs, chart: !!img }, msg?.id);
+        sent.push({ symbol: s.symbol, type: e.type, messageId: msg?.id ?? null, chart: !!img });
+      }
+      await save(key, now, events.length > 0);
+    }
+
+    const mm = macro?.pairs?.EURUSD, rel = mm?.nextRelease, mins = Number(mm?.minutesToNext), mk = "pulse:v25:macro", mo = await read(mk) ?? {};
+    const mn: any = { releaseId: rel?.id ?? null, h4: mo?.releaseId === rel?.id ? mo.h4 : false, h1: mo?.releaseId === rel?.id ? mo.h1 : false, m15: mo?.releaseId === rel?.id ? mo.m15 : false };
+    if (rel?.id && rel.impact === 3 && Number.isFinite(mins) && mins >= 0) {
+      let title: string | null = null, desc: string | null = null, type: string | null = null;
+      if (mins <= 15 && !mn.m15) { type = "macro_15m"; title = `USD EVENT · ${rel.title} IN 15 MIN`; desc = "EURUSD, GBPUSD and gold may all reprice around this window. V2 treats it as volatility risk, not a directional oracle."; mn.m15 = true; }
+      else if (mins <= 60 && !mn.h1) { type = "macro_1h"; title = `USD EVENT · ${rel.title} WITHIN 1 HOUR`; desc = "V2 will keep existing paper geometry frozen and separate event-window behaviour from ordinary-session evidence."; mn.h1 = true; }
+      else if (mins <= 240 && !mn.h4) { type = "macro_4h"; title = `USD EVENT · ${rel.title} APPROACHING`; desc = "High-impact USD risk is inside four hours. This affects all three V2 markets and is shown once instead of three duplicate alerts."; mn.h4 = true; }
+      if (title && type && desc) {
+        const fs = [
+          { name: "V2 says", value: "EXPECT VOLATILITY · DO NOT INFER DIRECTION FROM THE EVENT CLOCK", inline: false },
+          { name: "Applies to", value: "EURUSD · GBPUSD · XAUUSD", inline: false },
+          { name: "Open V2", value: "[Open market focus](https://v2trading.vercel.app/)", inline: false },
+        ];
+        const msg = await post(title, desc, fs, null);
+        await log(null, type, { title, description: desc, fields: fs }, msg?.id);
+        sent.push({ type, messageId: msg?.id });
+      }
+    }
+    await save(mk, mn, sent.some(x => String(x.type).startsWith("macro_")));
+    return J({ ok: true, generatedAt: new Date().toISOString(), sent });
+  } catch (e) {
+    console.error(e);
+    return J({ error: e instanceof Error ? e.message : String(e) }, 500);
+  }
+});
