@@ -65,10 +65,11 @@ def m15_entry(df: pd.DataFrame, setup: pd.Series) -> int | None:
 
 def m5_start_index(m5: pd.DataFrame, m15_ts: pd.Timestamp, direction: str, entry: float) -> int | None:
     end = m15_ts + pd.Timedelta(minutes=15)
-    ix = m5.index[(m5.date >= m15_ts) & (m5.date < end)]
-    for i in ix:
-        if touch(m5.loc[i], entry):
-            return int(i)
+    start_i = int(m5.date.searchsorted(m15_ts, side="left"))
+    end_i = int(m5.date.searchsorted(end, side="left"))
+    for i in range(start_i, min(end_i, len(m5))):
+        if touch(m5.iloc[i], entry):
+            return i
     return None
 
 
@@ -102,7 +103,8 @@ def simulate_policy(m15: pd.DataFrame, m5: pd.DataFrame, setup: pd.Series, polic
     timeout = policy.get("timeout")
     max_bars = int(timeout) if timeout is not None else HOLD_HORIZON
     deadline_ts = entry_ts + pd.Timedelta(minutes=15 * max_bars)
-    path = m5[(m5.index >= m5_i) & (m5.date < deadline_ts)].copy()
+    end_m5_i = int(m5.date.searchsorted(deadline_ts, side="left"))
+    path = m5.iloc[m5_i:min(end_m5_i, len(m5))]
     if path.empty:
         return None
 
