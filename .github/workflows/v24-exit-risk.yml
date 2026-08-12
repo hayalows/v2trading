@@ -1,5 +1,6 @@
 name: v24-exit-risk
 
+# FX-core validation rerun: EURUSD and GBPUSD only.
 on:
   push:
     branches: [main]
