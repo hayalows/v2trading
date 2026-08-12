@@ -1,5 +1,6 @@
 name: production-smoke
 
+# Verifies the deployed Vercel + CDN path, not only the local repository shell.
 on:
   push:
     branches: [main]
