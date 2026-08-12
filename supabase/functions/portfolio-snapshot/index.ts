@@ -8,6 +8,7 @@ const J=(x:any,s=200)=>new Response(JSON.stringify(x),{status:s,headers:H});
 const n=(x:any)=>x===null||x===undefined||x===""?null:(Number.isFinite(Number(x))?Number(x):null);
 const ts=(x:any)=>x?Date.parse(x):NaN;
 const dirMove=(direction:string,from:number,to:number)=>direction==="long"?to-from:from-to;
+const median=(xs:number[])=>{if(!xs.length)return null;const a=[...xs].sort((p,q)=>p-q),m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2};
 
 function pipMetrics(t:any,mark:number|null){
   const entry=n(t.entry_price),stop=n(t.stop_price),target=n(t.target_price),exit=n(t.exit_price),risk=n(t.risk_distance);
@@ -18,17 +19,24 @@ function pipMetrics(t:any,mark:number|null){
   const currentR=t.status==="open"&&entry!=null&&mark!=null&&risk!=null&&risk>0?dirMove(t.direction,entry,mark)/risk:null;
   return{pipSize:PIP,riskPips,targetPips,realizedPips,currentPips,currentR,rewardRisk:riskPips&&targetPips?targetPips/riskPips:n(t.reward_r)??2.5};
 }
+function quality(rows:any[]){
+  const out:any={};
+  for(const symbol of PAIRS){const z=rows.filter(x=>x.symbol===symbol).sort((a,b)=>ts(b.ts)-ts(a.ts)).slice(0,180);if(!z.length){out[symbol]={status:"UNAVAILABLE",note:"No BID/ASK microstructure sample is stored yet."};continue}const latest=z[0],ageMin=(Date.now()-ts(latest.ts))/60000,spreads=z.map(x=>Number(x.spread_mean_pips)).filter(Number.isFinite),ticks=z.map(x=>Number(x.tick_count)).filter(Number.isFinite),medSpread=median(spreads),medTicks=median(ticks),spread=n(latest.spread_mean_pips),tick=n(latest.tick_count),sr=spread!=null&&medSpread?spread/medSpread:null,tr=tick!=null&&medTicks?tick/medTicks:null;let status="NORMAL";if(ageMin>20)status="STALE";else if(sr!=null&&sr>=1.8)status="WIDE";else if(sr!=null&&sr<=.7&&tr!=null&&tr>=.7)status="TIGHT";let activity="NORMAL";if(tr!=null&&tr>=1.5)activity="HIGH";else if(tr!=null&&tr<=.5)activity="LOW";out[symbol]={status,activity,asOf:latest.ts,ageMinutes:ageMin,spreadMeanPips:spread,medianSpreadPips:medSpread,spreadVsMedian:sr,ticksPerMinute:tick,medianTicksPerMinute:medTicks,tickActivityVsMedian:tr,source:"Dukascopy public BID/ASK ticks",boundary:"Indicative microstructure context; not broker-specific executable spread."}}
+  return out;
+}
 
 Deno.serve(async(req:Request)=>{
   if(req.method==="OPTIONS")return new Response("ok",{headers:H});
   if(req.method!=="GET")return J({error:"GET only"},405);
   try{
-    const[tq,sq]=await Promise.all([
+    const[tq,sq,aq,mq]=await Promise.all([
       db.from("paper_trades").select("trade_key,symbol,direction,status,armed_at,entry_at,exit_at,entry_price,stop_price,target_price,exit_price,risk_distance,reward_r,gross_r,bars_held,updated_at").in("symbol",PAIRS).order("armed_at",{ascending:true}).limit(500),
-      db.from("market_states").select("symbol,reference_price,as_of").in("symbol",PAIRS)
+      db.from("market_states").select("symbol,reference_price,as_of").in("symbol",PAIRS),
+      db.from("paper_trade_execution_audit").select("trade_key,audit_status,entry_confirmed,entry_at_tick,entry_spread_pips,ticks_observed,shadow_outcome,shadow_exit_at,shadow_exit_price,prospective,source,details,updated_at").order("updated_at",{ascending:false}).limit(200),
+      db.from("fx_microstructure_1m").select("symbol,ts,spread_mean_pips,tick_count").in("symbol",PAIRS).order("ts",{ascending:false}).limit(600)
     ]);
-    if(tq.error)throw new Error(tq.error.message);if(sq.error)throw new Error(sq.error.message);
-    const trades=tq.data??[],marks=new Map((sq.data??[]).map((x:any)=>[x.symbol,n(x.reference_price)]));
+    for(const q of[tq,sq,aq,mq])if(q.error)throw new Error(q.error.message);
+    const trades=tq.data??[],marks=new Map((sq.data??[]).map((x:any)=>[x.symbol,n(x.reference_price)])),auditMap=new Map((aq.data??[]).map((x:any)=>[x.trade_key,x])),marketQuality=quality(mq.data??[]);
     const events:any[]=[];
     for(const t of trades){if(t.entry_at)events.push({at:t.entry_at,kind:"entry",trade:t});if(t.exit_at)events.push({at:t.exit_at,kind:"exit",trade:t})}
     events.sort((a,b)=>ts(a.at)-ts(b.at)||(a.kind==="entry"?-1:1));
@@ -38,10 +46,10 @@ Deno.serve(async(req:Request)=>{
       if(gross==null){ledger.push({tradeKey:t.trade_key,symbol:t.symbol,status:t.status,at:e.at,grossR:null,riskUsd,pnlUsd:null,balanceAfter:balance,accounted:false,reason:"ambiguous/unscored outcome excluded from P&L"});continue}
       const pnl=riskUsd*gross;balance+=pnl;const row={tradeKey:t.trade_key,symbol:t.symbol,status:t.status,at:e.at,grossR:gross,riskUsd,pnlUsd:pnl,balanceAfter:balance,accounted:true};ledger.push(row);series.push({at:e.at,balance,pnlUsd:pnl,tradeKey:t.trade_key,symbol:t.symbol,grossR:gross,status:t.status})
     }
-    const tradeMetrics=trades.filter((t:any)=>t.entry_at).map((t:any)=>{const mark=marks.get(t.symbol)??null,riskUsd=frozenRisk.get(t.trade_key)??null,pips=pipMetrics(t,mark),gross=n(t.gross_r);return{tradeKey:t.trade_key,symbol:t.symbol,direction:t.direction,status:t.status,entryAt:t.entry_at,exitAt:t.exit_at,riskUsd,realizedPnlUsd:gross!=null&&riskUsd!=null?riskUsd*gross:null,grossR:gross,...pips}});
+    const tradeMetrics=trades.filter((t:any)=>t.entry_at).map((t:any)=>{const mark=marks.get(t.symbol)??null,riskUsd=frozenRisk.get(t.trade_key)??null,pips=pipMetrics(t,mark),gross=n(t.gross_r),audit=auditMap.get(t.trade_key)??null;return{tradeKey:t.trade_key,symbol:t.symbol,direction:t.direction,status:t.status,entryAt:t.entry_at,exitAt:t.exit_at,riskUsd,realizedPnlUsd:gross!=null&&riskUsd!=null?riskUsd*gross:null,grossR:gross,executionAudit:audit,...pips}});
     const open=tradeMetrics.filter((x:any)=>x.status==="open"),floatingPnl=open.reduce((s:number,x:any)=>s+(x.riskUsd!=null&&x.currentR!=null?x.riskUsd*x.currentR:0),0),equity=balance+floatingPnl;
-    const scored=ledger.filter((x:any)=>x.accounted),ambiguous=trades.filter((t:any)=>t.status==="ambiguous").length,totalRealizedR=scored.reduce((s:number,x:any)=>s+Number(x.grossR??0),0);
+    const scored=ledger.filter((x:any)=>x.accounted),ambiguous=trades.filter((t:any)=>t.status==="ambiguous").length,totalRealizedR=scored.reduce((s:number,x:any)=>s+Number(x.grossR??0),0),audited=tradeMetrics.filter((x:any)=>x.executionAudit),tickConfirmed=audited.filter((x:any)=>x.executionAudit?.entry_confirmed===true),shadowResolved=audited.filter((x:any)=>["win","loss"].includes(String(x.executionAudit?.shadow_outcome)));
     let peak=START,maxDd=0;for(const x of series){const b=Number(x.balance);if(!Number.isFinite(b))continue;peak=Math.max(peak,b);if(peak>0)maxDd=Math.max(maxDd,(peak-b)/peak)}const currentDd=peak>0?(peak-balance)/peak:0;
-    return J({version:"V2 FX Paper Account v1",generatedAt:new Date().toISOString(),researchOnly:true,brokerBalance:false,methodology:{startingBalanceUsd:START,riskPctPerEntry:RISK_PCT*100,riskFreeze:"1% of realized paper balance is frozen when a canonical entry is recorded",realization:"Only canonical numeric gross_r outcomes alter realized balance",ambiguous:"Ambiguous outcomes assign no P&L and do not alter realized balance",pipDefinition:"EURUSD/GBPUSD indicative research pip = 0.0001",executionBoundary:"Public research prices; no broker spread, slippage or executable fill truth"},account:{startingBalanceUsd:START,realizedBalanceUsd:balance,markedEquityUsd:equity,floatingPnlUsd:floatingPnl,realizedPnlUsd:balance-START,growthPct:(balance/START-1)*100,markedGrowthPct:(equity/START-1)*100,totalRealizedR,peakBalanceUsd:peak,maxDrawdownPct:maxDd*100,currentDrawdownPct:currentDd*100,riskPct:RISK_PCT*100,scoredClosures:scored.length,wins:trades.filter((t:any)=>t.status==="win").length,losses:trades.filter((t:any)=>t.status==="loss").length,timeouts:trades.filter((t:any)=>t.status==="timeout").length,ambiguousExcluded:ambiguous,openTrades:open.length},balanceSeries:series,ledger,tradeMetrics});
+    return J({version:"V2 FX Paper Account v1.1",generatedAt:new Date().toISOString(),researchOnly:true,brokerBalance:false,methodology:{startingBalanceUsd:START,riskPctPerEntry:RISK_PCT*100,riskFreeze:"1% of realized paper balance is frozen when a canonical entry is recorded",realization:"Only canonical numeric gross_r outcomes alter realized balance",ambiguous:"Ambiguous canonical outcomes assign no P&L and do not alter realized balance",pipDefinition:"EURUSD/GBPUSD research pip = 0.0001",executionAudit:"Public BID/ASK tick evidence is shadow-only and never rewrites the $500 journal automatically",executionBoundary:"Public research prices and Dukascopy indicative ticks; no broker-specific slippage or executable fill truth"},account:{startingBalanceUsd:START,realizedBalanceUsd:balance,markedEquityUsd:equity,floatingPnlUsd:floatingPnl,realizedPnlUsd:balance-START,growthPct:(balance/START-1)*100,markedGrowthPct:(equity/START-1)*100,totalRealizedR,peakBalanceUsd:peak,maxDrawdownPct:maxDd*100,currentDrawdownPct:currentDd*100,riskPct:RISK_PCT*100,scoredClosures:scored.length,wins:trades.filter((t:any)=>t.status==="win").length,losses:trades.filter((t:any)=>t.status==="loss").length,timeouts:trades.filter((t:any)=>t.status==="timeout").length,ambiguousExcluded:ambiguous,openTrades:open.length,executionAudited:audited.length,tickConfirmedEntries:tickConfirmed.length,shadowResolvedAmbiguities:shadowResolved.length},marketQuality,balanceSeries:series,ledger,tradeMetrics});
   }catch(e){console.error(e);return J({error:e instanceof Error?e.message:String(e)},500)}
 });
