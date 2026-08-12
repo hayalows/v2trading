@@ -20,6 +20,7 @@
     try{
       if(!window.LightweightCharts)await addScript('lightweight-charts.standalone.production.js','lightweight-charts','https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.0/dist/lightweight-charts.standalone.production.js');
       await addScript('paper-trades.js','paper-trades');
+      if(document.getElementById('tradesView')?.classList.contains('active')&&typeof setView==='function')setView('tradesView');
     }catch(e){console.warn('V2 trades lazy load',e);if(typeof snack==='function')snack('Trade details could not load')}
   }
 
