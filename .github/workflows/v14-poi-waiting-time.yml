@@ -1,6 +1,10 @@
 name: v14-poi-waiting-time
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v14-poi-waiting-time.yml'
   pull_request:
     paths:
       - 'scripts/v14_poi_waiting_time_study.py'
