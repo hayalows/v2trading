@@ -78,7 +78,7 @@
         <div class="tradeStats" id="paperStats"></div>
         <div class="paperWorkspace section">
           <article class="paperCurrent" id="paperCurrent"><div class="cardLabel"><span class="material-symbols-rounded">smart_toy</span>Automatic paper trade</div><h3>Loading paper journal…</h3></article>
-          <article class="card"><div class="cardLabel"><span class="material-symbols-rounded">rule</span>Frozen geometry</div><h3>POI midpoint → sweep stop → 2.5R</h3><p>Entry is the 50% POI midpoint. SL stays beyond the sweep extreme with a 0.03 ATR buffer. TP stays fixed at 2.5R. Elapsed time changes lifecycle state but does not automatically cancel an untouched POI.</p><div class="paperNotice"><strong>Research boundary</strong>Public completed candles are not broker bid/ask execution. Same-bar ambiguity is resolved with public 5-minute data when possible, otherwise it stays ambiguous.</div></article>
+          <article class="card"><div class="cardLabel"><span class="material-symbols-rounded">rule</span>Frozen geometry</div><h3>POI midpoint → sweep stop → 2.5R</h3><p>Entry is the 50% POI midpoint. SL stays beyond the sweep extreme with a 0.03 ATR buffer. TP stays fixed at 2.5R. Elapsed time changes lifecycle state but does not automatically cancel an untouched POI.</p><div class="paperNotice"><strong>Research boundary</strong>Public completed candles are not broker execution. Same-bar ambiguity is resolved with finer public path data when possible, otherwise it stays ambiguous. Independent BID/ASK execution evidence is tracked separately and never rewrites the account automatically.</div></article>
         </div>
         <div class="researchChartShell"><div class="researchChartHead"><div><b>Research Trade Chart</b><span>POI, entry, stop and target from the paper engine</span></div><span id="researchChartLabel">Loading</span></div><div class="researchChart" id="researchChart"></div><div class="chartLegend"><span><i class="legendDot legendPoi"></i>POI</span><span><i class="legendDot legendEntry"></i>Entry</span><span><i class="legendDot legendStop"></i>SL</span><span><i class="legendDot legendTarget"></i>TP</span></div></div>
         <section class="section"><div class="sectionHead"><h2>Journal</h2><p>Every plan, POI interaction, entry and outcome is retained. Pips are indicative research pips from the stored public-price geometry.</p></div><div class="tradeList" id="paperHistory"></div></section>
@@ -104,8 +104,9 @@
           <details><summary><span>Partial mitigation</span><span class="material-symbols-rounded">expand_more</span></summary><p>Price touches part of the POI without reaching the midpoint. Historical proxy outcomes were materially weaker after this pattern.</p></details>
           <details><summary><span>Automatic paper trade</span><span class="material-symbols-rounded">expand_more</span></summary><p>A simulated research trade created from the lab's frozen POI midpoint rule, with automatic SL, TP and outcome tracking.</p></details>
           <details><summary><span>Paper account</span><span class="material-symbols-rounded">expand_more</span></summary><p>The simulated account starts at $500. One percent of the realized paper balance is frozen as risk when an entry is recorded. Only canonical numeric R outcomes change realized balance; ambiguous outcomes change nothing.</p></details>
-          <details><summary><span>Pip</span><span class="material-symbols-rounded">expand_more</span></summary><p>For EURUSD and GBPUSD, V2 reports one indicative research pip as 0.0001 in price. These are not broker fill pips and exclude spread/slippage.</p></details>
-          <details><summary><span>Execution truth</span><span class="material-symbols-rounded">expand_more</span></summary><p>No broker-specific bid/ask or tick feed is connected. Spread, slippage and exact executable fill sequence remain unknown.</p></details>
+          <details><summary><span>Pip</span><span class="material-symbols-rounded">expand_more</span></summary><p>For EURUSD and GBPUSD, V2 reports one indicative research pip as 0.0001 in price. These are not broker fill pips.</p></details>
+          <details><summary><span>Execution evidence</span><span class="material-symbols-rounded">expand_more</span></summary><p>V2 now stores public Dukascopy BID/ASK tick-derived microstructure and audits paper entries independently. Exact ticks are preferred; BID/ASK one-minute bars are a fallback. This evidence is shadow-only and never changes the canonical account automatically.</p></details>
+          <details><summary><span>Execution truth</span><span class="material-symbols-rounded">expand_more</span></summary><p>No broker-specific execution feed is connected. Public Dukascopy BID/ASK data improves path and spread evidence, but broker-specific spread, slippage, queue position and executable fill truth remain unknown.</p></details>
         </div></article></section>
       </section>
     </div>
@@ -117,6 +118,7 @@
 <script src="/web/poi-watch.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <script src="/web/paper-trades.js"></script>
+<script src="/web/v27-execution.js"></script>
 <script src="/web/v15-focus.js"></script>
 <script src="/web/v16-state-twin.js"></script>
 <script src="/web/v17-shadow.js"></script>
