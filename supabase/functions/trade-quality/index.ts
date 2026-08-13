@@ -47,6 +47,17 @@ async function micro(symbol: string) {
   return { ...q.data, ageMinutes: ageMinutes(q.data.ts) };
 }
 
+function attention(t: any, s: any) {
+  if (!t || !s) return { status: "UNKNOWN", referencePrice: n(s?.reference_price), ageMinutes: ageMinutes(s?.updated_at), distanceToEntryPips: null, insidePoi: false, message: "Fresh reference-price proximity is unavailable." };
+  const ref = n(s.reference_price), entry = n(t.entry_price), lo = n(t.poi_low), hi = n(t.poi_high), age = ageMinutes(s.updated_at);
+  if (ref == null || entry == null || age == null || age > 10) return { status: "STALE", referencePrice: ref, ageMinutes: age, distanceToEntryPips: null, insidePoi: false, message: "Reference price is too old for a fast proximity read." };
+  const dist = Math.abs(ref - entry) / 0.0001;
+  const inside = lo != null && hi != null && ref >= Math.min(lo, hi) && ref <= Math.max(lo, hi);
+  const status = inside ? "IN_ZONE" : dist <= 2 ? "VERY_NEAR" : dist <= 5 ? "NEAR" : "AWAY";
+  const message = inside ? `Current reference price is inside the paper entry zone and about ${dist.toFixed(1)} pips from the midpoint.` : dist <= 5 ? `Current reference price is about ${dist.toFixed(1)} pips from the midpoint.` : `Current reference price is about ${dist.toFixed(1)} pips from the midpoint.`;
+  return { status, referencePrice: ref, ageMinutes: age, distanceToEntryPips: dist, insidePoi: inside, message };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "GET") return reply({ error: "GET only" }, 405);
@@ -54,9 +65,14 @@ Deno.serve(async (req: Request) => {
     const u = new URL(req.url);
     const requested = (u.searchParams.get("symbol") || SYMBOLS.join(",")).split(",").map(x => x.trim().toUpperCase()).filter(x => SYMBOLS.includes(x));
     const symbols = requested.length ? requested : SYMBOLS;
-    const q = await db.from("paper_trades").select("*").in("symbol", symbols).order("armed_at", { ascending: false }).limit(100);
+    const [q, sq] = await Promise.all([
+      db.from("paper_trades").select("*").in("symbol", symbols).order("armed_at", { ascending: false }).limit(100),
+      db.from("market_states").select("symbol,reference_price,updated_at,formation_stage,formation_code,formation_direction").in("symbol", symbols),
+    ]);
     if (q.error) throw new Error(q.error.message);
+    if (sq.error) throw new Error(sq.error.message);
     const trades = q.data || [];
+    const stateMap = new Map((sq.data || []).map((x: any) => [x.symbol, x]));
     const entered = trades.filter((t: any) => t.entry_at);
     const wins = entered.filter((t: any) => t.status === "win").length;
     const losses = entered.filter((t: any) => t.status === "loss").length;
@@ -88,6 +104,7 @@ Deno.serve(async (req: Request) => {
         direction: t?.direction || null,
         status: t?.status || null,
         quality: ql,
+        fastAttention: attention(t, stateMap.get(symbol)),
         risk: t ? {
           pips: riskPips,
           stopPolicyVersion: t.context?.stop_policy_version || "legacy_structural",
@@ -122,6 +139,7 @@ Deno.serve(async (req: Request) => {
       methodology: {
         preEntryGeometry: "Rejected as a winner detector: walk-forward AUC stayed close to random and Brier score did not improve reliably.",
         earliestUsefulSignal: "The first interaction with the POI. Direct midpoint interaction was materially stronger than a prior shallow touch.",
+        fastAttention: "Fresh market-state reference price is used only to show distance/proximity to the frozen midpoint. It does not create a fill or quality grade by itself.",
         microstructure: "Spread/execution evidence is a friction and data-quality modifier only; it is not promoted to a win predictor.",
         automaticTradeChange: false,
       },
