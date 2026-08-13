@@ -28,25 +28,33 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Verify deploy credential is available
+      - name: Detect fallback deploy credential
+        id: auth
         shell: bash
         run: |
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo 'VERCEL_TOKEN is not configured in GitHub Actions secrets.' >&2
-            exit 2
+          if [ -n "$VERCEL_TOKEN" ]; then
+            echo 'available=true' >> "$GITHUB_OUTPUT"
+            echo 'Vercel CLI fallback credential is available.'
+          else
+            echo 'available=false' >> "$GITHUB_OUTPUT"
+            echo 'VERCEL_TOKEN is not configured; skipping CLI fallback without failing CI.'
           fi
 
       - name: Link exact V2 Vercel project
+        if: steps.auth.outputs.available == 'true'
         shell: bash
         run: |
           mkdir -p .vercel
           printf '{"orgId":"%s","projectId":"%s"}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
 
       - name: Pull production settings
+        if: steps.auth.outputs.available == 'true'
         run: npx --yes vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
 
       - name: Build production bundle
+        if: steps.auth.outputs.available == 'true'
         run: npx --yes vercel@latest build --prod --token="$VERCEL_TOKEN"
 
       - name: Deploy production bundle
+        if: steps.auth.outputs.available == 'true'
         run: npx --yes vercel@latest deploy --prebuilt --prod --token="$VERCEL_TOKEN"
