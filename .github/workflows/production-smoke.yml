@@ -1,7 +1,7 @@
 name: production-smoke
 
-# Verifies the live Vercel + CDN path at a 390x844 mobile viewport, including compact account access, pair-filtered journal, optional advanced details and recent FX ranges.
-# Production app pin verified in this run: 0b39330de81912624df12d1eb60bddef9863e15c
+# Verifies the live Vercel + CDN path at a 390x844 mobile viewport, including compact account access, pair-filtered journal, optional advanced details, recent FX ranges and non-overlapping Ask V2 quick actions.
+# Production app pin verified in this run: ac6b05f4c750f026a2a87e6387108d2890d5d1db
 on:
   push:
     branches: [main]
