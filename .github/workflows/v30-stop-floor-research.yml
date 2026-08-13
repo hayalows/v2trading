@@ -1,0 +1,61 @@
+name: v30-stop-floor-research
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/v30_stop_floor_research.py'
+      - 'reports/v30/V30_STOP_FLOOR_PROTOCOL.md'
+      - '.github/workflows/v30-stop-floor-research.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Compile frozen research
+        run: python -m py_compile scripts/v30_stop_floor_research.py
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Restore exact V1.9 setup universe
+        uses: actions/download-artifact@v4
+        with:
+          name: v19-poi-penetration
+          path: research-input/v19
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: hayalows/v2trading
+          run-id: 31501787388
+      - name: Download EURUSD and GBPUSD M5 history
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD; do
+            curl -L --fail --retry 4 --retry-delay 2 \
+              -o ".research-data/market/${symbol}-5m.feather" \
+              "${base}/${symbol}-5m.feather?download=true"
+          done
+      - name: Run frozen stop-floor study
+        run: |
+          PYTHONPATH=scripts python scripts/v30_stop_floor_research.py \
+            --data-dir .research-data/market \
+            --setups research-input/v19/v19_poi_setups.csv \
+            --out research-output/v30
+      - name: Show result
+        run: cat research-output/v30/v30_stop_floor_summary.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v30-stop-floor-research
+          path: research-output/v30/
+          retention-days: 14
