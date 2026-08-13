@@ -1,3 +1,4 @@
+(()=>{const src=document.currentScript?.src||'';const base=src?new URL('.',src).href:'/web/';if(!document.getElementById('v32UiCss')){const l=document.createElement('link');l.id='v32UiCss';l.rel='stylesheet';l.href=base+'v32-ui.css';document.head.appendChild(l)}if(!document.getElementById('v32UiJs')){const s=document.createElement('script');s.id='v32UiJs';s.src=base+'v32-ui.js';s.defer=true;document.body.appendChild(s)}})();
 (()=>{
   const mq=window.matchMedia('(max-width:719px)');
   const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
