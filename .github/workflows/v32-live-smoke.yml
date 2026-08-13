@@ -1,0 +1,22 @@
+name: v32-live-smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/v32_live_smoke.mjs'
+      - '.github/workflows/v32-live-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  live-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify V3.2 production UI
+        env:
+          SMOKE_URL: https://v2trading.vercel.app
+        run: node scripts/v32_live_smoke.mjs
