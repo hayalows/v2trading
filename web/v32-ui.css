@@ -1,0 +1,229 @@
+@import url('https://rsms.me/inter/inter.css');
+
+/* V2 V3.2 — one visual system across mobile and desktop.
+   Inspired by platform guidance: content first, controls distinct, progressive disclosure. */
+:root{
+  --v32-bg:#090c10;
+  --v32-surface:#11161c;
+  --v32-surface-2:#171d25;
+  --v32-surface-3:#202832;
+  --v32-line:rgba(255,255,255,.085);
+  --v32-line-strong:rgba(255,255,255,.14);
+  --v32-text:#f5f7fa;
+  --v32-text-2:#d3d8df;
+  --v32-muted:#9da6b2;
+  --v32-accent:#8dbaff;
+  --v32-accent-soft:rgba(141,186,255,.14);
+  --v32-good:#8ee0b0;
+  --v32-good-soft:rgba(142,224,176,.12);
+  --v32-warn:#f1c77a;
+  --v32-warn-soft:rgba(241,199,122,.12);
+  --v32-bad:#ffaaa4;
+  --v32-bad-soft:rgba(255,170,164,.12);
+  --v32-radius:18px;
+  --v32-radius-lg:24px;
+  --v32-shadow:0 16px 48px rgba(0,0,0,.18);
+  --bg:var(--v32-bg);
+  --surface:var(--v32-surface);
+  --surface2:var(--v32-surface-2);
+  --surface3:var(--v32-surface-3);
+  --line:var(--v32-line);
+  --text:var(--v32-text);
+  --muted:var(--v32-muted);
+  --primary:var(--v32-accent);
+  --success:var(--v32-good);
+  --warning:var(--v32-warn);
+  --danger:var(--v32-bad);
+}
+
+html,body,button,input,textarea,select,summary{
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+}
+html{background:var(--v32-bg)}
+body{
+  background:var(--v32-bg);
+  color:var(--v32-text);
+  font-feature-settings:"cv02","cv03","cv04","cv11";
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+button{letter-spacing:-.005em}
+button,.btn,.pairBtn,.focusAction,.navBtn,.railBtn,.iconBtn,summary{transition:background-color .16s ease,border-color .16s ease,color .16s ease,transform .16s ease,opacity .16s ease}
+button:active,.btn:active,.pairBtn:active,.focusAction:active{transform:scale(.985)}
+:focus-visible{outline:2px solid var(--v32-accent)!important;outline-offset:3px!important}
+.v32Icon,.lucide{width:21px;height:21px;stroke-width:1.85;flex:none}
+.material-symbols-rounded{font-size:21px}
+
+.topbar{
+  background:rgba(9,12,16,.78)!important;
+  border-bottom:1px solid var(--v32-line)!important;
+  backdrop-filter:blur(24px) saturate(145%)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(145%)!important;
+}
+.logo,.railLogo{
+  background:var(--v32-accent-soft)!important;
+  color:#dceaff!important;
+  border:1px solid rgba(141,186,255,.16);
+  box-shadow:none!important;
+}
+.brand b{font-weight:720;letter-spacing:-.02em}
+.brand span{color:var(--v32-muted)!important}
+.iconBtn{background:transparent!important;color:var(--v32-text-2)}
+.iconBtn:hover{background:rgba(255,255,255,.06)!important}
+.market,.chip,.priority,.trustStatus,.paperBadge,.pipChip{border:1px solid var(--v32-line);background:rgba(255,255,255,.045)!important}
+
+.wrap{width:min(1240px,100%)}
+.intro{max-width:720px}
+.intro .eyebrow{color:var(--v32-muted)!important;font-weight:650!important;letter-spacing:0!important;text-transform:none!important}
+.intro h1{color:var(--v32-text);font-weight:760;letter-spacing:-.045em!important}
+.intro p{color:var(--v32-muted)!important}
+
+.pairSwitch{
+  border:1px solid var(--v32-line);
+  background:rgba(255,255,255,.035)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.025);
+}
+.pairBtn{color:var(--v32-muted)}
+.pairBtn.active{
+  background:var(--v32-surface-3)!important;
+  color:var(--v32-text);
+  box-shadow:0 1px 0 rgba(255,255,255,.035),0 6px 18px rgba(0,0,0,.12);
+}
+.pairBtn strong,.pairPrice{font-weight:700!important;font-variant-numeric:tabular-nums}
+
+.focusHero,.hero,.card,.focusCard,.paperCurrent,.tradeRow,.metric,.trend,.stat,.evidenceCard,.trustCard,.details,.timeline,.chartShell,.researchChartShell,.portfolioStrip,.v31QualityCard,.v31TradeQuality{
+  background:var(--v32-surface)!important;
+  border:1px solid var(--v32-line)!important;
+  box-shadow:none!important;
+}
+.focusHero,.hero{border-radius:var(--v32-radius-lg)!important;background:linear-gradient(180deg,#141a21 0%,#10151b 100%)!important}
+.card,.focusCard,.paperCurrent,.tradeRow,.metric,.trend,.stat,.evidenceCard,.trustCard,.details,.timeline,.portfolioStrip,.v31QualityCard,.v31TradeQuality{border-radius:var(--v32-radius)!important}
+.focusStatus{font-weight:760!important;letter-spacing:-.045em!important;text-wrap:balance}
+.focusSummary,.focusCard p,.card p,.paperCurrent p,.trustCard p,.sectionHead p,.v31QualityCard>p,.v31TradeQuality>p{color:var(--v32-muted)!important}
+.focusKicker,.cardLabel,.focusCard .label,.v31QualityHead span:first-child{color:var(--v32-muted)!important;font-weight:650!important;letter-spacing:0!important;text-transform:none!important}
+.focusBadge{background:rgba(255,255,255,.055)!important;border:1px solid var(--v32-line)!important;color:var(--v32-text-2)!important}
+.focusBadge.good{background:var(--v32-good-soft)!important;color:var(--v32-good)!important;border-color:rgba(142,224,176,.2)!important}
+.focusBadge.warn{background:var(--v32-warn-soft)!important;color:var(--v32-warn)!important;border-color:rgba(241,199,122,.2)!important}
+
+.focusLifecycle{position:relative}
+.focusStep{color:var(--v32-muted)!important}
+.focusStep:before{background:var(--v32-line-strong)!important}
+.focusStep.done:before{background:var(--v32-accent)!important}
+.focusStep.current b{color:var(--v32-text)!important}
+.focusStep b{font-weight:650!important}
+.focusAction,.btn{
+  border-radius:14px!important;
+  border:1px solid var(--v32-line)!important;
+  background:rgba(255,255,255,.045)!important;
+  color:var(--v32-text)!important;
+  font-weight:650!important;
+}
+.focusAction.primary,.btn.primary{
+  background:var(--v32-accent)!important;
+  color:#071525!important;
+  border-color:transparent!important;
+}
+.btn.tonal{background:var(--v32-accent-soft)!important;color:#dceaff!important;border-color:rgba(141,186,255,.15)!important}
+
+.sectionHead h2{font-weight:730;letter-spacing:-.035em!important}
+.card h3,.focusCard h3,.paperCurrent h3,.v31QualityHead strong{font-weight:690;letter-spacing:-.025em!important}
+.focusLevel,.pairPrice,.portfolioBalance b,.paperLevel b,.tradeMini b,.v29RangeNow strong{font-variant-numeric:tabular-nums slashed-zero}
+
+.researchDisclosure{
+  border:1px solid var(--v32-line)!important;
+  background:rgba(255,255,255,.025)!important;
+  border-radius:var(--v32-radius)!important;
+}
+.researchDisclosure>summary{color:var(--v32-text-2)!important}
+.researchDisclosure>summary small{color:var(--v32-muted)!important;font-weight:450!important}
+.researchInner{border-top-color:var(--v32-line)!important}
+
+.v31QualityCard{background:linear-gradient(180deg,rgba(141,186,255,.065),rgba(141,186,255,.025))!important}
+.v31QualityBadge{border-color:var(--v32-line)!important;background:rgba(255,255,255,.045)}
+.v31QualityLive{color:var(--v32-accent)!important}
+.v31Next{border-top-color:var(--v32-line)!important}
+.v31Details summary{color:var(--v32-text-2)}
+
+/* Stage help — always nearby, never competing with the live state. */
+.v32StageButton{
+  width:100%;min-height:52px;margin-top:14px;padding:10px 12px;
+  border:1px solid var(--v32-line);border-radius:15px;background:rgba(255,255,255,.035);color:var(--v32-text);
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:11px;text-align:left;cursor:pointer;
+}
+.v32StageButton:hover{background:rgba(255,255,255,.055)}
+.v32StageButton>span{display:grid;gap:2px;min-width:0}
+.v32StageButton small{font-size:11px;color:var(--v32-muted);font-weight:600}
+.v32StageButton strong{font-size:14px;font-weight:660;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v32StageLayer{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:18px}
+.v32StageLayer[hidden]{display:none}
+.v32StageBackdrop{position:absolute;inset:0;border:0;background:rgba(0,0,0,.68);backdrop-filter:blur(5px)}
+.v32StageSheet{position:relative;width:min(600px,100%);max-height:min(82dvh,760px);overflow:auto;background:#11161c;border:1px solid var(--v32-line-strong);border-radius:26px;box-shadow:0 28px 90px rgba(0,0,0,.45)}
+.v32StageHeader{position:sticky;top:0;z-index:2;padding:18px 18px 14px;display:flex;align-items:center;justify-content:space-between;gap:14px;background:rgba(17,22,28,.94);backdrop-filter:blur(20px);border-bottom:1px solid var(--v32-line)}
+.v32StageHeader h2{font-size:21px;line-height:1.15;letter-spacing:-.035em;margin:0}
+.v32StageHeader p{font-size:12px;color:var(--v32-muted);margin:4px 0 0}
+.v32StageClose{width:46px;height:46px;border:1px solid var(--v32-line);border-radius:50%;background:rgba(255,255,255,.045);display:grid;place-items:center;color:var(--v32-text);cursor:pointer}
+.v32StageList{padding:8px 16px 18px}
+.v32StageItem{display:grid;grid-template-columns:34px 1fr;gap:12px;padding:14px 2px;border-bottom:1px solid var(--v32-line)}
+.v32StageItem:last-child{border-bottom:0}
+.v32StageNum{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.05);color:var(--v32-muted);font-size:12px;font-weight:700;border:1px solid var(--v32-line)}
+.v32StageItem[aria-current="step"] .v32StageNum{background:var(--v32-accent);color:#071525;border-color:transparent}
+.v32StageItem h3{font-size:15px;margin:0;color:var(--v32-text);font-weight:680;letter-spacing:-.015em}
+.v32StageItem p{font-size:13px;line-height:1.45;color:var(--v32-muted);margin:4px 0 0}
+.v32StageItem b{display:block;font-size:12px;color:var(--v32-text-2);margin-top:6px;font-weight:620}
+
+/* Navigation is a control layer, not another content card. */
+.rail{background:rgba(15,19,24,.88)!important;border-right-color:var(--v32-line)!important;backdrop-filter:blur(22px)}
+.railBtn{color:var(--v32-muted)!important}
+.railBtn.active{color:var(--v32-text)!important;background:rgba(141,186,255,.08)!important}
+.railBtn.active .material-symbols-rounded,.railBtn.active .lucide{background:transparent!important}
+
+@media(max-width:719px){
+  body{font-size:16px!important;line-height:1.5}
+  .topbar{height:60px!important;padding:0 12px!important}
+  .brand{gap:8px!important}.brand .logo{width:36px!important;height:36px!important;border-radius:12px!important}.brand b{font-size:14px!important}.brand span{font-size:11px!important}
+  .wrap{padding:12px 14px 30px!important}
+  .intro{padding:2px 1px 11px!important}.intro h1{font-size:27px!important;line-height:1.08!important;margin:4px 0 5px!important}.intro p{font-size:14px!important;line-height:1.45!important;max-width:34ch!important}.intro .eyebrow{font-size:11px!important}
+  .pairSwitch{margin-bottom:10px!important;border-radius:15px!important}.pairBtn{min-height:54px!important;border-radius:12px!important;padding:8px 10px!important}.pairBtn strong,.pairPrice{font-size:14px!important}.pairBtn small{font-size:11px!important}
+  .mobilePortfolioChip{border-color:var(--v32-line)!important;background:rgba(255,255,255,.045)!important;border-radius:13px!important}
+  .mobileAccountSheet{background:var(--v32-surface)!important;border-color:var(--v32-line-strong)!important;border-radius:24px 24px 0 0!important}.mobileAccountSheet>header{background:var(--v32-surface)!important;border-bottom-color:var(--v32-line)!important}
+
+  .focusBoard{gap:9px!important}.focusHero{padding:16px!important;border-radius:22px!important}.focusKicker{font-size:11px!important}.focusStatus{font-size:30px!important;line-height:1.04!important;margin:6px 0 8px!important}.focusSummary{font-size:15px!important;line-height:1.48!important;max-width:34ch!important}.focusBadge{font-size:11px!important;padding:6px 9px!important}
+  .focusLifecycle{gap:4px!important;margin-top:16px!important}.focusStep{font-size:11px!important}.focusStep b{font-size:11px!important}.focusStep span{font-size:10px!important}
+  .focusActions{gap:7px!important;margin-top:12px!important}.focusAction{min-height:48px!important;border-radius:13px!important;font-size:13px!important}
+  .v32StageButton{min-height:50px;margin-top:11px;border-radius:13px;padding:9px 10px}.v32StageButton strong{font-size:13px}.v32StageButton small{font-size:10.5px}
+
+  /* Show only the two operational cards on Home. Secondary diagnostics remain in Research/More details. */
+  .focusGrid{gap:8px!important;grid-template-columns:1fr!important}
+  .focusGrid .focusCard:nth-child(2),.focusGrid .focusCard:nth-child(4){display:none!important}
+  .focusGrid .focusCard:nth-child(3){order:1!important}.focusGrid .focusCard:nth-child(1){order:2!important}
+  .focusCard{padding:14px!important;border-radius:16px!important}.focusCard h3{font-size:18px!important;margin:6px 0 4px!important}.focusCard p{font-size:14px!important;line-height:1.45!important}.focusLevel{font-size:24px!important}
+
+  .v31QualityCard,.v31TradeQuality{padding:14px!important;border-radius:17px!important;margin-top:9px!important;margin-bottom:9px!important}.v31QualityHead strong{font-size:18px!important}.v31QualityCard>p,.v31TradeQuality>p,.v31Next span{font-size:14px!important;line-height:1.45!important}.v31Next{margin-top:11px!important;padding-top:11px!important}.v31Details{margin-top:10px!important}.v31Details summary{font-size:13px!important}
+
+  .researchDisclosure{margin:10px 0 18px!important;border-radius:16px!important}.researchDisclosure>summary{min-height:52px!important;padding:10px 12px!important;font-size:14px!important}.researchDisclosure>summary small{font-size:11px!important}.researchInner{padding:8px!important}
+  .section{margin-top:16px!important}.sectionHead h2{font-size:22px!important}.sectionHead p{font-size:13px!important}.card{padding:14px!important;border-radius:16px!important}.card h3{font-size:18px!important}.card p{font-size:14px!important}
+  .tradeRow,.paperCurrent{padding:14px!important}.paperCurrent h3{font-size:20px!important}
+
+  .bottom{
+    left:10px!important;right:10px!important;bottom:calc(8px + env(safe-area-inset-bottom))!important;
+    height:66px!important;padding:5px!important;border:1px solid var(--v32-line-strong)!important;border-radius:22px!important;
+    background:rgba(17,22,28,.86)!important;backdrop-filter:blur(26px) saturate(150%)!important;-webkit-backdrop-filter:blur(26px) saturate(150%)!important;
+    box-shadow:0 14px 38px rgba(0,0,0,.35)!important;
+  }
+  .main{padding-bottom:calc(92px + env(safe-area-inset-bottom))!important}
+  .navBtn{min-height:54px!important;border-radius:16px!important;color:var(--v32-muted)!important;gap:3px!important}.navBtn .material-symbols-rounded,.navBtn .lucide{width:21px!important;height:21px!important;font-size:21px!important;background:transparent!important}.navBtn span:last-child{font-size:10px!important;font-weight:600!important}.navBtn.active{color:var(--v32-text)!important;background:var(--v32-accent-soft)!important}.navBtn.active .material-symbols-rounded,.navBtn.active .lucide{background:transparent!important}
+  .snack{bottom:calc(86px + env(safe-area-inset-bottom))!important}
+
+  .v32StageLayer{align-items:end;padding:0}
+  .v32StageSheet{width:100%;max-height:86dvh;border-radius:26px 26px 0 0;border-bottom:0;padding-bottom:env(safe-area-inset-bottom)}
+  .v32StageHeader{padding:16px 16px 12px}.v32StageHeader h2{font-size:20px}.v32StageList{padding:6px 14px 18px}.v32StageItem{padding:12px 1px}.v32StageItem p{font-size:12.5px}
+
+  .chartShell,.researchChartShell{border-radius:17px!important}
+  .chart{height:min(58vh,500px)!important}.researchChart{height:min(55vh,470px)!important}
+}
+
+@media(min-width:1000px){
+  .shell{grid-template-columns:82px 1fr!important}.rail{padding:16px 8px!important}.railBtn{border-radius:15px!important;min-height:62px!important}.railBtn span:last-child{font-size:10px!important}.topbar{height:70px!important;padding:0 24px!important}.wrap{padding:28px 30px 56px!important}.intro h1{font-size:42px!important}.overviewGrid{gap:16px!important}.stack{gap:12px!important}
+}
+
+@media(prefers-reduced-motion:reduce){button,.btn,.pairBtn,.focusAction,.navBtn,.railBtn,.iconBtn,summary{transition:none!important}}
