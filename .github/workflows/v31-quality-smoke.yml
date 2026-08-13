@@ -1,5 +1,6 @@
 name: v31-quality-smoke
 
+# Final V3.1 gate: live API + dynamic quality UI + existing 390x844 mobile regression.
 on:
   push:
     branches: [main]
