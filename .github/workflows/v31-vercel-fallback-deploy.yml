@@ -1,17 +1,20 @@
-name: v31-vercel-fallback-deploy
+name: v33-vercel-production
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
+      - 'web/deploy-bootstrap-v32.html'
+      - 'web/v33-ui.css'
+      - 'web/v33-ui.js'
       - '.github/workflows/v31-vercel-fallback-deploy.yml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: v31-vercel-production
+  group: v33-vercel-production
   cancel-in-progress: false
 
 jobs:
@@ -28,33 +31,29 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Detect fallback deploy credential
+      - name: Detect deploy credential
         id: auth
         shell: bash
         run: |
           if [ -n "$VERCEL_TOKEN" ]; then
             echo 'available=true' >> "$GITHUB_OUTPUT"
-            echo 'Vercel CLI fallback credential is available.'
           else
             echo 'available=false' >> "$GITHUB_OUTPUT"
-            echo 'VERCEL_TOKEN is not configured; skipping CLI fallback without failing CI.'
+            echo 'VERCEL_TOKEN is not configured; deployment is skipped without failing CI.'
           fi
 
-      - name: Link exact V2 Vercel project
+      - name: Prepare immutable V3.3 static bundle
         if: steps.auth.outputs.available == 'true'
         shell: bash
         run: |
-          mkdir -p .vercel
-          printf '{"orgId":"%s","projectId":"%s"}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
+          rm -rf .v33-deploy
+          mkdir -p .v33-deploy/.vercel
+          cp web/deploy-bootstrap-v32.html .v33-deploy/index.html
+          printf '{"orgId":"%s","projectId":"%s"}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .v33-deploy/.vercel/project.json
 
-      - name: Pull production settings
+      - name: Deploy V3.3 to production
         if: steps.auth.outputs.available == 'true'
-        run: npx --yes vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
-
-      - name: Build production bundle
-        if: steps.auth.outputs.available == 'true'
-        run: npx --yes vercel@latest build --prod --token="$VERCEL_TOKEN"
-
-      - name: Deploy production bundle
-        if: steps.auth.outputs.available == 'true'
-        run: npx --yes vercel@latest deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        shell: bash
+        run: |
+          cd .v33-deploy
+          npx --yes vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN"
