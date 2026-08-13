@@ -17,8 +17,7 @@
   try{
     let html=await fetch(base+'index.html',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('asset '+r.status);return r.text()});
     html=html.replaceAll('href="/web/','href="'+base).replaceAll('src="/web/','src="'+base);
-    html=html.replace('</head>',`<link rel="stylesheet" href="${base}v32-ui.css"><link rel="stylesheet" href="${base}v33-ui.css"></head>`);
-    html=html.replace('</body>',`<script src="${base}v32-ui.js"><\/script><script src="${base}v33-ui.js"><\/script></body>`);
+    html=html.replace('</head>',`<link id="v32UiCss" rel="stylesheet" href="${base}v32-ui.css"><link id="v33UiCss" rel="stylesheet" href="${base}v33-ui.css"><script id="v32UiJs" defer src="${base}v32-ui.js"><\/script><script id="v33UiJs" defer src="${base}v33-ui.js"><\/script></head>`);
     document.open();document.write(html);document.close();
   }catch(e){
     console.error(e);document.body.innerHTML='<div class="boot"><span>V2 could not load. Refresh to retry.</span></div>';
