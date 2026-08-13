@@ -1,0 +1,131 @@
+/* V2 V3.3 UI refinement
+   Research-driven cleanup: stable interaction states, tighter hierarchy,
+   consistent spacing, accessible navigation, and lower mobile density. */
+:root{
+  --v33-space-1:4px;
+  --v33-space-2:8px;
+  --v33-space-3:12px;
+  --v33-space-4:16px;
+  --v33-space-5:24px;
+  --v33-space-6:32px;
+  --v33-space-7:48px;
+  --v33-control:48px;
+  --v33-radius-sm:12px;
+  --v33-radius-md:16px;
+  --v33-radius-lg:22px;
+  --v33-ease:cubic-bezier(.2,.8,.2,1);
+}
+
+@supports (font-variation-settings:normal){
+  html,body,button,input,textarea,select,summary{font-family:InterVariable,Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}
+}
+body{font-optical-sizing:auto}
+
+/* Stable feedback: no size change or surrounding layout movement on press. */
+button,.btn,.focusAction,.pairBtn,.navBtn,.railBtn,.iconBtn,summary{
+  transition:background-color 180ms var(--v33-ease),border-color 180ms var(--v33-ease),color 180ms var(--v33-ease),opacity 180ms var(--v33-ease),box-shadow 180ms var(--v33-ease)!important;
+}
+button:active,.btn:active,.focusAction:active,.pairBtn:active,.navBtn:active,.railBtn:active,.iconBtn:active{transform:none!important;opacity:.82}
+button:disabled,[aria-disabled="true"]{opacity:.46!important;cursor:not-allowed!important;pointer-events:none}
+
+/* Keyboard escape route. */
+.v33Skip{
+  position:fixed;left:var(--v33-space-4);top:var(--v33-space-3);z-index:1000;
+  transform:translateY(-180%);padding:10px 14px;border-radius:12px;
+  background:var(--v32-text,#f5f7fa);color:var(--v32-bg,#090c10);font-size:13px;font-weight:700;text-decoration:none;
+}
+.v33Skip:focus{transform:translateY(0)}
+
+/* Let the current market state dominate. Supporting content stays quieter. */
+.wrap{width:min(1180px,100%)!important}
+.intro{margin-bottom:var(--v33-space-4)!important}
+.intro p{max-width:64ch!important}
+.focusBoard{gap:var(--v33-space-3)!important}
+.focusHero{padding:var(--v33-space-5)!important;border-radius:var(--v33-radius-lg)!important}
+.focusSummary{max-width:62ch!important}
+.focusGrid{gap:var(--v33-space-3)!important}
+.focusCard,.card,.metric,.trend,.stat,.evidenceCard,.trustCard,.tradeRow,.paperCurrent{border-radius:var(--v33-radius-md)!important}
+.focusCard,.card{padding:var(--v33-space-4)!important}
+.section{margin-top:var(--v33-space-5)!important}
+.sectionHead{margin-bottom:var(--v33-space-3)!important}
+
+/* One surface language. Borders separate sections; shadows are reserved for floating layers. */
+.focusCard,.card,.metric,.trend,.stat,.evidenceCard,.trustCard,.tradeRow,.paperCurrent,.portfolioStrip,.details,.timeline{
+  box-shadow:none!important;
+}
+.v32StageSheet,.mobileAccountSheet{box-shadow:0 24px 70px rgba(0,0,0,.42)!important}
+
+/* Numbers should not wiggle when prices or balances update. */
+.pairPrice,.portfolioBalance b,.portfolioMetric b,.focusLevel,.paperLevel b,.tradeMini b,.tradeStat b,.metric b,.stat b,.detail b,.v29RangeNow strong,.v29RangeRow b{
+  font-variant-numeric:tabular-nums slashed-zero!important;
+}
+
+/* Consistent icon rhythm. */
+.v32Icon,.lucide{width:20px!important;height:20px!important;stroke-width:1.85!important}
+.iconBtn{width:var(--v33-control);height:var(--v33-control)}
+.btn,.focusAction,.pairBtn,.navBtn,.railBtn{min-height:var(--v33-control)}
+
+/* Selected state is explicit in shape + text, not color alone. */
+.navBtn[aria-current="page"],.railBtn[aria-current="page"]{font-weight:650}
+.pairBtn[aria-pressed="true"]{border-color:rgba(141,186,255,.18)!important}
+
+/* Secondary research disclosure should look secondary. */
+.researchDisclosure{margin-top:var(--v33-space-4)!important;background:rgba(255,255,255,.018)!important}
+.researchDisclosure>summary{min-height:52px!important}
+.researchDisclosure>summary span:first-child{font-weight:650!important}
+.researchDisclosure>summary small{font-weight:450!important}
+
+/* Setup quality remains visible, but its explanation is progressive on phones. */
+.v33QualityToggle{display:none;width:100%;min-height:44px;margin-top:10px;border:0;border-top:1px solid var(--v32-line);padding:10px 0 0;background:transparent;color:var(--v32-accent);text-align:left;font-size:13px;font-weight:650;cursor:pointer}
+
+/* Desktop uses a primary + supporting pane relationship. */
+@media(min-width:1000px){
+  .overviewGrid{grid-template-columns:minmax(0,1.55fr) minmax(300px,.85fr)!important;align-items:start}
+  .focusGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .intro{margin-bottom:20px!important}
+  .intro h1{max-width:760px}
+  .railBtn{min-height:60px!important}
+}
+
+@media(max-width:719px){
+  :root{--v33-control:48px}
+  .wrap{padding:12px 16px 28px!important}
+  .intro{margin-bottom:10px!important;padding-bottom:8px!important}
+  .intro h1{font-size:28px!important;line-height:1.08!important;letter-spacing:-.035em!important}
+  .intro p{font-size:14px!important;line-height:1.5!important;max-width:38ch!important}
+  .pairSwitch{margin-bottom:10px!important}
+  .focusHero{padding:16px!important}
+  .focusStatus{font-size:29px!important;line-height:1.06!important}
+  .focusSummary{font-size:15px!important;line-height:1.5!important;max-width:36ch!important}
+  .focusActions{margin-top:12px!important}
+  .focusGrid{gap:8px!important}
+  .focusCard{padding:14px!important}
+  .section{margin-top:18px!important}
+
+  /* Keep the grade visible, hide the research explanation until asked for. */
+  .v31QualityCard{padding:13px 14px!important}
+  .v31QualityCard>p,.v31QualityCard>.v31Next,.v31QualityCard>.v31Details{display:none!important}
+  .v31QualityCard.v33QualityExpanded>p,.v31QualityCard.v33QualityExpanded>.v31Next,.v31QualityCard.v33QualityExpanded>.v31Details{display:block!important}
+  .v33QualityToggle{display:block}
+
+  .researchDisclosure{margin-top:10px!important}
+  .bottom{left:10px!important;right:10px!important;bottom:calc(8px + env(safe-area-inset-bottom))!important}
+  .navBtn{min-width:0!important}
+  .navBtn span:last-child{font-size:10.5px!important}
+}
+
+@media(max-width:370px){
+  .wrap{padding-left:12px!important;padding-right:12px!important}
+  .intro h1{font-size:26px!important}
+  .focusStatus{font-size:27px!important}
+  .navBtn span:last-child{font-size:10px!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
+
+@media(forced-colors:active){
+  .focusHero,.focusCard,.card,.pairSwitch,.bottom,.rail{border:1px solid CanvasText!important}
+  :focus-visible{outline:3px solid Highlight!important}
+}
