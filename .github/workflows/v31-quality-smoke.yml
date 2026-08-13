@@ -1,0 +1,34 @@
+name: v31-quality-smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/v31-quality.js'
+      - 'web/v31-quality.css'
+      - 'web/v29-market-context.js'
+      - 'web/v29-mobile-ux.js'
+      - 'supabase/functions/trade-quality/index.ts'
+      - 'supabase/migrations/20260813071500_v30_stop_breathing_room.sql'
+      - 'supabase/migrations/20260813072200_v31_setup_quality_snapshots.sql'
+      - 'scripts/v31_quality_validate.mjs'
+      - '.github/workflows/v31-quality-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check web/v31-quality.js
+          node --check web/v29-market-context.js
+          node --check web/v29-mobile-ux.js
+      - name: Validate live quality API and policy boundary
+        run: node scripts/v31_quality_validate.mjs
+      - name: Run mobile browser regression
+        run: node scripts/browser_smoke.mjs
