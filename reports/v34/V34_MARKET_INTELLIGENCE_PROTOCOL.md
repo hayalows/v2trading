@@ -93,3 +93,5 @@ No challenger changes the production baseline unless all of the following hold:
 5. The rule can be computed prospectively with current data integrity.
 
 If a feature is informative but fails the promotion gate, it may be exposed as context/quality information while remaining unable to create, cancel, resize or reroute a baseline trade.
+
+Protocol status: frozen before the first V3.4 research run.
