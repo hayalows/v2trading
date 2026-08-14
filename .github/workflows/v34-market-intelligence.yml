@@ -1,0 +1,61 @@
+name: v34-market-intelligence
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/v34_market_intelligence_challengers.py'
+      - 'reports/v34/V34_MARKET_INTELLIGENCE_PROTOCOL.md'
+      - '.github/workflows/v34-market-intelligence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Compile preregistered study
+        run: python -m py_compile scripts/v34_market_intelligence_challengers.py
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Restore frozen V1.9 research universe
+        uses: actions/download-artifact@v4
+        with:
+          name: v19-poi-penetration
+          path: research-input/v19
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: hayalows/v2trading
+          run-id: 31501787388
+      - name: Download frozen public M5 history
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD; do
+            curl -L --fail --retry 4 --retry-delay 2 \
+              -o ".research-data/market/${symbol}-5m.feather" \
+              "${base}/${symbol}-5m.feather?download=true"
+          done
+      - name: Run market-intelligence challengers
+        run: |
+          python scripts/v34_market_intelligence_challengers.py \
+            --data-dir .research-data/market \
+            --v19-dir research-input/v19 \
+            --out research-output/v34
+      - name: Show summary
+        run: cat research-output/v34/v34_summary.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v34-market-intelligence
+          path: research-output/v34/
+          retention-days: 30
