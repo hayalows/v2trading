@@ -11,31 +11,32 @@ Audit of V2 FX Discord delivery, paper-engine cadence, V3.4 market-intelligence 
 
 ## Bugs fixed
 1. **Sharp-move pace mismatch**
-   - Some 15-minute sharp-move alerts displayed `0.0× recent pace` because a 15-minute move was paired with a 5-minute pace multiplier.
+   - Some 15-minute sharp-move alerts displayed `0.0× recent pace` because a 15-minute move was paired with a mismatched short-window pace multiplier.
    - `fx-market-context` v3 now calculates the multiplier from the selected move window.
 
 2. **Transient setup-quality failure path**
    - A `trade-quality` timeout/500 could make `discord-quality-pulse` fail for that run.
-   - `discord-quality-pulse` v2 now uses a bounded timeout, records degraded health, returns cleanly, and retries on the next minute without corrupting prior alert state.
+   - `discord-quality-pulse` v2 now retries cleanly, records service health, and does not corrupt prior alert state when one request is transiently unavailable.
 
 3. **V3.4 market map overwrite**
    - Normal market-state refreshes could overwrite `details.marketIntelligence`, causing the live UI/brief/Discord context to temporarily lose V3.4 data.
-   - `market-intelligence-runner` v5 now refreshes the durable per-M15 snapshot on each 5-minute V3.4 run instead of ignoring same-bar refreshes.
-   - `trade-quality` v4, `trader-brief` v3, and `discord-v34-context` v3 read the latest durable V3.4 snapshot as their source of truth.
+   - `market-intelligence-runner` v5 refreshes the durable per-M15 snapshot on each V3.4 run.
+   - `trade-quality` v4 and `discord-v34-context` v3 use the latest immutable `market_intelligence_snapshots` row as their primary source of truth rather than relying on volatile nested market-state JSON.
 
 ## Cadence now active
-- Paper-trade engine evaluation: every 1 minute.
-- Core Discord FX pulse: every 1 minute.
-- Discord trade closures: every 1 minute.
-- Discord setup-quality/proximity checks: every 1 minute.
-- V3.4 higher-timeframe market map: every 5 minutes, aligned after pair-state refreshes.
-- V3.4 Discord context/watchdog: every 5 minutes, after the market-map refresh.
+- Paper-trade engine evaluation: every **1 minute**.
+- Core Discord FX pulse: every **1 minute**.
+- Discord trade closures: every **1 minute**.
+- Discord setup-quality/proximity checks: every **1 minute**.
+- V3.4 Discord context and delivery watchdog: every **1 minute**.
+- V3.4 higher-timeframe market map: every **5 minutes**, aligned after pair-state refreshes.
 
-One minute is the minimum supported scheduler cadence. The market-structure detector still uses completed M15 evidence; faster polling does not promote incomplete candles into signals.
+One minute is the minimum supported scheduler cadence. The market-structure detector still uses completed M15 evidence; faster polling does not promote incomplete candles into signals. Recomputing the public completed-candle market map every minute would mostly repeat unchanged information while increasing provider/rate-limit risk, so the alert path uses the one-minute floor while the full map remains five-minute.
 
 ## New Discord protections
 - Independent watchdog checks whether both core FX pulse states are fresh. If the pulse becomes stale for more than four minutes, Discord can report scanner degradation and later restoration.
 - New low-noise V3.4 context alerts are reserved for meaningful events such as BOS context, a mature POI, or a nearby mapped liquidity level changing from untouched to swept/rejected or traded-through.
+- The V3.4 context service itself checks every minute but does not send a message on every run.
 - V3.4 context remains descriptive. It does not alter the frozen midpoint entry, stop, target, or trade eligibility rules.
 
 ## UI change
