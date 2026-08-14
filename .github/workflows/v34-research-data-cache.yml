@@ -36,3 +36,5 @@ jobs:
           name: v34-public-m5-input
           path: research-data/
           retention-days: 14
+
+# Frozen research input cache only. No production dependency.
