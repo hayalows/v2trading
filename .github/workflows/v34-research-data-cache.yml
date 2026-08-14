@@ -1,0 +1,38 @@
+name: v34-research-data-cache
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v34-research-data-cache.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  cache-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download frozen public M5 history
+        run: |
+          set -euxo pipefail
+          mkdir -p research-data
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD; do
+            curl -L --fail --retry 4 --retry-delay 2 \
+              -o "research-data/${symbol}-5m.feather" \
+              "${base}/${symbol}-5m.feather?download=true"
+          done
+          sha256sum research-data/*.feather > research-data/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v34-public-m5-input
+          path: research-data/
+          retention-days: 14
