@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/v34_market_intelligence_challengers.py'
+      - 'scripts/v34_run.py'
       - 'reports/v34/V34_MARKET_INTELLIGENCE_PROTOCOL.md'
       - '.github/workflows/v34-market-intelligence.yml'
   workflow_dispatch:
@@ -24,7 +25,7 @@ jobs:
           python-version: '3.11'
           cache: pip
       - name: Compile preregistered study
-        run: python -m py_compile scripts/v34_market_intelligence_challengers.py
+        run: python -m py_compile scripts/v34_market_intelligence_challengers.py scripts/v34_run.py
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Restore frozen V1.9 research universe
@@ -48,7 +49,7 @@ jobs:
           done
       - name: Run market-intelligence challengers
         run: |
-          python scripts/v34_market_intelligence_challengers.py \
+          python scripts/v34_run.py \
             --data-dir .research-data/market \
             --v19-dir research-input/v19 \
             --out research-output/v34
