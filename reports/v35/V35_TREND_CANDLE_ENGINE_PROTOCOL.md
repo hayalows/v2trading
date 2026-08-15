@@ -34,9 +34,9 @@ At each completed M15 bar, derive only from information available at that time:
 2. latest confirmed D1 swing highs/lows;
 3. prior day high/low;
 4. prior week high/low;
-5. equal-high/equal-low clusters from confirmed H1/H4 pivots.
+5. equal-high/equal-low clusters from confirmed H4 pivots.
 
-A price is 'at' a zone when its distance is <= 0.30 H1 ATR. Multiple nearby levels are merged into one zone. A zone broken by a completed H1 close > 0.15 H1 ATR beyond it changes role and may be used as a breakout-retest level.
+A price is 'at' a zone when its distance is <= 0.30 H1 ATR. Nearby level overlap is treated as a zone rather than as false precision. A completed breakout > 0.10 H1 ATR beyond a known level may create a breakout-retest candidate.
 
 ### Candlestick triggers on completed M15 bars
 Mathematical, reproducible definitions only:
@@ -47,11 +47,12 @@ Mathematical, reproducible definitions only:
 
 ### Risk
 - Entry: next M5 open after the completed M15 trigger.
-- Structural stop: beyond the reaction zone or most recent M15 swing, whichever is farther, plus 0.10 M15 ATR.
+- Structural stop: beyond the reaction zone or most recent rolling M15 swing, whichever is farther, plus 0.10 M15 ATR.
+- Candle-only control uses a fixed 1.0 M15 ATR stop so it does not inherit support/resistance information.
 - Reject risk <0.10 ATR or >2.00 ATR.
 - One active trade per symbol per strategy family; no stacking duplicate signals while a trade is open.
 - Same-M5-bar stop/target ambiguity is pessimistically counted as a loss for the primary metric; also report an ambiguity-neutral metric.
-- Maximum hold: 96 M15 bars (24h). Timeout exits at final available close and records realized R.
+- Maximum hold: 24 calendar hours. Timeout exits at the final available M5 close inside that window and records realized R.
 
 ## Frozen strategy families
 
@@ -60,7 +61,7 @@ Goal: trend-following pullback into meaningful support/resistance.
 
 Long:
 1. D1 structure bullish.
-2. H4 structure bullish OR mixed with bullish EMA20>EMA50 and positive 20-bar slope.
+2. H4 structure bullish OR mixed with bullish EMA20>EMA50 and positive 20-bar EMA slope.
 3. M15 trades into a support zone.
 4. Completed M15 bullish engulfing, hammer-like rejection, or strong bullish body forms at the zone.
 5. Entry next M5 open.
@@ -74,10 +75,10 @@ Also report 2R and 3R outcome sensitivity without choosing a winner after the fa
 Goal: trade a trend-aligned break of support/resistance after a retest.
 
 Long:
-1. D1 direction bullish or H4+D1 both bullish.
-2. Completed M15/H1 close breaks resistance by >=0.10 H1 ATR.
-3. Within the next 8 M15 bars price retests the broken zone within 0.30 H1 ATR.
-4. A completed bullish candle trigger forms on the retest.
+1. D1 structure bullish.
+2. Completed M15 close breaks known resistance by >=0.10 H1 ATR.
+3. Within the next 8 M15 bars price retests the broken level within 0.30 H1 ATR.
+4. A completed bullish candle trigger forms on the retest and does not close >0.15 H1 ATR back through the failed side.
 5. Entry next M5 open.
 
 Short is symmetric.
@@ -103,50 +104,58 @@ Primary target: 3R, with 2.5R sensitivity reported.
 Not a claim to reproduce KojoForex's private/paid strategy.
 
 1. H4 structural trend is bullish/bearish.
-2. Price is at a support/resistance zone in the trend direction or has just retested a broken level.
-3. M15 price action trigger agrees with trend.
-4. M15 must not close through the invalidation side of the zone.
+2. Price is at a support/resistance zone in the trend direction.
+3. M15 price-action trigger agrees with trend.
+4. M15 must not close >0.15 H1 ATR through the invalidation side of the zone.
 5. Entry next M5 open.
 
 Primary target: 3R, matching the public 1:3 framing used in Kojo materials.
 
 ### E. CANDLE-ONLY negative control
-Same candle definitions, no trend, no support/resistance. Entry next M5 open in candle direction, fixed ATR structural stop, 2.5R target. This exists to test whether candle shapes add value by themselves.
+Same candle definitions, no trend, no support/resistance. Entry next M5 open in candle direction, fixed 1.0 M15 ATR stop, 2.5R target. This exists to test whether candle shapes add value by themselves.
 
-## Ablations
-For TCR and DFP report:
-- trend only;
-- trend + support/resistance without candle gating;
-- trend + candle without support/resistance;
-- full contextual strategy;
-- engulfing only;
-- rejection only;
-- strong body only.
+## Frozen ablations
+TCR:
+- `TCR_TREND_ONLY_2.5R`: enter only on a newly established D1+H4 aligned trend state.
+- `TCR_SR_NO_CANDLE_2.5R`: trend + support/resistance, no candle gate.
+- `TCR_CANDLE_NO_SR_2.5R`: trend + candle, no support/resistance gate.
+- `TCR_2.5R`: full contextual strategy.
+- Trigger-type results are reported separately for engulfing, rejection and strong-body signals.
+
+DFP:
+- `DFP_NO_SR_3R`: D1 trend + H4 50%-61.8% pullback + candle, no support/resistance overlap requirement.
+- `DFP_NO_CANDLE_3R`: D1 trend + H4 50%-61.8% pullback + support/resistance overlap, no candle requirement.
+- `DFP_3R`: full contextual strategy.
+- Trigger-type results are reported separately.
 
 These are descriptive ablations, not post-hoc promotion candidates.
 
 ## Metrics
 For each family, symbol, year, and pooled sample:
-- signals, entered trades, wins, losses, timeouts, ambiguous bars;
-- decisive win rate;
-- mean R/trade;
+- entered trades, wins, losses, timeouts, ambiguous bars;
+- decisive win rate excluding ambiguous bars;
+- pessimistic win rate counting same-bar ambiguity as a loss;
+- mean R/trade under pessimistic ambiguity treatment;
+- ambiguity-neutral mean R;
 - median R;
 - profit factor;
 - max drawdown in R under sequential 1R risk units;
+- bootstrap 95% CI for mean R;
 - annual results;
 - long/short split;
 - session split;
+- trigger-type split;
 - target sensitivity where specified.
 
 ## Promotion gate
-A V3.5 family may be labeled historically promising only if ALL hold:
+A V3.5 primary family may be labeled historically promising only if ALL hold:
 1. >=200 trades pooled and >=50 trades in each symbol;
 2. mean R > +0.10R at the frozen primary target;
 3. profit factor >1.10;
 4. positive mean R in at least 3 of 4 years;
 5. both symbols have non-negative mean R;
-6. full contextual variant materially exceeds its candle-only control;
-7. bootstrap 95% CI for pooled mean R excludes 0 OR walk-forward yearly behavior is consistently positive enough to justify prospective shadowing.
+6. pooled mean R exceeds the candle-only control by at least +0.05R/trade;
+7. bootstrap 95% CI lower bound for pooled mean R is above 0 OR all four yearly mean-R results are positive.
 
 Historical promotion does NOT authorize broker execution. Any historically promising family enters prospective paper/shadow mode first.
 
