@@ -1,0 +1,59 @@
+name: v36-zero-base-quant
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/v36_zero_base_quant.py'
+      - 'scripts/v36_download_history.cjs'
+      - 'reports/v36/V36_ZERO_BASE_QUANT_PROTOCOL.md'
+      - '.github/workflows/v36-zero-base-quant.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Dukascopy downloader
+        run: npm install --no-save dukascopy-node@1.50.0
+      - name: Download 2005-2025 public M15 bid history
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/v36
+          node scripts/v36_download_history.cjs eurusd m15 .research-data/v36/eurusd-m15.json 2005-01-01 2025-12-31
+          node scripts/v36_download_history.cjs gbpusd m15 .research-data/v36/gbpusd-m15.json 2005-01-01 2025-12-31
+          ls -lh .research-data/v36
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install research dependencies
+        run: pip install -r requirements.txt
+      - name: Compile frozen study
+        run: python -m py_compile scripts/v36_zero_base_quant.py
+      - name: Run zero-base discovery and untouched holdout
+        run: |
+          python scripts/v36_zero_base_quant.py \
+            --data-dir .research-data/v36 \
+            --out research-output/v36
+      - name: Show frozen result
+        if: always()
+        run: |
+          test -f research-output/v36/v36_summary.json && cat research-output/v36/v36_summary.json || true
+          test -f research-output/v36/v36_all_candidates.csv && head -30 research-output/v36/v36_all_candidates.csv || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v36-zero-base-quant
+          path: research-output/v36/
+          retention-days: 30
