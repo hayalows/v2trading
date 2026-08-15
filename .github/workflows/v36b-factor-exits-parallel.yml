@@ -23,36 +23,50 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: {node-version: '20'}
+        with:
+          node-version: '20'
       - run: npm install --no-save dukascopy-node@1.50.0
       - shell: bash
         run: |
           set -euxo pipefail
           mkdir -p .research-data/v36b
           pids=''
-          for s in eurusd gbpusd audusd nzdusd usdjpy usdchf usdcad; do node scripts/v36b_download_history.cjs "$s" ".research-data/v36b/${s}-m15.json" 2005-01-01 2025-12-31 & pids="$pids $!"; done
+          for s in eurusd gbpusd audusd nzdusd usdjpy usdchf usdcad; do
+            node scripts/v36b_download_history.cjs "$s" ".research-data/v36b/${s}-m15.json" 2005-01-01 2025-12-31 & pids="$pids $!"
+          done
           for p in $pids; do wait "$p"; done
       - uses: actions/upload-artifact@v4
-        with: {name: v36b-exit-data, path: .research-data/v36b/, retention-days: 2}
+        with:
+          name: v36b-exit-data
+          path: .research-data/v36b/
+          retention-days: 2
 
   chunk:
     needs: data
     strategy:
       fail-fast: false
-      matrix: {chunk: [0,1,2,3,4,5,6,7]}
+      matrix:
+        chunk: [0,1,2,3,4,5,6,7]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        with: {name: v36b-exit-data, path: .research-data/v36b}
+        with:
+          name: v36b-exit-data
+          path: .research-data/v36b
       - uses: actions/setup-python@v5
-        with: {python-version: '3.11', cache: pip}
+        with:
+          python-version: '3.11'
+          cache: pip
       - run: pip install -r requirements.txt
       - run: python -m py_compile scripts/v36_zero_base_quant.py scripts/v36_zero_base_quant_fast.py scripts/v36b_usd_factor.py scripts/v36b_factor_exit_chunk.py
       - run: python scripts/v36b_factor_exit_chunk.py --data-dir .research-data/v36b --out research-output/prehold --chunk ${{ matrix.chunk }} --chunks 8
       - uses: actions/upload-artifact@v4
-        with: {name: v36b-exit-chunk-${{ matrix.chunk }}, path: research-output/prehold/, retention-days: 7}
+        with:
+          name: v36b-exit-chunk-${{ matrix.chunk }}
+          path: research-output/prehold/
+          retention-days: 7
 
   aggregate:
     needs: [data, chunk]
@@ -61,14 +75,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        with: {name: v36b-exit-data, path: .research-data/v36b}
+        with:
+          name: v36b-exit-data
+          path: .research-data/v36b
       - uses: actions/download-artifact@v4
         with:
           pattern: v36b-exit-chunk-*
           path: research-output/chunks
           merge-multiple: true
       - uses: actions/setup-python@v5
-        with: {python-version: '3.11', cache: pip}
+        with:
+          python-version: '3.11'
+          cache: pip
       - run: pip install -r requirements.txt
       - name: Merge factor surface
         run: |
@@ -83,4 +101,7 @@ jobs:
           PY
       - run: python scripts/v36b_factor_aggregate.py --data-dir .research-data/v36b --grid research-output/prehold/v36b_factor_grid.csv --out research-output/final
       - uses: actions/upload-artifact@v4
-        with: {name: v36b-factor-exits-final, path: research-output/final/, retention-days: 30}
+        with:
+          name: v36b-factor-exits-final
+          path: research-output/final/
+          retention-days: 30
