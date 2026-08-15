@@ -22,8 +22,8 @@ if (!out) throw new Error('Output path required');
     priceType: 'bid',
     volumes: true,
     ignoreFlats: true,
-    batchSize: 20,
-    pauseBetweenBatchesMs: 100
+    batchSize: 80,
+    pauseBetweenBatchesMs: 20
   });
   if (!Array.isArray(rows) || rows.length < 1000) throw new Error(`Unexpected ${instrument} ${timeframe} rows: ${Array.isArray(rows) ? rows.length : typeof rows}`);
   fs.writeFileSync(out, JSON.stringify(rows));
