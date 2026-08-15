@@ -1,0 +1,53 @@
+name: v35-trend-candle-engine
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/v35_trend_candle_engine.py'
+      - 'scripts/v35_run.py'
+      - 'reports/v35/V35_TREND_CANDLE_ENGINE_PROTOCOL.md'
+      - '.github/workflows/v35-trend-candle-engine.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Compile frozen challenger
+        run: python -m py_compile scripts/v35_trend_candle_engine.py scripts/v35_run.py
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Download frozen public M5 history
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/market
+          base='https://huggingface.co/datasets/NatoG93/market-data/resolve/main'
+          for symbol in EURUSD GBPUSD; do
+            curl -L --fail --retry 4 --retry-delay 2 \
+              -o ".research-data/market/${symbol}-5m.feather" \
+              "${base}/${symbol}-5m.feather?download=true"
+          done
+      - name: Run standalone trend-candle study
+        run: |
+          python scripts/v35_run.py \
+            --data-dir .research-data/market \
+            --out research-output/v35
+      - name: Show leaderboard
+        run: cat research-output/v35/v35_leaderboard.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v35-trend-candle-engine
+          path: research-output/v35/
+          retention-days: 30
