@@ -1,0 +1,65 @@
+name: v36b-usd-factor
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/v36b_usd_factor.py'
+      - 'scripts/v36b_download_history.cjs'
+      - 'scripts/v36_zero_base_quant.py'
+      - 'scripts/v36_zero_base_quant_fast.py'
+      - 'reports/v36/V36B_SYSTEMATIC_USD_FACTOR_PROTOCOL.md'
+      - '.github/workflows/v36b-usd-factor.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: v36b-usd-factor
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  factor-study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-save dukascopy-node@1.50.0
+      - name: Download seven major FX histories
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .research-data/v36b
+          pids=''
+          for s in eurusd gbpusd audusd nzdusd usdjpy usdchf usdcad; do
+            node scripts/v36b_download_history.cjs "$s" ".research-data/v36b/${s}-m15.json" 2005-01-01 2025-12-31 &
+            pids="$pids $!"
+          done
+          for p in $pids; do wait "$p"; done
+          ls -lh .research-data/v36b
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Compile factor study
+        run: python -m py_compile scripts/v36_zero_base_quant.py scripts/v36_zero_base_quant_fast.py scripts/v36b_usd_factor.py
+      - name: Run systematic USD-factor research
+        run: |
+          python scripts/v36b_usd_factor.py --data-dir .research-data/v36b --out research-output/v36b
+      - name: Show result
+        if: always()
+        run: |
+          test -f research-output/v36b/v36b_summary.json && cat research-output/v36b/v36b_summary.json || true
+          test -f research-output/v36b/v36b_factor_grid.csv && head -30 research-output/v36b/v36b_factor_grid.csv || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v36b-usd-factor
+          path: research-output/v36b/
+          retention-days: 30
