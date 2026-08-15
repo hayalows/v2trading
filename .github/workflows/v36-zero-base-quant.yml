@@ -30,8 +30,12 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p .research-data/v36
-          node scripts/v36_download_history.cjs eurusd m15 .research-data/v36/eurusd-m15.json 2005-01-01 2025-12-31
-          node scripts/v36_download_history.cjs gbpusd m15 .research-data/v36/gbpusd-m15.json 2005-01-01 2025-12-31
+          node scripts/v36_download_history.cjs eurusd m15 .research-data/v36/eurusd-m15.json 2005-01-01 2025-12-31 &
+          p1=$!
+          node scripts/v36_download_history.cjs gbpusd m15 .research-data/v36/gbpusd-m15.json 2005-01-01 2025-12-31 &
+          p2=$!
+          wait "$p1"
+          wait "$p2"
           ls -lh .research-data/v36
       - uses: actions/setup-python@v5
         with:
