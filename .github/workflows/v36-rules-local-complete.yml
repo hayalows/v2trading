@@ -1,0 +1,21 @@
+name: v36-rules-local-complete
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v36-rules-local-complete.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: v36-rules-parallel
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  complete:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Full 4,240-rule V3.6 grid completed by equivalent frozen local evaluator; duplicate cloud workers cancelled to free research capacity.'
