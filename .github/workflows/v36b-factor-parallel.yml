@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'scripts/v36b_factor_chunk.py'
+      - 'scripts/v36b_factor_exit_chunk.py'
       - 'scripts/v36b_factor_aggregate.py'
       - '.github/workflows/v36b-factor-parallel.yml'
   workflow_dispatch:
@@ -24,7 +24,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: {node-version: '20'}
+        with:
+          node-version: '20'
       - run: npm install --no-save dukascopy-node@1.50.0
       - name: Download seven frozen major FX histories
         shell: bash
@@ -37,24 +38,32 @@ jobs:
           done
           for p in $pids; do wait "$p"; done
       - uses: actions/upload-artifact@v4
-        with: {name: v36b-factor-data, path: .research-data/v36b/, retention-days: 2}
+        with:
+          name: v36b-factor-data
+          path: .research-data/v36b/
+          retention-days: 2
 
   chunk:
     needs: data
     strategy:
       fail-fast: false
-      matrix: {chunk: [0,1,2,3,4,5,6,7]}
+      matrix:
+        chunk: [0,1,2,3,4,5,6,7]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        with: {name: v36b-factor-data, path: .research-data/v36b}
+        with:
+          name: v36b-factor-data
+          path: .research-data/v36b
       - uses: actions/setup-python@v5
-        with: {python-version: '3.11', cache: pip}
+        with:
+          python-version: '3.11'
+          cache: pip
       - run: pip install -r requirements.txt
-      - run: python -m py_compile scripts/v36_zero_base_quant.py scripts/v36_zero_base_quant_fast.py scripts/v36b_usd_factor.py scripts/v36b_factor_chunk.py
-      - run: python scripts/v36b_factor_chunk.py --data-dir .research-data/v36b --out research-output/prehold --chunk ${{ matrix.chunk }} --chunks 8
+      - run: python -m py_compile scripts/v36_zero_base_quant.py scripts/v36_zero_base_quant_fast.py scripts/v36b_usd_factor.py scripts/v36b_factor_exit_chunk.py
+      - run: python scripts/v36b_factor_exit_chunk.py --data-dir .research-data/v36b --out research-output/prehold --chunk ${{ matrix.chunk }} --chunks 8
       - uses: actions/upload-artifact@v4
         with:
           name: v36b-factor-chunk-${{ matrix.chunk }}
@@ -68,21 +77,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        with: {name: v36b-factor-data, path: .research-data/v36b}
+        with:
+          name: v36b-factor-data
+          path: .research-data/v36b
       - uses: actions/download-artifact@v4
         with:
           pattern: v36b-factor-chunk-*
           path: research-output/chunks
           merge-multiple: true
       - uses: actions/setup-python@v5
-        with: {python-version: '3.11', cache: pip}
+        with:
+          python-version: '3.11'
+          cache: pip
       - run: pip install -r requirements.txt
       - name: Merge factor chunks
         run: |
           python - <<'PY'
           import pandas as pd
           from pathlib import Path
-          ps=sorted(Path('research-output/chunks').glob('v36b_chunk*.csv'))
+          ps=sorted(Path('research-output/chunks').glob('v36b_exit_chunk*.csv'))
           z=pd.concat([pd.read_csv(p) for p in ps],ignore_index=True)
           Path('research-output/prehold').mkdir(parents=True,exist_ok=True)
           z.to_csv('research-output/prehold/v36b_factor_grid.csv',index=False)
