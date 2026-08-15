@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'scripts/v36_rule_chunk.py'
+      - 'scripts/v36_exit_chunk.py'
       - '.github/workflows/v36-rules-parallel.yml'
   workflow_dispatch:
 
@@ -23,7 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: {node-version: '20'}
+        with:
+          node-version: '20'
       - run: npm install --no-save dukascopy-node@1.50.0
       - shell: bash
         run: |
@@ -33,24 +34,32 @@ jobs:
           node scripts/v36_download_history.cjs gbpusd m15 .research-data/v36/gbpusd-m15.json 2005-01-01 2025-12-31 & p2=$!
           wait "$p1"; wait "$p2"
       - uses: actions/upload-artifact@v4
-        with: {name: v36-rules-data, path: .research-data/v36/, retention-days: 2}
+        with:
+          name: v36-rules-data
+          path: .research-data/v36/
+          retention-days: 2
 
   chunk:
     needs: data
     strategy:
       fail-fast: false
-      matrix: {chunk: [0,1,2,3,4,5,6,7]}
+      matrix:
+        chunk: [0,1,2,3,4,5,6,7]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        with: {name: v36-rules-data, path: .research-data/v36}
+        with:
+          name: v36-rules-data
+          path: .research-data/v36
       - uses: actions/setup-python@v5
-        with: {python-version: '3.11', cache: pip}
+        with:
+          python-version: '3.11'
+          cache: pip
       - run: pip install -r requirements.txt
-      - run: python -m py_compile scripts/v36_zero_base_quant.py scripts/v36_zero_base_quant_fast.py scripts/v36_rule_chunk.py
-      - run: python scripts/v36_rule_chunk.py --data-dir .research-data/v36 --out research-output/prehold --chunk ${{ matrix.chunk }} --chunks 8
+      - run: python -m py_compile scripts/v36_zero_base_quant.py scripts/v36_zero_base_quant_fast.py scripts/v36_exit_chunk.py
+      - run: python scripts/v36_exit_chunk.py --data-dir .research-data/v36 --out research-output/prehold --chunk ${{ matrix.chunk }} --chunks 8
       - uses: actions/upload-artifact@v4
         with:
           name: v36-rules-chunk-${{ matrix.chunk }}
@@ -64,21 +73,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        with: {name: v36-rules-data, path: .research-data/v36}
+        with:
+          name: v36-rules-data
+          path: .research-data/v36
       - uses: actions/download-artifact@v4
         with:
           pattern: v36-rules-chunk-*
           path: research-output/chunks
           merge-multiple: true
       - uses: actions/setup-python@v5
-        with: {python-version: '3.11', cache: pip}
+        with:
+          python-version: '3.11'
+          cache: pip
       - run: pip install -r requirements.txt
       - name: Merge frozen rule chunks
         run: |
           python - <<'PY'
           import pandas as pd
           from pathlib import Path
-          ps=sorted(Path('research-output/chunks').glob('v36_rules_chunk*.csv'))
+          ps=sorted(Path('research-output/chunks').glob('v36_exit_chunk*.csv'))
           z=pd.concat([pd.read_csv(p) for p in ps],ignore_index=True)
           Path('research-output/prehold').mkdir(parents=True,exist_ok=True)
           z.to_csv('research-output/prehold/v36_rule_grid.csv',index=False)
