@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/v36_zero_base_quant.py'
+      - 'scripts/v36_zero_base_quant_fast.py'
       - 'scripts/v36_download_history.cjs'
       - 'reports/v36/V36_ZERO_BASE_QUANT_PROTOCOL.md'
       - '.github/workflows/v36-zero-base-quant.yml'
@@ -48,10 +49,10 @@ jobs:
       - name: Install research dependencies
         run: pip install -r requirements.txt
       - name: Compile frozen study
-        run: python -m py_compile scripts/v36_zero_base_quant.py
+        run: python -m py_compile scripts/v36_zero_base_quant.py scripts/v36_zero_base_quant_fast.py
       - name: Run zero-base discovery and untouched holdout
         run: |
-          python scripts/v36_zero_base_quant.py \
+          python scripts/v36_zero_base_quant_fast.py \
             --data-dir .research-data/v36 \
             --out research-output/v36
       - name: Show frozen result
