@@ -10,6 +10,10 @@ on:
       - '.github/workflows/v36-zero-base-quant.yml'
   workflow_dispatch:
 
+concurrency:
+  group: v36-zero-base-quant
+  cancel-in-progress: true
+
 permissions:
   contents: read
   actions: read
