@@ -3,7 +3,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/", "destination": "/web" }
+    { "source": "/", "destination": "/web/deploy-bootstrap-v32.html" }
   ],
   "headers": [
     {
@@ -13,7 +13,7 @@
       ]
     },
     {
-      "source": "/web",
+      "source": "/web/deploy-bootstrap-v32.html",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }
       ]
