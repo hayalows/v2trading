@@ -27,6 +27,130 @@ function setupA11y(){
   window.addEventListener('v2:view',e=>syncNav(e.detail?.id||'home'));
 }
 
+function setupHome(){
+  const home=$('#home');
+  if(!home||home.dataset.homeUx==='ready')return;
+  const head=home.querySelector('.pageHead'),account=home.querySelector('.accountHero'),instrumentSection=home.querySelector('.section'),pairGrid=instrumentSection?.querySelector('.pairGrid');
+  if(!head||!account||!instrumentSection||!pairGrid)return;
+
+  home.classList.add('homeV2');
+  account.classList.add('homeAccount');
+  instrumentSection.classList.add('homeInstruments');
+
+  const focus=document.createElement('section');
+  focus.id='homeFocus';
+  focus.className='homeFocus';
+  focus.hidden=true;
+  focus.setAttribute('aria-live','polite');
+  head.insertAdjacentElement('afterend',focus);
+
+  const latest=document.createElement('section');
+  latest.id='homeLatest';
+  latest.className='homeLatest';
+  latest.hidden=true;
+  instrumentSection.insertAdjacentElement('afterend',latest);
+
+  let rendering=false,lastFresh=0,freshTimer=0;
+  const sourceSelectors=['#EURUSDHome','#GBPUSDHome','#EURUSDTrade','#GBPUSDTrade','#tradeList','#record','#balance'];
+
+  function levelMap(sym){
+    const card=$(`#${sym}Trade`),out={};
+    card?.querySelectorAll('.levels>div').forEach(el=>{
+      const key=el.querySelector('span')?.textContent?.trim();
+      const value=el.querySelector('b')?.textContent?.trim();
+      if(key&&value)out[key]=value;
+    });
+    return out;
+  }
+  function cardState(card){
+    const sym=card.id.replace('Home','');
+    const badge=card.querySelector('.stageBadge')?.textContent||'';
+    const stage=Number((badge.match(/Stage\s+(\d+)/i)||[])[1]||0);
+    const next=card.querySelector('.next span')?.textContent?.trim()||'';
+    const stageName=card.querySelector('.stageName')?.textContent?.trim()||'Monitoring';
+    const price=card.querySelector('.pairPrice')?.textContent?.trim()||'—';
+    const why=card.querySelector('p')?.textContent?.trim()||'';
+    const open=/trade is open/i.test(next);
+    const armed=/plan is armed/i.test(next);
+    const state=open?'open':armed?'armed':stage>=6?'attention':stage>=3?'developing':'watching';
+    const priority=open?100+stage:armed?90+stage:stage>=6?70+stage:stage>=3?40+stage:10+stage;
+    return{card,sym,stage,next,stageName,price,why,state,priority};
+  }
+  function currentR(sym){
+    const cards=[...document.querySelectorAll(`#tradeList .tradeCard[data-symbol="${sym}"]`)];
+    const openCard=cards.find(c=>c.querySelector('.tradeResult')?.textContent?.trim().startsWith('OPEN'));
+    if(!openCard)return'';
+    return openCard.querySelector('.tradeResult small')?.textContent?.trim()||'';
+  }
+  function renderFocus(top){
+    const needsFocus=top&&(top.state==='open'||top.state==='armed'||top.state==='attention');
+    home.classList.toggle('hasHomeFocus',Boolean(needsFocus));
+    $$('#EURUSDHome,#GBPUSDHome').forEach(c=>{c.hidden=false;c.removeAttribute('data-home-focus')});
+    if(!needsFocus){focus.hidden=true;focus.innerHTML='';return}
+    top.card.hidden=true;
+    top.card.dataset.homeFocus='true';
+    const levels=levelMap(top.sym),rNow=currentR(top.sym);
+    const label=top.state==='open'?'Open paper trade':top.state==='armed'?'Plan ready':'Needs attention';
+    const status=top.state==='open'?(rNow||'Trade active'):top.state==='armed'?'Waiting for midpoint entry':top.stageName;
+    const levelBits=[];
+    if(levels.Entry)levelBits.push(`<div><span>Entry</span><b>${levels.Entry}</b></div>`);
+    if(levels.SL)levelBits.push(`<div><span>SL</span><b>${levels.SL}</b></div>`);
+    if(levels.TP)levelBits.push(`<div><span>TP</span><b>${levels.TP}</b></div>`);
+    if(!levelBits.length&&levels.Midpoint)levelBits.push(`<div><span>Midpoint</span><b>${levels.Midpoint}</b></div>`);
+    focus.innerHTML=`<div class="homeFocusTop"><div><span class="homeFocusEyebrow">${label}</span><div class="homeFocusTitle"><strong>${top.sym}</strong><span>${top.price}</span></div></div><span class="homeFocusStage">Stage ${top.stage}/8</span></div><div class="homeFocusStatus">${status}</div>${levelBits.length?`<div class="homeFocusLevels">${levelBits.join('')}</div>`:''}<div class="homeFocusNext"><span>Next</span><b>${top.next||'Monitor the next completed structural event.'}</b></div>`;
+    focus.hidden=false;
+  }
+  function renderLatest(){
+    const card=$('#tradeList .tradeCard');
+    if(!card){latest.hidden=true;latest.innerHTML='';return}
+    const sym=card.dataset.symbol||card.querySelector('.tradeTitle strong')?.textContent?.trim()||'Trade';
+    const direction=card.querySelector('.direction')?.textContent?.trim()||'';
+    const resultEl=card.querySelector('.tradeResult');
+    const main=resultEl?.childNodes?.[0]?.textContent?.trim()||resultEl?.textContent?.trim()||'';
+    const sub=resultEl?.querySelector('small')?.textContent?.trim()||'';
+    const time=card.querySelector('.tradeWhen')?.textContent?.trim()||'';
+    const isOpen=main==='OPEN';
+    latest.innerHTML=`<div class="homeLatestHead"><span>Latest</span><button type="button" class="homeHistoryLink">View history</button></div><button type="button" class="homeLatestRow"><div><strong>${sym}${direction?` · ${direction}`:''}</strong><span>${time}</span></div><div class="homeLatestResult ${resultEl?.classList.contains('bad')?'bad':resultEl?.classList.contains('good')?'good':''}"><b>${isOpen?'Open':main}</b>${sub?`<span>${sub}</span>`:''}</div></button>`;
+    latest.hidden=false;
+    const openHistory=()=>{window.v2SetView?.('trades');setTimeout(()=>document.querySelector('[data-trade-mode="history"]')?.click(),0)};
+    latest.querySelector('.homeHistoryLink')?.addEventListener('click',openHistory);
+    latest.querySelector('.homeLatestRow')?.addEventListener('click',openHistory);
+  }
+  function renderHome(){
+    if(rendering)return;rendering=true;
+    try{
+      const states=$$('#EURUSDHome,#GBPUSDHome').map(cardState).sort((a,b)=>b.priority-a.priority);
+      states.forEach(s=>{s.card.dataset.homeState=s.state});
+      states.forEach(s=>pairGrid.appendChild(s.card));
+      renderFocus(states[0]);
+      renderLatest();
+    }finally{rendering=false}
+  }
+  function schedule(){requestAnimationFrame(renderHome)}
+  const observer=new MutationObserver(schedule);
+  sourceSelectors.forEach(sel=>{const el=$(sel);if(el)observer.observe(el,{childList:true,subtree:true,characterData:true})});
+
+  const topStatus=$('#topStatus');
+  function freshnessText(){
+    if(!lastFresh||!topStatus)return;
+    const current=topStatus.textContent||'';
+    if(/Refreshing|services connected|Connecting/i.test(current))return;
+    const sec=Math.max(0,Math.floor((Date.now()-lastFresh)/1000));
+    topStatus.textContent=sec<10?'Live · just now':sec<60?`Live · ${sec}s ago`:`Live · ${Math.floor(sec/60)}m ago`;
+  }
+  if(topStatus){
+    const statusObserver=new MutationObserver(()=>{
+      const text=topStatus.textContent||'';
+      if(text==='Live data connected'){lastFresh=Date.now();freshnessText()}
+    });
+    statusObserver.observe(topStatus,{childList:true,characterData:true,subtree:true});
+    freshTimer=setInterval(freshnessText,10000);
+  }
+  window.addEventListener('pagehide',()=>{if(freshTimer)clearInterval(freshTimer)},{once:true});
+  renderHome();
+  home.dataset.homeUx='ready';
+}
+
 function setupTrades(){
   const view=$('#trades');
   if(!view||view.dataset.uxTabs==='ready')return;
@@ -136,6 +260,7 @@ function setupSegments(){
 }
 
 setupA11y();
+setupHome();
 setupTrades();
 setupResearch();
 setupSegments();
