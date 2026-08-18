@@ -3,7 +3,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/", "destination": "/web/app-v2" }
+    { "source": "/", "destination": "/web/app-v3" }
   ],
   "headers": [
     {
@@ -13,7 +13,7 @@
       ]
     },
     {
-      "source": "/web/app-v2",
+      "source": "/web/app-v3",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }
       ]
