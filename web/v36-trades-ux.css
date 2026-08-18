@@ -1,0 +1,96 @@
+/* V2 V3.6 — Trades-only UX refinement.
+   Keeps Home/Chart/Research/Data unchanged and makes the Trades view scannable. */
+#tradesView .v36TradesDashboard{display:grid;gap:16px;margin-top:4px}
+#tradesView .v36AccountBar{display:grid;grid-template-columns:minmax(220px,1.35fr) repeat(3,minmax(130px,.65fr));gap:10px}
+#tradesView .v36AccountHero,#tradesView .v36QuickMetric,#tradesView .v36SetupCard,#tradesView .v36TradeCard{border:1px solid var(--v32-line,rgba(255,255,255,.08));background:var(--v32-surface-2,rgba(255,255,255,.035));border-radius:18px}
+#tradesView .v36AccountHero{padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+#tradesView .v36AccountHero small,#tradesView .v36QuickMetric span,#tradesView .v36SetupSub,#tradesView .v36TradeWhen,#tradesView .v36TradeMeta span,#tradesView .v36Level span,#tradesView .v36Why,#tradesView .v36Next{color:var(--v32-muted,#939ca8)}
+#tradesView .v36AccountHero small{display:block;font-size:11px;font-weight:650;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+#tradesView .v36AccountHero strong{font-size:30px;line-height:1;font-variant-numeric:tabular-nums slashed-zero;letter-spacing:-.035em}
+#tradesView .v36AccountPnl{font-size:15px;font-weight:720;font-variant-numeric:tabular-nums;text-align:right}
+#tradesView .v36AccountPnl.good,#tradesView .v36Result.good{color:#8fd7ac}
+#tradesView .v36AccountPnl.bad,#tradesView .v36Result.bad{color:#ff9d9d}
+#tradesView .v36QuickMetric{padding:15px 16px;display:flex;flex-direction:column;justify-content:center;min-height:78px}
+#tradesView .v36QuickMetric span{font-size:11px;font-weight:620}
+#tradesView .v36QuickMetric b{margin-top:5px;font-size:18px;font-variant-numeric:tabular-nums slashed-zero}
+#tradesView .v36Block{display:grid;gap:10px}
+#tradesView .v36BlockHead{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-top:4px}
+#tradesView .v36BlockHead h3{margin:0;font-size:18px;letter-spacing:-.02em}
+#tradesView .v36BlockHead p{margin:0;color:var(--v32-muted,#939ca8);font-size:12px;text-align:right;max-width:54ch}
+#tradesView .v36Setups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#tradesView .v36SetupCard{padding:17px 18px;min-width:0}
+#tradesView .v36SetupTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+#tradesView .v36Pair{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:760}
+#tradesView .v36Pair i{width:8px;height:8px;border-radius:99px;background:#8dbaFF;box-shadow:0 0 0 4px rgba(141,186,255,.08)}
+#tradesView .v36SetupSub{font-size:11px;margin-top:4px;font-variant-numeric:tabular-nums}
+#tradesView .v36StagePill{white-space:nowrap;border:1px solid var(--v32-line,rgba(255,255,255,.08));border-radius:999px;padding:6px 9px;font-size:11px;font-weight:720;background:rgba(255,255,255,.035)}
+#tradesView .v36StagePill.active{border-color:rgba(141,186,255,.24);background:rgba(141,186,255,.10)}
+#tradesView .v36StageBar{height:5px;border-radius:99px;background:rgba(255,255,255,.055);overflow:hidden;margin:15px 0 8px}
+#tradesView .v36StageBar i{display:block;height:100%;border-radius:inherit;background:#8dbaFF;transition:width .25s ease}
+#tradesView .v36StageLabel{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#tradesView .v36StageLabel b{font-size:14px}
+#tradesView .v36StageLabel span{font-size:10px;color:var(--v32-muted,#939ca8)}
+#tradesView .v36Why,#tradesView .v36Next{font-size:12.5px;line-height:1.5;margin-top:10px}
+#tradesView .v36Why b,#tradesView .v36Next b{color:var(--v32-text,#f5f7fa);font-weight:700}
+#tradesView .v36Plan{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:13px;padding-top:13px;border-top:1px solid var(--v32-line,rgba(255,255,255,.08))}
+#tradesView .v36Level{min-width:0;padding:9px 10px;border-radius:11px;background:rgba(255,255,255,.025)}
+#tradesView .v36Level span{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:650}
+#tradesView .v36Level b{display:block;margin-top:4px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums slashed-zero}
+#tradesView .v36PlanEmpty{margin-top:13px;padding-top:12px;border-top:1px solid var(--v32-line,rgba(255,255,255,.08));font-size:11.5px;color:var(--v32-muted,#939ca8)}
+#tradesView .v36TradeList{display:grid;gap:8px}
+#tradesView .v36TradeCard{overflow:hidden}
+#tradesView .v36TradeCard summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:minmax(160px,1fr) minmax(180px,1.15fr) auto;gap:14px;align-items:center;padding:14px 16px;min-height:70px}
+#tradesView .v36TradeCard summary::-webkit-details-marker{display:none}
+#tradesView .v36TradeIdentity{min-width:0}
+#tradesView .v36TradeIdentity b{font-size:14px}
+#tradesView .v36Direction{display:inline-flex;margin-left:7px;padding:3px 6px;border-radius:7px;font-size:9.5px;font-weight:760;text-transform:uppercase;letter-spacing:.045em;background:rgba(255,255,255,.05)}
+#tradesView .v36TradeWhen{display:block;margin-top:5px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tradesView .v36TradeMeta{display:flex;gap:16px;min-width:0}
+#tradesView .v36TradeMeta div{min-width:0}
+#tradesView .v36TradeMeta span{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.04em}
+#tradesView .v36TradeMeta b{display:block;margin-top:3px;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#tradesView .v36Result{text-align:right;font-size:18px;font-weight:780;line-height:1.1;font-variant-numeric:tabular-nums slashed-zero;white-space:nowrap}
+#tradesView .v36Result small{display:block;color:var(--v32-muted,#939ca8);font-size:10px;font-weight:600;margin-top:4px}
+#tradesView .v36TradeDetail{padding:0 16px 15px;border-top:1px solid var(--v32-line,rgba(255,255,255,.08));background:rgba(0,0,0,.08)}
+#tradesView .v36TradeDetailGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding-top:12px}
+#tradesView .v36TradeNote{margin-top:10px;font-size:11.5px;color:var(--v32-muted,#939ca8);line-height:1.5}
+#tradesView .v36Status{display:inline-flex;align-items:center;gap:6px;margin-left:8px;font-size:10px;font-weight:720;color:var(--v32-muted,#939ca8)}
+#tradesView .v36Status i{width:6px;height:6px;border-radius:99px;background:currentColor}
+#tradesView .v36LegacyDetails{margin-top:4px;border:1px solid var(--v32-line,rgba(255,255,255,.08));border-radius:16px;background:rgba(255,255,255,.018);overflow:hidden}
+#tradesView .v36LegacyDetails>summary{list-style:none;cursor:pointer;padding:15px 16px;font-size:12px;font-weight:680;color:var(--v32-muted,#939ca8)}
+#tradesView .v36LegacyDetails>summary::-webkit-details-marker{display:none}
+#tradesView .v36LegacyDetails .v36LegacyInner{padding:0 12px 12px}
+#tradesView.v36Enhanced>.tradeStats,#tradesView.v36Enhanced>.paperWorkspace{display:none!important}
+#tradesView.v36Enhanced>.section:has(#paperHistory){display:none!important}
+#tradesView .v36TradeCard:focus-within,#tradesView .v36SetupCard:focus-within{border-color:rgba(141,186,255,.26)}
+@media(max-width:900px){
+  #tradesView .v36AccountBar{grid-template-columns:repeat(3,minmax(0,1fr))}
+  #tradesView .v36AccountHero{grid-column:1/-1}
+  #tradesView .v36Plan{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #tradesView .v36TradeCard summary{grid-template-columns:minmax(145px,1fr) auto;gap:10px}
+  #tradesView .v36TradeMeta{grid-column:1/-1;grid-row:2}
+  #tradesView .v36Result{grid-column:2;grid-row:1}
+}
+@media(max-width:719px){
+  #tradesView .v36TradesDashboard{gap:12px}
+  #tradesView .v36AccountBar{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  #tradesView .v36AccountHero{padding:15px 16px}
+  #tradesView .v36AccountHero strong{font-size:27px}
+  #tradesView .v36QuickMetric{padding:12px 13px;min-height:67px}
+  #tradesView .v36Setups{grid-template-columns:1fr;gap:8px}
+  #tradesView .v36SetupCard{padding:15px}
+  #tradesView .v36BlockHead{align-items:start;display:block}
+  #tradesView .v36BlockHead p{text-align:left;margin-top:4px}
+  #tradesView .v36TradeCard summary{padding:13px 14px;min-height:64px}
+  #tradesView .v36TradeMeta{gap:12px;overflow:hidden}
+  #tradesView .v36TradeMeta div:nth-child(n+3){display:none}
+  #tradesView .v36Result{font-size:16px}
+  #tradesView .v36TradeDetail{padding:0 14px 13px}
+  #tradesView .v36TradeDetailGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:390px){
+  #tradesView .v36AccountBar{grid-template-columns:1fr 1fr}
+  #tradesView .v36AccountHero{display:block}
+  #tradesView .v36AccountPnl{text-align:left;margin-top:7px}
+  #tradesView .v36TradeCard summary{grid-template-columns:minmax(0,1fr) auto}
+}
