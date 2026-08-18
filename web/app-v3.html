@@ -36,7 +36,7 @@
   <section class="section"><div class="sectionHead"><h2>Live baseline state</h2><p>The same V2 state used on Home.</p></div><div class="pairGrid"><article class="pairCard" id="EURUSDResearch"><div class="empty">EURUSD loading…</div></article><article class="pairCard" id="GBPUSDResearch"><div class="empty">GBPUSD loading…</div></article></div></section>
 </section>
 <section class="view" id="system">
-  <div class="pageHead"><div><div class="pageKicker">Reliability</div><h1>System</h1><p>Navigation is local. Each live service has a timeout and may fail independently.</p></div></div>
+  <div class="pageHead"><div><div class="pageKicker">Reliability</div><h1>System</h1><p>Navigation is local. Core data refreshes about once a minute while this tab is open or visible; health checks refresh every 30 seconds and cannot change trading decisions.</p></div></div>
   <div id="services" class="services"><div class="service"><span>UI + navigation</span><b class="ok">READY</b></div><div class="service"><span>Live services</span><b>Checking…</b></div></div>
   <a class="fallback" href="/web/recovery-stable">Open stable recovery fallback</a>
 </section>
@@ -44,8 +44,17 @@
 <nav class="bottom"><button class="nav active" data-view="home">Home</button><button class="nav" data-view="chart">Chart</button><button class="nav" data-view="trades">Trades</button><button class="nav" data-view="research">Research</button><button class="nav" data-view="system">System</button></nav>
 </div></div>
 <script>
-(()=>{const $$=s=>[...document.querySelectorAll(s)];function view(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo(0,0);window.dispatchEvent(new CustomEvent('v2:view',{detail:{id}}))}$$('[data-view]').forEach(b=>b.addEventListener('click',()=>view(b.dataset.view)));window.v2SetView=view})();
+(()=>{
+window.__v2BrowserErrors=[];
+const record=(kind,data)=>{window.__v2BrowserErrors.push({kind,at:new Date().toISOString(),...data});window.__v2BrowserErrors=window.__v2BrowserErrors.slice(-20);window.dispatchEvent(new CustomEvent('v2:browser-error'))};
+window.addEventListener('error',e=>record('error',{message:e.message||'Resource or script error',source:e.filename||'',line:e.lineno||null}));
+window.addEventListener('unhandledrejection',e=>record('promise',{message:String(e.reason?.message||e.reason||'Unhandled promise rejection')}));
+const $$=s=>[...document.querySelectorAll(s)];
+function view(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo(0,0);window.dispatchEvent(new CustomEvent('v2:view',{detail:{id}}))}
+$$('[data-view]').forEach(b=>b.addEventListener('click',()=>view(b.dataset.view)));window.v2SetView=view;
+})();
 </script>
 <script defer src="/web/app-v3.js"></script>
+<script defer src="/web/app-health.js"></script>
 </body>
 </html>
