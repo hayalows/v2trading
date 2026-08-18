@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090c10">
+<meta name="description" content="V2 paper-trading research workspace for EURUSD and GBPUSD.">
+<title>V2 Trading</title>
+<link rel="stylesheet" href="/web/app-v3.css">
+</head>
+<body>
+<div class="app">
+<aside class="side"><div class="sideLogo">V2</div><nav class="sideNav"><button class="sideBtn active" data-view="home">Home</button><button class="sideBtn" data-view="chart">Chart</button><button class="sideBtn" data-view="trades">Trades</button><button class="sideBtn" data-view="research">Research</button><button class="sideBtn" data-view="system">System</button></nav></aside>
+<div class="main">
+<header class="top"><div class="brand"><div class="logo">V2</div><div class="brandText"><b>V2 Trading</b><span><i class="liveDot" id="topDot"></i><span id="topStatus">Connecting live data</span></span></div></div><button class="refresh" id="refresh" type="button" aria-label="Refresh live data">↻</button></header>
+<main class="wrap">
+<section class="view active" id="home">
+  <div class="pageHead"><div><div class="pageKicker">EURUSD · GBPUSD</div><h1>What matters now</h1><p>Current V2 state and the paper account. Research-only challengers stay separate.</p></div><div class="healthPill"><i class="liveDot" id="homeDot"></i><span id="healthText">Live data loading in background</span></div></div>
+  <article class="accountHero"><div class="accountTop"><div><small>V2 paper account</small><div class="balance" id="balance">—</div><div class="accountPnl" id="pnl">—</div></div><div class="record"><span>Scored record</span><b id="record">—</b></div></div><div class="accountGrid"><div><span>Open now</span><b id="openNow">—</b></div><div><span>Next 1% risk</span><b id="riskNext">—</b></div><div><span>Max drawdown</span><b id="drawdown">—</b></div></div></article>
+  <section class="section"><div class="sectionHead"><h2>Instrument progress</h2><p>Why each pair is at its current stage and what must happen next.</p></div><div class="pairGrid"><article class="pairCard" id="EURUSDHome"><div class="empty">EURUSD loading…</div></article><article class="pairCard" id="GBPUSDHome"><div class="empty">GBPUSD loading…</div></article></div></section>
+</section>
+<section class="view" id="chart">
+  <div class="pageHead"><div><div class="pageKicker">Visual verification</div><h1>Chart</h1><p>TradingView loads only after this tab is opened, so it cannot freeze the rest of the app.</p></div><div class="filters"><button class="filter active" data-chart-pair="EURUSD">EURUSD</button><button class="filter" data-chart-pair="GBPUSD">GBPUSD</button></div></div>
+  <div class="chartShell"><div class="chartBar"><b id="chartTitle">EURUSD · 15 minute</b><span>Visual audit only · not broker execution truth</span></div><div id="chartHost" class="chartLoading">Chart is isolated from the V2 interface.</div></div>
+</section>
+<section class="view" id="trades">
+  <div class="pageHead"><div><div class="pageKicker">Paper trading</div><h1>Trades</h1><p>Results first, then timing, setup quality and the exact frozen geometry behind each entry.</p></div></div>
+  <div class="tradeSummary"><div><span>Balance</span><b id="tradeBalance">—</b></div><div><span>Realised P&amp;L</span><b id="tradePnl">—</b></div><div><span>Open trades</span><b id="tradeOpen">—</b></div><div><span>Plans waiting</span><b id="plansWaiting">—</b></div></div>
+  <section class="section"><div class="sectionHead"><h2>Current instrument progress</h2><p>POI, entry, SL and TP appear once a plan is frozen.</p></div><div class="pairGrid"><article class="pairCard" id="EURUSDTrade"><div class="empty">EURUSD loading…</div></article><article class="pairCard" id="GBPUSDTrade"><div class="empty">GBPUSD loading…</div></article></div></section>
+  <section class="section"><div class="journalHead"><div><h2>Trades actually taken</h2><span id="qualitySummary">Quality summary loading…</span></div><div class="filterGroups"><div class="filters"><button class="filter active" data-pair-filter="ALL">All pairs</button><button class="filter" data-pair-filter="EURUSD">EURUSD</button><button class="filter" data-pair-filter="GBPUSD">GBPUSD</button></div><div class="filters"><button class="filter active" data-quality-filter="ALL">All quality</button><button class="filter" data-quality-filter="clean">Clean</button><button class="filter" data-quality-filter="weakened">Weakened</button><button class="filter" data-quality-filter="extended">Extended</button><button class="filter" data-quality-filter="longtail">Long-tail</button></div></div></div><div id="tradeList" class="tradeList"><div class="empty">Trade journal loading in background…</div></div></section>
+</section>
+<section class="view" id="research">
+  <div class="pageHead"><div><div class="pageKicker">Evidence boundary</div><h1>Research</h1><p>V2 baseline stays frozen. V3.4/V3.5 context loads separately and cannot affect navigation or paper P&amp;L.</p></div></div>
+  <div class="researchGrid"><article><span>V2 baseline</span><h3>Sweep → BOS → fresh POI → midpoint</h3><p>Canonical paper trades remain at 1% risk with frozen entry, stop and 2.5R target rules.</p></article><article><span>V3.4</span><h3>Market-map context only</h3><p>Higher-timeframe and liquidity context can explain a setup but does not veto V2.</p></article><article><span>V3.5</span><h3>Shadow challenger only</h3><p>Trend-candle and breakout-retest research remains outside the V2 account.</p></article><article><span>Execution</span><h3>Research evidence, not broker fills</h3><p>Public BID/ASK checks can add evidence without rewriting canonical paper results.</p></article></div>
+  <div id="researchLive" class="section"><div class="empty">Live V3.5 data will load only when Research is opened.</div></div>
+  <section class="section"><div class="sectionHead"><h2>Live baseline state</h2><p>The same V2 state used on Home.</p></div><div class="pairGrid"><article class="pairCard" id="EURUSDResearch"><div class="empty">EURUSD loading…</div></article><article class="pairCard" id="GBPUSDResearch"><div class="empty">GBPUSD loading…</div></article></div></section>
+</section>
+<section class="view" id="system">
+  <div class="pageHead"><div><div class="pageKicker">Reliability</div><h1>System</h1><p>Navigation is local. Each live service has a timeout and may fail independently.</p></div></div>
+  <div id="services" class="services"><div class="service"><span>UI + navigation</span><b class="ok">READY</b></div><div class="service"><span>Live services</span><b>Checking…</b></div></div>
+  <a class="fallback" href="/web/recovery-stable">Open stable recovery fallback</a>
+</section>
+</main>
+<nav class="bottom"><button class="nav active" data-view="home">Home</button><button class="nav" data-view="chart">Chart</button><button class="nav" data-view="trades">Trades</button><button class="nav" data-view="research">Research</button><button class="nav" data-view="system">System</button></nav>
+</div></div>
+<script>
+(()=>{const $$=s=>[...document.querySelectorAll(s)];function view(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo(0,0);window.dispatchEvent(new CustomEvent('v2:view',{detail:{id}}))}$$('[data-view]').forEach(b=>b.addEventListener('click',()=>view(b.dataset.view)));window.v2SetView=view})();
+</script>
+<script defer src="/web/app-v3.js"></script>
+</body>
+</html>
