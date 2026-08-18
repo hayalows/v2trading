@@ -1,0 +1,88 @@
+/* V2 Trading — readability + hierarchy pass
+   Goal: reduce cognitive load without shrinking the typography.
+   Loaded after app-v3.css and app-polish-v1.css. */
+
+:root{
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;
+}
+
+body{font-size:16px;line-height:1.45}
+.brandText b{font-size:15px;font-weight:720}.brandText>span{font-size:11.5px}
+.pageHead{margin-bottom:15px}.pageHead h1{font-size:clamp(25px,4.6vw,30px);font-weight:760;line-height:1.08}.pageHead p{font-size:14px;line-height:1.5}.pageKicker{font-size:11.5px;letter-spacing:.01em}.healthPill{font-size:11.5px}
+.section{margin-top:20px}.sectionHead,.journalHead{margin-bottom:10px}.sectionHead h2,.journalHead h2{font-size:18px;line-height:1.2}.sectionHead p,.journalHead>div>span{font-size:13px;line-height:1.4}
+
+/* Keep the overview calm: one strong account surface, then instruments. */
+#home .accountHero{padding:15px 16px 13px;border-radius:18px;background:#11171d}
+#home .accountLabel{font-size:12px;font-weight:650}#home .accountLabel .uiIcon{width:15px;height:15px}
+#home .balance{font-size:32px;line-height:1.02;font-weight:760;margin-top:4px}
+#home .accountPnl{font-size:13.5px;line-height:1.35;margin-top:5px}
+#home .record{min-width:104px}#home .record span{font-size:11px}#home .record b{font-size:14px}
+#home .accountGrid{margin-top:11px;gap:0;border-top:1px solid var(--line)}
+#home .accountGrid>div{padding:10px 12px 1px;border:0;border-radius:0;background:transparent}
+#home .accountGrid>div+div{border-left:1px solid var(--line)}
+#home .accountGrid span{font-size:10.5px;line-height:1.2}#home .accountGrid b{font-size:14px;line-height:1.2;margin-top:4px}
+
+/* Instrument cards should be the primary scanning surface. */
+#home .section{margin-top:16px}#home .pairGrid{gap:9px}
+#home .pairCard{padding:14px 15px;border-radius:16px;background:#11161c}
+#home .pairTop strong{font-size:15.5px;font-weight:720}#home .pairPrice{font-size:22px;line-height:1.05;font-weight:690;margin-top:3px}
+#home .stageBadge{font-size:10.5px;padding:5px 8px;font-weight:700}
+#home .stageTrack{height:4px;margin:11px 0 8px}
+#home .stageName{font-size:14px;line-height:1.3;font-weight:700}
+#home .pairCard p{font-size:12.5px;line-height:1.42;margin-top:5px;-webkit-line-clamp:2}
+#home .next{margin-top:9px;padding:8px 9px;font-size:12.5px;line-height:1.38;background:rgba(255,255,255,.022)}
+#home .next b{font-size:11.5px}
+
+/* Restore readable type throughout detail-heavy views. */
+.tradeSummary span{font-size:11px}.tradeSummary b{font-size:15px}.tradeSummary>div{padding:11px 12px}
+.filter{font-size:12px;min-height:40px;padding:8px 12px}
+.tradeTitle strong{font-size:15px}.direction,.qchip{font-size:10px}.tradeWhen{font-size:12px}
+.tradeDur span{font-size:10.5px}.tradeDur b{font-size:12.5px}.tradeResult{font-size:19px}.tradeResult small{font-size:11px}
+.timeline span,.geometry span,.detailGrid span,.levels span{font-size:10.5px;letter-spacing:.02em}
+.timeline b,.geometry b,.detailGrid b,.levels b{font-size:12px}.qualityNote{font-size:12px;line-height:1.5}
+.researchGrid span{font-size:11.5px}.researchGrid h3{font-size:16px}.researchGrid p{font-size:13px;line-height:1.5}
+.researchLiveCard span{font-size:11px}.researchLiveCard strong{font-size:15px}.researchLiveCard p{font-size:13px}.researchFacts b{font-size:12.5px}.researchFacts span{font-size:10.5px}
+.service{padding:13px 14px}.service span{font-size:13px}.service b{font-size:11.5px}.fallback{font-size:12.5px;min-height:44px}
+.chartBar b{font-size:13.5px}.chartBar span{font-size:11px}
+
+/* Comfortable controls and visible focus states. */
+.refresh{width:44px;height:44px}.nav,.sideBtn,.filter,.refresh,.fallback{outline:none}
+.nav:focus-visible,.sideBtn:focus-visible,.filter:focus-visible,.refresh:focus-visible,.fallback:focus-visible{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent)}
+
+@media(max-width:720px){
+  .top{height:62px;padding:0 13px}.logo{width:36px;height:36px}.refresh{width:44px;height:44px}
+  .wrap{padding:14px 13px 88px}
+
+  /* Remove redundant copy, not legibility. */
+  #home .pageHead{margin:1px 1px 10px}#home .pageKicker{display:none}#home .pageHead h1{font-size:24px}#home .pageHead p,#home .healthPill{display:none}
+
+  #home .accountHero{padding:13px 14px 11px;border-radius:17px}
+  #home .accountLabel{font-size:11.5px}#home .balance{font-size:30px}#home .accountPnl{font-size:13px}
+  #home .record{min-width:96px}#home .record span{font-size:10.5px}#home .record b{font-size:13.5px}
+  #home .accountGrid{margin-top:10px}#home .accountGrid>div{padding:9px 9px 0}#home .accountGrid span{font-size:10px;white-space:normal}#home .accountGrid b{font-size:13.5px}
+  #home .accountGrid .metricLabel{gap:5px}#home .accountGrid .metricLabel .uiIcon{width:13px;height:13px}
+
+  #home .section{margin-top:15px}#home .sectionHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  #home .sectionHead h2{font-size:17px}#home .sectionHead p{display:none}
+  #home .pairGrid{gap:8px}#home .pairCard{padding:13px 14px;border-radius:16px}
+  #home .pairTop strong{font-size:15px}#home .pairPrice{font-size:21px}#home .stageBadge{font-size:10px;padding:4px 7px}
+  #home .stageTrack{margin:9px 0 7px}#home .stageName{font-size:13.5px}
+  #home .pairCard p{font-size:12.5px;line-height:1.4;margin-top:4px;-webkit-line-clamp:1}
+  #home .next{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px;margin-top:7px;padding:7px 8px;font-size:12px;line-height:1.35}
+  #home .next span{white-space:normal;overflow:visible;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+
+  .pageHead h1{font-size:24px}.pageHead p{font-size:13.5px}.pageKicker{font-size:11px}
+  .sectionHead h2,.journalHead h2{font-size:17px}.sectionHead p,.journalHead>div>span{font-size:12.5px}
+  .tradeSummary{gap:7px}.tradeSummary>div{padding:10px 11px}.tradeSummary span{font-size:10.5px}.tradeSummary b{font-size:14.5px}
+  .filter{font-size:12px;min-height:44px;padding:9px 12px}
+  .tradeCard>summary{padding:14px}.tradeTitle strong{font-size:15px}.tradeWhen{font-size:11.5px}.tradeResult{font-size:18px}.tradeResult small{font-size:10.5px}
+  .tradeDur span{font-size:10.5px}.tradeDur b{font-size:12px}
+  .timeline span,.geometry span,.detailGrid span,.levels span{font-size:10.5px}.timeline b,.geometry b,.detailGrid b,.levels b{font-size:12px}
+  .researchGrid h3{font-size:15.5px}.researchGrid p{font-size:13px}.service span{font-size:12.5px}.service b{font-size:11.5px}
+
+  .bottom{padding-top:6px}.nav{min-height:56px;gap:4px;font-size:11px}.nav .uiIcon{width:21px;height:21px}.navLabel{font-size:11px}
+}
+
+@media(min-width:900px){
+  .sideBtn{font-size:10.5px;min-height:58px}.sideLabel{font-size:10.5px}.wrap{padding-top:25px}
+}
