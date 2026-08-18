@@ -1,0 +1,2 @@
+Baseline immediately before structural UI/UX audit changes: e84df42c04d89809aab3b4006bb14cc3e211d520
+This commit includes the audit document only; production UI files were unchanged from the prior working deployment.
