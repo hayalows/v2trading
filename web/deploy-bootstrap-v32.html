@@ -18,12 +18,14 @@ html,body{margin:0;background:#090c10;color:#f5f7fa;font-family:'V2 Inter',Inter
 <script>
 (async()=>{
   const commit='47ed4a820afd0c6d41bf4cec37a52d376dc5bce3';
+  const tradesCommit='73f7b7c286d0ac7feaee65a6e1e08355df2003b6';
   const base=`https://cdn.jsdelivr.net/gh/hayalows/v2trading@${commit}/web/`;
+  const tradesBase=`https://cdn.jsdelivr.net/gh/hayalows/v2trading@${tradesCommit}/web/`;
   const interFont='https://cdn.jsdelivr.net/fontsource/fonts/inter:vf@5.3.0/latin-wght-normal.woff2';
   try{
     let html=await fetch(base+'index.html',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('asset '+r.status);return r.text()});
     html=html.replaceAll('href="/web/','href="'+base).replaceAll('src="/web/','src="'+base);
-    html=html.replace('</head>',`<link id="v32UiCss" rel="stylesheet" href="${base}v32-ui.css"><link id="v33UiCss" rel="stylesheet" href="${base}v33-ui.css"><link rel="preload" href="${interFont}" as="font" type="font/woff2" crossorigin><style id="v2InterLock">@font-face{font-family:'V2 Inter';font-style:normal;font-display:block;font-weight:100 900;src:url('${interFont}') format('woff2-variations')}html,body,button,input,textarea,select,summary{font-family:'V2 Inter',Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;font-synthesis:none}body{font-optical-sizing:auto}.material-symbols-rounded{font-family:'Material Symbols Rounded'!important}</style><script id="v32UiJs" defer src="${base}v32-ui.js"><\/script><script id="v33UiJs" defer src="${base}v33-ui.js"><\/script></head>`);
+    html=html.replace('</head>',`<link id="v32UiCss" rel="stylesheet" href="${base}v32-ui.css"><link id="v33UiCss" rel="stylesheet" href="${base}v33-ui.css"><link id="v36TradesCss" rel="stylesheet" href="${tradesBase}v36-trades-ux.css"><link rel="preload" href="${interFont}" as="font" type="font/woff2" crossorigin><style id="v2InterLock">@font-face{font-family:'V2 Inter';font-style:normal;font-display:block;font-weight:100 900;src:url('${interFont}') format('woff2-variations')}html,body,button,input,textarea,select,summary{font-family:'V2 Inter',Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;font-synthesis:none}body{font-optical-sizing:auto}.material-symbols-rounded{font-family:'Material Symbols Rounded'!important}</style><script id="v32UiJs" defer src="${base}v32-ui.js"><\/script><script id="v33UiJs" defer src="${base}v33-ui.js"><\/script><script id="v36TradesJs" defer src="${tradesBase}v36-trades-ux.js"><\/script></head>`);
     document.open();document.write(html);document.close();
   }catch(e){
     console.error(e);document.body.innerHTML='<div class="boot"><span>V2 could not load. Refresh to retry.</span></div>';
