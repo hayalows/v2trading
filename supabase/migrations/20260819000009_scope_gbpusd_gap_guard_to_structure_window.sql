@@ -101,7 +101,7 @@ begin
       new.atr15 := old.atr15;
       new.range_position := old.range_position;
       new.swing_high := old.swing_high;
-      new.swing_low := old.swinging_low;
+      new.swing_low := old.swing_low;
       new.poi_high := old.poi_high;
       new.poi_low := old.poi_low;
       new.distance_to_poi_atr := old.distance_to_poi_atr;
