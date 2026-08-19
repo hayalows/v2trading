@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "v2-live-feed-gateway",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-19",
+  "compatibility_flags": ["nodejs_compat", "allow_custom_ports"],
+  "durable_objects": {
+    "bindings": [
+      { "name": "FEED", "class_name": "FeedGateway" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["FeedGateway"] }
+  ],
+  "triggers": {
+    "crons": ["*/5 * * * *"]
+  },
+  "vars": {
+    "CTRADER_ENV": "demo",
+    "SUPABASE_GATEWAY_URL": "https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/live-feed-gateway",
+    "SUPABASE_BRIDGE_URL": "https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/live-feed-bridge"
+  }
+}
