@@ -1,0 +1,70 @@
+/* V2 refine layer — motion, numeric stability and depth. Loads last; additive only. */
+
+/* Numbers that update live must never shift layout. */
+.balance,.accountPnl,.record b,.winRate,.accountGrid b,.tradeSummary b,.pairPrice,.stageBadge,
+.tradeResult,.tradeResult small,.tradeDur b,.timeline b,.geometry b,.detailGrid b,.levels b,
+.service b,.researchFacts b,#qualitySummary,.tradeHistoryMeta strong,.homeFocusStage,
+.homeLatestResult b,.homeLatestResult span,.qchip{font-variant-numeric:tabular-nums}
+
+/* Headings wrap without orphans or awkward last lines. */
+.pageHead h1,.sectionTitle,.homeLatestHead>span,.homeFocusStatus,.researchItemText h3{text-wrap:balance}
+.pageHead p,.sectionHead p,.journalHead>div>span,.pairCard p,.next span,.researchGrid p,.researchItemBody p,.qualityNote{text-wrap:pretty}
+
+/* Depth: layered ambient shadows under the primary surfaces (hairlines stay). */
+.accountHero,.pairCard,.tradeCard,.researchItem,.healthSummary,.healthCore,.homeLatestRow{
+  box-shadow:0 1px 0 rgba(255,255,255,.028) inset,0 10px 28px -18px rgba(0,0,0,.55)}
+.homeFocus{box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 16px 40px -20px rgba(0,0,0,.6)}
+@media(max-width:720px){.accountHero,.pairCard,.tradeCard,.researchItem,.healthSummary,.healthCore,.homeLatestRow{box-shadow:0 1px 0 rgba(255,255,255,.025) inset}}
+
+/* Tactile press feedback — transform only, fully interruptible. */
+.refresh,.filter,.sideBtn,.nav,.tradeMore,.tradeCollapse,.homeLatestRow,.tradeSubtab,.researchItem>summary,.healthAdvanced>summary,.tradeCard>summary{transition:transform .12s cubic-bezier(.2,0,0,1),background-color .15s ease,border-color .15s ease,color .15s ease}
+.refresh:active,.filter:active,.sideBtn:active,.nav:active,.tradeMore:active,.tradeCollapse:active,.homeLatestRow:active,.tradeSubtab:active{transform:scale(.96)}
+@media(hover:hover){.pairCard,.tradeCard{transition:border-color .18s ease,box-shadow .18s ease}.pairCard:hover,.tradeCard:hover{border-color:rgba(255,255,255,.14)}}
+
+/* Refresh spins only while it is actually working. */
+@keyframes v2spin{to{transform:rotate(360deg)}}
+.refresh:disabled .uiIcon{animation:v2spin .9s linear infinite}
+
+/* A quiet heartbeat for the live indicator. */
+@keyframes v2pulse{0%,100%{box-shadow:0 0 0 0 rgba(142,224,176,.32)}55%{box-shadow:0 0 0 5px rgba(142,224,176,0)}}
+.liveDot.ok{animation:v2pulse 2.6s cubic-bezier(.2,0,0,1) infinite}
+
+/* Loading states breathe instead of sitting static. */
+@keyframes v2breathe{0%,100%{opacity:.55}50%{opacity:1}}
+.empty{animation:v2breathe 1.9s ease-in-out infinite}
+
+/* Stage progress glides to its new value instead of jumping. */
+.stageTrack i{transition:width .55s cubic-bezier(.2,0,0,1)}
+
+/* Cards arrive with a small stagger each time a view opens. */
+@keyframes v2rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.view.active .accountHero{animation:v2rise .34s cubic-bezier(.2,0,0,1) both}
+.view.active .pairCard{animation:v2rise .34s cubic-bezier(.2,0,0,1) both}
+.view.active .pairCard+.pairCard,.view.active .researchGrid article:nth-child(2){animation-delay:60ms}
+.view.active .tradeCard{animation:v2rise .3s cubic-bezier(.2,0,0,1) both}
+.view.active .tradeCard:nth-child(2){animation-delay:45ms}
+.view.active .tradeCard:nth-child(3){animation-delay:90ms}
+.view.active .tradeCard:nth-child(n+4){animation-delay:120ms}
+.view.active .services .service{animation:v2rise .3s cubic-bezier(.2,0,0,1) both}
+.view.active .services .service:nth-child(n+2){animation-delay:50ms}
+
+/* Expanding a trade reveals its detail smoothly. */
+@keyframes v2open{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.tradeCard[open] .tradeBody{animation:v2open .2s cubic-bezier(.2,0,0,1)}
+.tradeCard[open]{border-color:rgba(141,186,255,.24)}
+
+/* Keyboard focus everywhere the pointer can go. */
+.tradeCard>summary:focus-visible,.researchItem>summary:focus-visible,.healthAdvanced>summary:focus-visible,.homeHistoryLink:focus-visible,.qualitySelectWrap select:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent)}
+
+/* Quiet chrome: selection and scrollbars join the palette. */
+::selection{background:rgba(141,186,255,.3);color:var(--text)}
+*{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent}
+*::-webkit-scrollbar{width:9px;height:9px}
+*::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:999px;border:2px solid transparent;background-clip:content-box}
+*::-webkit-scrollbar-track{background:transparent}
+
+@media(prefers-reduced-motion:reduce){
+  .refresh:disabled .uiIcon,.liveDot.ok,.empty,.view.active .accountHero,.view.active .pairCard,
+  .view.active .tradeCard,.view.active .services .service,.tradeCard[open] .tradeBody{animation:none}
+  .stageTrack i,.refresh,.filter,.sideBtn,.nav,.tradeMore,.tradeCollapse,.homeLatestRow,.tradeSubtab{transition:none}
+}
