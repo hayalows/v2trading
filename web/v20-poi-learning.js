@@ -74,5 +74,5 @@
   document.getElementById('refresh')?.addEventListener('click',()=>setTimeout(refresh,250));
   const primary=window.__V2_PRIMARY_V25===true;
   if(typeof setView==='function'){const baseSetView=setView;setView=function(id){baseSetView(id);if(id==='evidenceView'&&primary)refresh()}}
-  ensureMounts();if(!primary){refresh();setInterval(refresh,60_000);setInterval(render,5_000)}else if(document.getElementById('evidenceView')?.classList.contains('active'))refresh();
+  ensureMounts();if(!primary){refresh();setInterval(()=>{if(!document.hidden)refresh()},60_000);setInterval(()=>{if(!document.hidden)render()},5_000)}else if(document.getElementById('evidenceView')?.classList.contains('active'))refresh();
 })();

@@ -30,5 +30,5 @@
   async function load(){if(loading)return;loading=true;try{const r=await fetch(ENDPOINT,{cache:'no-store'});if(!r.ok)throw new Error(`Trader Brief ${r.status}`);payload=await r.json();render()}catch(e){console.warn('V2.2 Trader Brief',e);const root=ensure();if(root&&!payload)root.innerHTML='<div class="v22Error"><b>Trader brief unavailable</b><span>The underlying research engine has not been changed. Try refresh shortly.</span></div>'}finally{loading=false}}
   document.addEventListener('click',e=>{if(e.target.closest('.pairSwitch,[data-pair]'))setTimeout(()=>{lastSymbol=currentSymbol();render()},80)});
   document.getElementById('refresh')?.addEventListener('click',()=>setTimeout(load,180));
-  ensure();render();load();setInterval(()=>{const s=currentSymbol();if(s!==lastSymbol){lastSymbol=s;render()}},800);setInterval(load,30_000);
+  ensure();render();load();setInterval(()=>{if(document.hidden)return;const s=currentSymbol();if(s!==lastSymbol){lastSymbol=s;render()}},800);setInterval(()=>{if(!document.hidden)load()},30_000);
 })();

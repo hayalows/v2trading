@@ -1,4 +1,4 @@
-name: v12-campaign-intelligence
+﻿name: v12-campaign-intelligence
 
 on:
   pull_request:
@@ -10,6 +10,9 @@ on:
       - 'scripts/v08_validate_frontend.mjs'
       - '.github/workflows/v12-campaign-intelligence.yml'
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   validate:

@@ -1,4 +1,4 @@
-name: v32-live-smoke
+﻿name: v32-live-smoke
 
 on:
   push:
@@ -7,6 +7,13 @@ on:
       - 'scripts/v32_live_smoke.mjs'
       - '.github/workflows/v32-live-smoke.yml'
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v32-live-smoke
+  cancel-in-progress: false
 
 jobs:
   live-browser:

@@ -1,4 +1,5 @@
 (()=>{
+  if(globalThis.__v31QualityLoaded)return;globalThis.__v31QualityLoaded=true;
   const URL='https://uykjgyqoptsvvkaifphm.supabase.co/functions/v1/trade-quality?symbol=EURUSD,GBPUSD';
   let data=null,loading=false,lastLoad=0;
   const $=(s,r=document)=>r.querySelector(s);
@@ -58,5 +59,5 @@
   const paper=$('#paperCurrent');if(paper)new MutationObserver(schedule).observe(paper,{childList:true});
   document.addEventListener('click',e=>{if(e.target.closest?.('[data-pair]'))setTimeout(()=>{render();load(true)},60)});
   document.addEventListener('DOMContentLoaded',()=>load(true));
-  load(true);setInterval(()=>load(true),60000);
+  load(true);setInterval(()=>{if(!document.hidden)load(true)},60000);
 })();

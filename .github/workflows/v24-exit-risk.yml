@@ -14,6 +14,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: v24-exit-risk
+  cancel-in-progress: false
+
 jobs:
   exit-risk:
     runs-on: ubuntu-latest

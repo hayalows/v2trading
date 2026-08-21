@@ -29,5 +29,5 @@
       <div class="v24Foot"><span>Prospective exit-policy sample after the new freeze: ${Number(pros.n||0)}</span><span>${excluded} canonical ambiguous trade${excluded===1?'':'s'} excluded from account scoring</span></div>`;
   }
   async function load(){if(loading)return;loading=true;try{const [a,b]=await Promise.all([fetch(LAB,{cache:'no-store'}),globalThis.__V2DataBus?.paper?globalThis.__V2DataBus.paper('light'):fetch(PAPER,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(`paper ${r.status}`);return r.json()})]);if(!a.ok)throw new Error(`policy ${a.status}`);data={lab:await a.json(),paper:b};render()}catch(e){console.warn('V2.4 policy',e);const r=ensure();if(r&&!data)r.innerHTML='<div class="v24Error">Account research is temporarily unavailable. The underlying paper engine is unchanged.</div>'}finally{loading=false}}
-  ensure();render();load();setInterval(load,60_000);
+  ensure();render();load();setInterval(()=>{if(!document.hidden)load()},60_000);
 })();

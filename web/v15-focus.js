@@ -101,5 +101,5 @@
   async function loadPaper(){if(loading)return;loading=true;try{const r=await fetch(PAPER_FOCUS,{cache:'no-store'});if(r.ok)fp=await r.json()}catch{}finally{loading=false;renderFocus()}}
   const oldRender=typeof render==='function'?render:null;if(oldRender){render=function(){oldRender();renderFocus()}}
   const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='overview')renderFocus();if(id==='evidenceView')ensureResearchModelCard()}}
-  renderFocus();loadPaper();setInterval(loadPaper,60_000);
+  renderFocus();loadPaper();setInterval(()=>{if(!document.hidden)loadPaper()},60_000);
 })();

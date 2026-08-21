@@ -46,5 +46,5 @@
   }
   async function load(){if(loading)return;loading=true;try{const r=await fetch(URL,{cache:'no-store'});if(!r.ok)throw new Error('Model Council unavailable');council=await r.json();render()}catch(e){console.warn('Model Council',e)}finally{loading=false}}
   const oldSet=typeof setView==='function'?setView:null;if(oldSet){setView=function(id){oldSet(id);if(id==='evidenceView'){render();load()}}}
-  load();setInterval(load,60_000);
+  load();setInterval(()=>{if(!document.hidden)load()},60_000);
 })();

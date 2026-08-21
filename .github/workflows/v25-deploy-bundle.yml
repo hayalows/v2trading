@@ -1,4 +1,4 @@
-name: v25-deploy-bundle
+﻿name: v25-deploy-bundle
 on:
   push:
     branches: [main]
@@ -6,6 +6,9 @@ on:
       - 'web/**'
       - '.github/workflows/v25-deploy-bundle.yml'
   workflow_dispatch:
+permissions:
+  contents: read
+
 jobs:
   bundle:
     runs-on: ubuntu-latest

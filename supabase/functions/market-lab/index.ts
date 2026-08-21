@@ -4,6 +4,18 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 
+async function cronOk(req: Request) {
+  const k = req.headers.get("x-v2-cron-key") ?? "";
+  if (!k) return false;
+  const q = await db.from("v2_runtime_secrets").select("secret").eq("name", "cron").maybeSingle();
+  if (q.error || !q.data?.secret) return false;
+  const a = new TextEncoder().encode(k), b = new TextEncoder().encode(String(q.data.secret));
+  if (a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a[i]! ^ b[i]!;
+  return d === 0;
+}
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -318,6 +330,7 @@ Deno.serve(async (req) => {
     if (req.method === "POST") { const b = await req.json().catch(() => ({})), raw = b.symbols ?? b.symbol ?? "all"; symbols = raw === "all" ? Object.keys(INSTRUMENTS) : (Array.isArray(raw) ? raw : [raw]); force = Boolean(b.force); }
     else { const raw = u.searchParams.get("symbol") ?? "all"; symbols = raw === "all" ? Object.keys(INSTRUMENTS) : raw.split(","); force = u.searchParams.get("force") === "1"; }
     symbols = symbols.map(x => String(x).toUpperCase()).filter(x => INSTRUMENTS[x]); if (!symbols.length) return response({ error: "No valid instruments" }, 400);
+    if (force && !(await cronOk(req))) return response({ error: "unauthorized" }, 401);
     const settled = await Promise.allSettled(symbols.map(s => getState(s, force))), states: any[] = [], errors: any[] = [];
     settled.forEach((r, i) => r.status === "fulfilled" ? states.push(r.value) : errors.push({ symbol: symbols[i], error: String(r.reason) }));
     return response({

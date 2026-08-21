@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: v36-rules-parallel
+  group: v36-rules-local-complete
   cancel-in-progress: true
 
 permissions:

@@ -22,5 +22,5 @@
   async function load(){if(busy)return;busy=true;try{const r=await fetch(URL,{cache:'no-store'});if(!r.ok)throw new Error(`Decision Intelligence ${r.status}`);data=await r.json();mount();render()}catch(e){console.warn('V2.1 Decision Intelligence',e)}finally{busy=false}}
   document.addEventListener('click',e=>{if(e.target.closest('.pairSwitch,[data-pair]'))setTimeout(()=>{const s=symbol();if(s!==lastSymbol){lastSymbol=s;render()}},80)});
   document.getElementById('refresh')?.addEventListener('click',()=>setTimeout(load,250));
-  mount();load();setInterval(()=>{const s=symbol();if(s!==lastSymbol){lastSymbol=s;render()}},1000);setInterval(load,60_000);
+  mount();load();setInterval(()=>{if(document.hidden)return;const s=symbol();if(s!==lastSymbol){lastSymbol=s;render()}},1000);setInterval(()=>{if(!document.hidden)load()},60_000);
 })();

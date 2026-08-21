@@ -5,6 +5,17 @@ const KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const WEBHOOK = (Deno.env.get("DISCORD_WEBHOOK_URL") ?? "").trim();
 const db = createClient(SB_URL, KEY, { auth: { persistSession: false } });
 const PAIRS = ["EURUSD", "GBPUSD"];
+async function cronOk(req: Request) {
+  const k = req.headers.get("x-v2-cron-key") ?? "";
+  if (!k) return false;
+  const q = await db.from("v2_runtime_secrets").select("secret").eq("name", "cron").maybeSingle();
+  if (q.error || !q.data?.secret) return false;
+  const a = new TextEncoder().encode(k), b = new TextEncoder().encode(String(q.data.secret));
+  if (a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a[i]! ^ b[i]!;
+  return d === 0;
+}
 const ALERT_STAGES = new Set([3, 5, 6, 7, 8]);
 const CLOSED = new Set(["win", "loss", "timeout", "ambiguous", "expired", "invalid"]);
 const CORS = {
@@ -161,6 +172,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "GET") return json({ error: "GET only" }, 405);
   try {
+    if (!(await cronOk(req))) return json({ error: "unauthorized" }, 401);
     if (!validWebhook(WEBHOOK)) return json({ configured: false, reason: "Set DISCORD_WEBHOOK_URL to an official Discord incoming webhook URL." }, 503);
 
     const system = await getState("_system");

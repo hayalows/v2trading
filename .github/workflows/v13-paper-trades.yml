@@ -1,9 +1,12 @@
-name: v13-paper-trades
+﻿name: v13-paper-trades
 
 on:
   pull_request:
   push:
     branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   validate:

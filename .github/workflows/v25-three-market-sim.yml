@@ -1,4 +1,4 @@
-name: v25-three-market-sim
+﻿name: v25-three-market-sim
 
 on:
   push:
@@ -8,6 +8,13 @@ on:
       - 'scripts/v25_three_market_simulation.py'
       - '.github/workflows/v25-three-market-sim.yml'
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v25-three-market-sim
+  cancel-in-progress: false
 
 jobs:
   simulate:
@@ -21,7 +28,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
-      - run: npm install --no-save dukascopy-node@latest
+      - run: npm install --no-save dukascopy-node@1.50.0
       - run: pip install -r requirements.txt
       - name: Download EURUSD M15
         run: node scripts/v25_download_history.cjs eurusd .research-data/eurusd-m15.json 2020-01-01 2026-08-12

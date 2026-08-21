@@ -1,4 +1,4 @@
-name: v04-execution-first
+﻿name: v04-execution-first
 
 on:
   pull_request:
@@ -15,6 +15,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: v04-execution-first
+  cancel-in-progress: false
 
 jobs:
   execution-research:

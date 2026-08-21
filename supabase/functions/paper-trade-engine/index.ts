@@ -10,6 +10,17 @@ const CORS = {
   "Cache-Control": "no-store",
 };
 const SYMBOLS = ["EURUSD", "GBPUSD"];
+async function cronOk(req: Request) {
+  const k = req.headers.get("x-v2-cron-key") ?? "";
+  if (!k) return false;
+  const q = await db.from("v2_runtime_secrets").select("secret").eq("name", "cron").maybeSingle();
+  if (q.error || !q.data?.secret) return false;
+  const a = new TextEncoder().encode(k), b = new TextEncoder().encode(String(q.data.secret));
+  if (a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a[i]! ^ b[i]!;
+  return d === 0;
+}
 const YAHOO = { EURUSD: "EURUSD=X", GBPUSD: "GBPUSD=X" };
 const ORIGINAL_WINDOW_BARS = 8;
 const EXTENDED_WINDOW_BARS = 48;
@@ -481,7 +492,9 @@ Deno.serve(async (req) => {
   if (req.method !== "GET") return reply({ error: "GET only" }, 405);
   try {
     const u = new globalThis.URL(req.url), requested = (u.searchParams.get("symbol") || SYMBOLS.join(",")).split(",").map(x => x.toUpperCase()).filter(x => SYMBOLS.includes(x)), symbols = requested.length ? requested : SYMBOLS;
-    const run = u.searchParams.get("run") === "1" ? await runEngine() : null;
+    const wantRun = u.searchParams.get("run") === "1";
+    if (wantRun && !(await cronOk(req))) return reply({ error: "unauthorized" }, 401);
+    const run = wantRun ? await runEngine() : null;
     const snap = await snapshot(symbols, u.searchParams.get("bars") === "1");
     return reply({ version: "V2 paper-trade engine v2.0", research_only: true, broker_execution: false, generated_at: new Date().toISOString(), run, ...snap, methodology: { entry: "50% live POI midpoint remains the only baseline paper-plan entry", timeInvalidation: "None for the baseline plan. Elapsed time changes lifecycle/evidence state but does not cancel an untouched POI.", waitingLifecycle: { freshThroughBars: ORIGINAL_WINDOW_BARS, extendedThroughBars: EXTENDED_WINDOW_BARS, studiedTailThroughBars: RESEARCH_TAIL_BARS, beyondTail: "continue research tracking, suppress from Focus" }, poiPenetration: "0=proximal edge, 0.5=midpoint, 1=distal edge. Exact penetration is tracked with tolerant boundary comparisons.", focusSemantics: "A newer same-symbol same-direction plan can supersede an older unfilled plan for Focus without deleting its research tracking.", depthShadow: { grid: "0%-100% in 5% steps", entryWaitBars: SHADOW_ENTRY_HORIZON_BARS, postEntryHoldBars: MAX_HOLD_BARS, baselineDepthPct: 50, automaticPromotion: false, backfillExcludedFromPromotion: true }, shallowPoiTouch: "Tracked as lifecycle/penetration evidence; not automatic cancellation.", preEntryTargetExtension: "Tracked as context; not a universal invalidation rule.", stop: "sweep extreme +/- 0.03 ATR", targetR: REWARD_R, maxHoldBars: MAX_HOLD_BARS, riskAtrGate: [MIN_RISK_ATR, MAX_RISK_ATR], historyRecoveryHours: HISTORY_RECOVERY_HOURS, triggerData: "same-source completed M15 structural bars only", sameBarPolicy: "public 5m when needed; otherwise ambiguous", executionTruth: "Research paper trades only; no broker bid/ask, spread, slippage or executable fill feed." } });
   } catch (e) { return reply({ error: String(e) }, 500); }

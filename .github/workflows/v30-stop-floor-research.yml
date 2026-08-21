@@ -1,4 +1,4 @@
-name: v30-stop-floor-research
+﻿name: v30-stop-floor-research
 
 on:
   push:
@@ -8,10 +8,19 @@ on:
       - 'reports/v30/V30_STOP_FLOOR_PROTOCOL.md'
       - '.github/workflows/v30-stop-floor-research.yml'
   workflow_dispatch:
+    inputs:
+      artifact_run_id:
+        description: 'Run ID that produced the frozen v19-poi-penetration artifact (re-point after re-running the producer; retention is 14 days)'
+        required: false
+        default: '31501787388'
 
 permissions:
   contents: read
   actions: read
+
+concurrency:
+  group: v30-stop-floor-research
+  cancel-in-progress: false
 
 jobs:
   research:
@@ -34,7 +43,7 @@ jobs:
           path: research-input/v19
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: hayalows/v2trading
-          run-id: 31501787388
+          run-id: ${{ inputs.artifact_run_id || '31501787388' }}
       - name: Download EURUSD and GBPUSD M5 history
         shell: bash
         run: |

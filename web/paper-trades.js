@@ -91,5 +91,5 @@
   if(typeof render==='function'){const baseRender=render;render=function(){baseRender();renderAccount();renderPaperOverview();renderTradesView()}}
   if(typeof setView==='function'){const baseSetView=setView;setView=function(id){baseSetView(id);if(id==='tradesView')setTimeout(renderResearchChart,0)}}
   document.getElementById('refresh')?.addEventListener('click',()=>refreshPaper(true));
-  refreshPaper();setInterval(()=>refreshPaper(false),60_000);
+  refreshPaper();setInterval(()=>{if(!document.hidden)refreshPaper(false)},60_000);
 })();

@@ -56,4 +56,4 @@ jobs:
         shell: bash
         run: |
           cd .v33-deploy
-          npx --yes vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN"
+          npx --yes vercel@59.1.4 deploy --prod --yes --token="$VERCEL_TOKEN"

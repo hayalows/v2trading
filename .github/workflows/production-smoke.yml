@@ -1,4 +1,4 @@
-name: production-smoke
+﻿name: production-smoke
 
 # Verifies the live Vercel + CDN path at a 390x844 mobile viewport, including compact account access, pair-filtered journal, optional advanced details, recent FX ranges and non-overlapping Ask V2 quick actions.
 # Production app pin verified in this run: ac6b05f4c750f026a2a87e6387108d2890d5d1db
@@ -8,6 +8,13 @@ on:
     paths:
       - '.github/workflows/production-smoke.yml'
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-smoke
+  cancel-in-progress: false
 
 jobs:
   live-browser:

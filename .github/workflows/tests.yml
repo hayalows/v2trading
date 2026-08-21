@@ -1,9 +1,12 @@
-name: tests
+﻿name: tests
 
 on:
   push:
     branches: [main]
   pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   unit-tests:

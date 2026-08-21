@@ -4,6 +4,7 @@ const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const db=createClient(SUPABASE_URL,SERVICE_KEY,{auth:{persistSession:false}});
 const CORE=["EURUSD","GBPUSD"];
+async function cronOk(req:Request){const k=req.headers.get("x-v2-cron-key")??"";if(!k)return false;const q=await db.from("v2_runtime_secrets").select("secret").eq("name","cron").maybeSingle();if(q.error||!q.data?.secret)return false;const a=new TextEncoder().encode(k),b=new TextEncoder().encode(String(q.data.secret));if(a.length!==b.length)return false;let d=0;for(let i=0;i<a.length;i++)d|=a[i]!^b[i]!;return d===0}
 const LANDMARKS=new Set([0,2,4,8,12,16,24]);
 const HORIZON=16;
 // Exact walk-forward comparator available before 2026 begins.
@@ -145,6 +146,7 @@ Deno.serve(async(req:Request)=>{
   if(req.method!=="GET")return reply({error:"GET only"},405);
   try{
     const u=new URL(req.url),run=u.searchParams.get("run")==="1";
+    if(run&&!(await cronOk(req)))return reply({error:"unauthorized"},401);
     let cycle:any=null;
     if(run){const resolved=await resolvePending();const captured=await capture();cycle={resolved,captured,ranAt:new Date().toISOString()}}
     return reply({...await summary(),cycle});

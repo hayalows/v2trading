@@ -1,4 +1,4 @@
-name: v31-quality-smoke
+﻿name: v31-quality-smoke
 
 # Final V3.1 gate: live API + dynamic quality UI + existing 390x844 mobile regression.
 on:
@@ -15,6 +15,13 @@ on:
       - 'scripts/v31_quality_validate.mjs'
       - '.github/workflows/v31-quality-smoke.yml'
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v31-quality-smoke
+  cancel-in-progress: false
 
 jobs:
   validate:

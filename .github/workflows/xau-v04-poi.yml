@@ -1,4 +1,4 @@
-name: xau-v04-poi
+﻿name: xau-v04-poi
 
 on:
   push:
@@ -8,6 +8,13 @@ on:
       - 'scripts/xau_v1_poi_research.py'
       - '.github/workflows/xau-v04-poi.yml'
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xau-v04-poi
+  cancel-in-progress: false
 
 jobs:
   xau-poi:
@@ -23,7 +30,7 @@ jobs:
           python-version: '3.11'
           cache: pip
       - name: Install Dukascopy downloader
-        run: npm install --no-save dukascopy-node@latest
+        run: npm install --no-save dukascopy-node@1.50.0
       - name: Install V2 research dependencies
         run: pip install -r requirements.txt
       - name: Download XAUUSD M15 history

@@ -1,4 +1,4 @@
-name: v11-intelligence
+﻿name: v11-intelligence
 
 on:
   pull_request:
@@ -10,6 +10,9 @@ on:
       - 'scripts/v11_validate_episode_logic.mjs'
       - 'scripts/v08_validate_frontend.mjs'
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   validate:

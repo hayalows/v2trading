@@ -1,4 +1,4 @@
-name: v35-trend-candle-engine
+﻿name: v35-trend-candle-engine
 
 on:
   push:
@@ -13,6 +13,10 @@ on:
 permissions:
   contents: read
   actions: read
+
+concurrency:
+  group: v35-trend-candle-engine
+  cancel-in-progress: false
 
 jobs:
   research:

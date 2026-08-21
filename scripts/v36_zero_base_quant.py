@@ -426,6 +426,8 @@ def ml_walkforward(frames:dict[str,pd.DataFrame],outdir:Path):
     for s,x in frames.items():
         z=x.copy(); z["symbol_code"]=0 if s=="EURUSD" else 1; allframes.append(z)
     base=pd.concat(allframes,ignore_index=True).sort_values(["date","symbol"]).reset_index(drop=True)
+    base["_yr"]=base.date.dt.year
+    base["_tail"]=base.groupby(["symbol","_yr"]).cumcount(ascending=False)
     labelmaps={}
     for sm,rr in model_grid:
         pieces=[]
@@ -440,7 +442,7 @@ def ml_walkforward(frames:dict[str,pd.DataFrame],outdir:Path):
         feats=FEATURES+["symbol_code"]
         preds=np.full(len(z),np.nan)
         for year in range(2013,2026):
-            tr=(z.date.dt.year<=year-1)&(z.date.dt.year>=2005)&z[feats].notna().all(axis=1)&z.y.ne(0)
+            tr=(z.date.dt.year<=year-1)&(z.date.dt.year>=2005)&(z._tail>=HORIZON)&z[feats].notna().all(axis=1)&z.y.ne(0)
             te=(z.date.dt.year==year)&z[feats].notna().all(axis=1)
             if tr.sum()<5000 or te.sum()==0: continue
             X=z.loc[tr,feats]; y=(z.loc[tr,"y"]>0).astype(int)
